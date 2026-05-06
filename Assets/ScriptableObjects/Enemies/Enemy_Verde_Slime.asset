@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a12be4190b5060d49afb651316894303, type: 3}
+  m_Name: Enemy_Verde_Slime
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.EnemyData
+  enemyName: "\uBCA0\uB974\uB370 \uC2AC\uB77C\uC784"
+  maxHp: 24
+  startingBlock: 0
+  actionPattern:
+  - actionType: 0
+    value: 5
+    intentDescription: "\uBAB8\uD1B5\uBC15\uCE58\uAE30 5"
+    statusEffect: {fileID: 0}
+    statusEffectStacks: 0
+  - actionType: 1
+    value: 4
+    intentDescription: "\uC810\uC561 \uBC29\uC5B4 4"
+    statusEffect: {fileID: 0}
+    statusEffectStacks: 0
+  - actionType: 0
+    value: 7
+    intentDescription: "\uAC15\uD55C \uBAB8\uD1B5\uBC15\uCE58\uAE30 7"
+    statusEffect: {fileID: 0}
+    statusEffectStacks: 0
+  randomizeActions: 0
+  rewardGoldMin: 5
+  rewardGoldMax: 8
+  rewardCardPool:
+  - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
+  - {fileID: 11400000, guid: 98ba4d22a9d25314fafe6e95fddaef96, type: 2}
+  - {fileID: 11400000, guid: bc6b91fe15dcaa9478ad9813c95f081c, type: 2}
+  enemySprite: {fileID: 0}
+  spumPrefabPath: 
+  isBoss: 0
