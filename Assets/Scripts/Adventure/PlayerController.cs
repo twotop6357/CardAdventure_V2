@@ -368,5 +368,16 @@ namespace CardAdventure
         }
 
         public void SetMoveSpeed(float speed) => moveSpeed = speed;
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (spriteRenderer != null && !Application.isPlaying)
+            {
+                Vector3 scale = walkVisualScale == Vector3.zero ? Vector3.one : walkVisualScale;
+                spriteRenderer.transform.localScale = scale * idleVisualScaleMultiplier;
+            }
+        }
+#endif
     }
 }
