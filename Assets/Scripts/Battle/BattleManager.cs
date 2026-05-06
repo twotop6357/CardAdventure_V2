@@ -25,6 +25,7 @@ namespace CardAdventure
         public event Action<BattleManager> StateChanged;
         public event Action<BattleManager, BattleRuntimeCard> CardPlayed;
         public event Action<BattleManager, EnemyAction> EnemyIntentSelected;
+        public event Action<BattleManager, BattleCombatantState, BattleStatusTurnResult> TurnStartStatusResolved;
         public event Action<BattleManager, BattlePhase> BattleEnded;
 
         public BattlePlayerState Player { get; private set; }
@@ -87,6 +88,12 @@ namespace CardAdventure
             Phase = BattlePhase.PlayerTurn;
             PlayerTurnCount++;
             Player.StartTurn();
+            ResolveTurnStartStatuses(Player.Combatant);
+
+            if (ResolveBattleEndOrNotify())
+            {
+                return;
+            }
 
             if (PlayerTurnCount > 1)
             {
@@ -150,6 +157,7 @@ namespace CardAdventure
             }
 
             Player.CardPiles.DiscardHand();
+            Player.Combatant.TickStatusDurations();
             ExecuteEnemyTurn();
         }
 
@@ -162,9 +170,18 @@ namespace CardAdventure
             }
 
             Phase = BattlePhase.EnemyTurn;
+            Enemy.Combatant.ClearBlock();
+            ResolveTurnStartStatuses(Enemy.Combatant);
+
+            if (ResolveBattleEndOrNotify())
+            {
+                return;
+            }
+
             EnemyAction action = Enemy.CurrentIntent ?? Enemy.SelectIntent();
             ApplyEnemyAction(action);
             Enemy.AdvanceTurn();
+            Enemy.Combatant.TickStatusDurations();
 
             if (ResolveBattleEndOrNotify())
             {
@@ -254,9 +271,21 @@ namespace CardAdventure
                     Enemy.Combatant.Heal(action.value);
                     break;
             }
+        }
 
-            Enemy.Combatant.TickStatusDurations();
-            Player.Combatant.TickStatusDurations();
+        private void ResolveTurnStartStatuses(BattleCombatantState combatant)
+        {
+            if (combatant == null || combatant.IsDefeated)
+            {
+                return;
+            }
+
+            BattleStatusTurnResult result = combatant.ApplyTurnStartStatusEffects();
+
+            if (result.HasAnyEffect)
+            {
+                TurnStartStatusResolved?.Invoke(this, combatant, result);
+            }
         }
 
         private int GetEnemyAttackDamage(int baseDamage)

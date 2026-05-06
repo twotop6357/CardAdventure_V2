@@ -25,6 +25,7 @@
   - `Assets/Scripts/Battle/BattlePhase.cs`
   - `Assets/Scripts/Battle/BattleCardPlayResult.cs`
   - `Assets/Scripts/Battle/BattleManager.cs`
+  - `Assets/Scripts/Battle/BattleStatusTurnResult.cs`
 - 초기 카드 데이터:
   - `Assets/ScriptableObjects/Cards/Warrior/` 전사 카드 5종.
 - `CLAUDE.md`와 `AGENTS.md`에 프로젝트/에이전트 작업 지침이 정리되어 있다.
@@ -44,14 +45,22 @@
   - `분노`: 이번 턴 공격 카드를 사용할 때마다 공격 피해 보너스 획득.
   - `도발`: 방어막 획득 + 적에게 약화 1턴 부여.
 - `BattleStatusInstance`/`BattleCombatantState`: ScriptableObject 없는 런타임 상태이상 적용을 지원하도록 확장했다.
+- 상태이상 턴 처리를 연결했다.
+  - 독: 대상 턴 시작 시 방어막을 무시하고 스택만큼 HP 감소.
+  - 재생: 대상 턴 시작 시 스택만큼 HP 회복.
+  - 약화: 공격 피해 25% 감소.
+  - 취약: 받는 피해 50% 증가.
+  - 강화: 공격 피해에 스택만큼 추가.
+- `BattleStatusTurnResult`: 턴 시작 상태이상 처리 결과를 UI/로그에서 사용할 수 있게 추가했다.
+- 상태이상 지속시간은 각 대상의 턴 종료 시 감소하도록 조정했다.
 
 ## 다음 작업 후보
 
-1. 상태이상 턴 처리 구현: 독, 약화, 취약, 강화, 재생. 현재 약화/취약/강화 일부 전투 계산만 연결되어 있고 독/재생의 턴 시작 처리는 미구현이다.
-2. 적 테스트 데이터 1~2종과 전투 테스트 씬 구성.
+1. 적 테스트 데이터 1~2종과 전투 테스트 씬 구성.
+2. PlayMode 또는 EditMode 테스트로 전투 시작/카드 사용/적 턴 전환/전사 카드 효과/상태이상 처리를 검증한다.
 3. 기본 배틀 UI: HP, 방어막, 에너지, 손패, 적 의도 표시.
-4. PlayMode 또는 EditMode 테스트로 전투 시작/카드 사용/적 턴 전환/전사 카드 효과를 검증한다.
-5. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 옮길지 결정한다.
+4. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 옮길지 결정한다.
+5. 상태이상 UI 표시를 위해 `BattleStatusTurnResult`와 `BattleCombatantState.Statuses`를 연결한다.
 
 ## 검증 상태
 
@@ -59,6 +68,7 @@
 - 새 전투 런타임 스크립트 6개는 Unity MCP `validate_script` 표준 검증에서 오류/경고 0개 확인.
 - 새 전투 매니저 관련 스크립트 3개(`BattleManager`, `BattlePhase`, `BattleCardPlayResult`)는 Unity MCP `validate_script` 표준 검증에서 오류/경고 0개 확인.
 - 전사 카드 효과 연결을 위해 수정한 `BattleManager`, `BattlePlayerState`, `BattleCombatantState`, `BattleStatusInstance`는 Unity MCP `validate_script` 표준 검증에서 오류/경고 0개 확인.
+- 상태이상 턴 처리를 위해 추가/수정한 `BattleStatusTurnResult`, `BattleCombatantState`, `BattleManager`는 Unity MCP `validate_script` 표준 검증에서 오류/경고 0개 확인.
 - Unity 스크립트 컴파일 요청 수행. 콘솔에는 MCPForUnity 클라이언트 핸들러 관련 도구 로그가 있었고, 새 코드 컴파일 오류는 확인되지 않음.
 - PlayMode 검증은 아직 수행하지 않음.
 - Git 저장소는 이전 작업에서 복구되어 사용 가능하다. 이번 변경은 아직 커밋하지 않음.
@@ -70,7 +80,7 @@
 - 기존 ScriptableObject 필드 삭제/이름 변경은 피한다.
 - CCGKit은 단기 구현에서 자체 `CardData` 구조를 대체하지 않고 참조/어댑터 방식으로 활용한다.
 - `BattleManager`의 전사 특수 효과는 현재 `CardData.name` 기준으로 분기한다. 장기적으로는 `CardData`에 안정적인 effect id/타입을 추가하는 편이 좋다.
-- 상태이상 지속시간은 현재 적 행동 이후 한 번 감소한다. 독/재생 같은 턴 시작 효과는 다음 단계에서 명확히 분리해야 한다.
+- 상태이상 지속시간은 각 대상의 턴 종료 시 감소한다. `도발`의 약화 1턴은 적 행동에 적용된 뒤 적 턴 종료 시 제거된다.
 - 작업 종료 시 이 파일의 “최근 변경”, “다음 작업 후보”, “검증 상태”, “주의사항”을 갱신한다.
 
 ## 작업 로그
@@ -91,3 +101,6 @@
 - `BattlePlayerState`에 이번 턴 공격 피해 보너스와 공격 시 보너스 획득 규칙을 추가했다.
 - `BattleCombatantState`에 상태 타입 기반 적용/조회 기능을 추가했다.
 - 다음 에이전트는 독/재생 등 상태이상 턴 처리와 테스트 데이터/테스트 씬 구성을 진행하면 된다.
+- Phase 1 네 번째 작업으로 상태이상 턴 처리를 구현했다.
+- 독/재생은 대상 턴 시작에 처리하고, 지속시간은 대상 턴 종료에 감소한다.
+- 다음 에이전트는 적 테스트 데이터와 전투 테스트 씬 또는 자동 테스트를 구성하면 된다.

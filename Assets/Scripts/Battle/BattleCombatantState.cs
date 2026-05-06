@@ -42,6 +42,13 @@ namespace CardAdventure
             return remainingDamage;
         }
 
+        public int LoseHpIgnoringBlock(int amount)
+        {
+            int hpLoss = Mathf.Max(0, amount);
+            CurrentHp = Mathf.Max(0, CurrentHp - hpLoss);
+            return hpLoss;
+        }
+
         public void AddBlock(int amount)
         {
             Block = Mathf.Max(0, Block + amount);
@@ -103,6 +110,29 @@ namespace CardAdventure
         public bool HasStatus(StatusEffectType effectType)
         {
             return GetStatusStacks(effectType) > 0;
+        }
+
+        public BattleStatusTurnResult ApplyTurnStartStatusEffects()
+        {
+            int poisonDamage = 0;
+            int regenerationHealing = 0;
+
+            foreach (BattleStatusInstance status in statuses)
+            {
+                switch (status.EffectType)
+                {
+                    case StatusEffectType.Poison:
+                        poisonDamage += LoseHpIgnoringBlock(status.Stacks);
+                        break;
+                    case StatusEffectType.Regeneration:
+                        int hpBeforeHeal = CurrentHp;
+                        Heal(status.Stacks);
+                        regenerationHealing += CurrentHp - hpBeforeHeal;
+                        break;
+                }
+            }
+
+            return new BattleStatusTurnResult(poisonDamage, regenerationHealing);
         }
 
         public void TickStatusDurations()
