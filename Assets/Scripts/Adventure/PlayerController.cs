@@ -4,149 +4,374 @@ using UnityEngine.InputSystem;
 namespace CardAdventure
 {
     /// <summary>
-    /// 탑다운 어드벤처 씬의 플레이어 이동 및 SPUM 애니메이션 컨트롤러.
-    /// Input System의 Move 액션을 직접 참조하는 방식으로 동작한다.
-    /// PlayerInput.notificationBehavior에 의존하지 않으므로 가장 안정적이다.
+    /// Top-down adventure player movement on a 1x1 grid.
+    /// Controls a simple SpriteRenderer/Animator visual child.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerController : MonoBehaviour
     {
-        [Header("이동")]
+        [Header("Movement")]
         [SerializeField] private float moveSpeed = 4f;
+        [SerializeField] private float moveUnitSize = 1f;
+        [SerializeField] private bool useGridCellSize = true;
+        [Tooltip("Input shorter than this only turns the player without stepping to the next tile.")]
+        [SerializeField] private float moveHoldThreshold = 0.06f;
+        [Tooltip("Layers that block movement. Defaults to every layer except Player and Ignore Raycast.")]
+        [SerializeField] private LayerMask obstacleLayer;
 
-        [Header("SPUM 참조")]
-        [Tooltip("SPUM_Prefabs 컴포넌트가 있는 하위 오브젝트 (없으면 자동 탐색)")]
-        [SerializeField] private SPUM_Prefabs spumPrefabs;
+        [Header("Visual")]
+        [SerializeField] private SpriteRenderer spriteRenderer;
+        [SerializeField] private Animator animator;
+        [Tooltip("Visual scale used by the smaller walk sprite sheets.")]
+        [SerializeField] private Vector3 walkVisualScale = Vector3.one;
+        [Tooltip("Idle sheets are larger than walk sheets, so idle is scaled down to match visual size.")]
+        [SerializeField] private float idleVisualScaleMultiplier = 0.267f;
 
-        // ── 내부 ───────────────────────────────────────────────
-        private Rigidbody2D    rb;
-        private Vector2        moveInput;
-        private bool           isMoving;
-        private bool           inputEnabled = true;
-        private SpriteRenderer spriteRenderer;
+        private Rigidbody2D rb;
+        private bool isMoving;
+        private bool inputEnabled = true;
 
-        // Input System — Move 액션 직접 참조
         private InputAction moveAction;
+        private Vector2 targetPosition;
+        private Vector2 facingDirection = Vector2.down;
+        private Vector2 currentMoveDirection;
+        private Vector2 heldDirection;
+        private float heldDirectionTime;
+        private string currentAnimationState;
 
-        private const string ANIM_IDLE = "IDLE";
-        private const string ANIM_MOVE = "MOVE";
-
-        // ── 라이프사이클 ───────────────────────────────────────
+        private const string IdleFront = "Player_IdleFront";
+        private const string IdleBack = "Player_IdleBack";
+        private const string IdleSide = "Player_IdleSide";
+        private const string WalkFront = "Player_WalkFront";
+        private const string WalkBack = "Player_WalkBack";
+        private const string WalkSide = "Player_WalkSide";
 
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
-            rb.gravityScale           = 0f;
-            rb.freezeRotation         = true;
-            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            rb.gravityScale = 0f;
+            rb.freezeRotation = true;
+            rb.isKinematic = true;
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
-            // SPUM 자동 탐색
-            if (spumPrefabs == null)
-                spumPrefabs = GetComponentInChildren<SPUM_Prefabs>();
+            ResolveMoveUnitSize();
 
-            if (spumPrefabs != null)
-                spriteRenderer = spumPrefabs.GetComponentInChildren<SpriteRenderer>();
+            if (obstacleLayer.value == 0)
+            {
+                obstacleLayer = ~(LayerMask.GetMask("Player", "Ignore Raycast"));
+            }
 
-            // Input Action 직접 참조
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            }
+
+            if (animator == null)
+            {
+                animator = GetComponentInChildren<Animator>();
+            }
+
+            if (spriteRenderer != null && walkVisualScale == Vector3.zero)
+            {
+                walkVisualScale = spriteRenderer.transform.localScale;
+            }
+
             ResolveInputAction();
         }
 
         private void OnEnable()
         {
-            if (moveAction != null)
-                moveAction.Enable();
+            moveAction?.Enable();
         }
 
         private void OnDisable()
         {
-            if (moveAction != null)
-                moveAction.Disable();
+            moveAction?.Disable();
         }
 
         private void Start()
         {
-            PlayAnimation(ANIM_IDLE);
+            Vector3 pos = transform.position;
+            targetPosition = SnapToMoveUnit(pos);
+            transform.position = targetPosition;
+
+            PlayDirectionalAnimation(false);
         }
 
         private void FixedUpdate()
         {
             if (!inputEnabled)
             {
-                rb.linearVelocity = Vector2.zero;
                 return;
             }
 
-            // 액션에서 직접 읽기 (폴링 방식 — 가장 신뢰성 높음)
-            if (moveAction != null)
-                moveInput = moveAction.ReadValue<Vector2>();
+            Vector2 inputDirection = ReadCardinalDirection();
+            UpdateHeldDirection(inputDirection);
 
-            rb.linearVelocity = moveInput * moveSpeed;
-
-            bool nowMoving = moveInput.sqrMagnitude > 0.01f;
-            if (nowMoving != isMoving)
+            if (!isMoving)
             {
-                isMoving = nowMoving;
-                PlayAnimation(isMoving ? ANIM_MOVE : ANIM_IDLE);
-            }
+                if (inputDirection != Vector2.zero)
+                {
+                    UpdateFacingDirection(inputDirection);
 
-            if (isMoving && spriteRenderer != null)
-                spriteRenderer.flipX = moveInput.x < 0f;
+                    if (heldDirectionTime >= moveHoldThreshold)
+                    {
+                        TryStartMove(inputDirection);
+                    }
+                }
+                else
+                {
+                    PlayDirectionalAnimation(false);
+                }
+            }
+            else
+            {
+                if (inputDirection != Vector2.zero && inputDirection != currentMoveDirection)
+                {
+                    UpdateFacingDirection(inputDirection);
+                    TryRedirectMove(inputDirection);
+                }
+
+                Vector2 currentPos = rb.position;
+                Vector2 newPos = Vector2.MoveTowards(currentPos, targetPosition, moveSpeed * Time.fixedDeltaTime);
+                rb.MovePosition(newPos);
+
+                if (Vector2.Distance(newPos, targetPosition) < 0.001f)
+                {
+                    rb.MovePosition(targetPosition);
+                    isMoving = false;
+                    currentMoveDirection = Vector2.zero;
+
+                    if (inputDirection != Vector2.zero)
+                    {
+                        UpdateFacingDirection(inputDirection);
+                        if (!TryStartMove(inputDirection))
+                        {
+                            PlayDirectionalAnimation(false);
+                        }
+                    }
+                    else
+                    {
+                        PlayDirectionalAnimation(false);
+                    }
+                }
+            }
         }
 
-        // ── Input Action 탐색 ──────────────────────────────────
+        private void ResolveMoveUnitSize()
+        {
+            if (!useGridCellSize)
+            {
+                return;
+            }
+
+            Grid grid = FindFirstObjectByType<Grid>();
+            if (grid == null)
+            {
+                return;
+            }
+
+            Vector3 cellSize = grid.cellSize;
+            float resolvedSize = Mathf.Abs(cellSize.x) > 0.001f ? Mathf.Abs(cellSize.x) : Mathf.Abs(cellSize.y);
+            if (resolvedSize > 0.001f)
+            {
+                moveUnitSize = resolvedSize;
+            }
+        }
+
+        private Vector2 SnapToMoveUnit(Vector2 position)
+        {
+            if (moveUnitSize <= 0.001f)
+            {
+                return position;
+            }
+
+            return new Vector2(
+                Mathf.Round(position.x / moveUnitSize) * moveUnitSize,
+                Mathf.Round(position.y / moveUnitSize) * moveUnitSize);
+        }
+
+        private void UpdateHeldDirection(Vector2 inputDirection)
+        {
+            if (inputDirection == Vector2.zero)
+            {
+                heldDirection = Vector2.zero;
+                heldDirectionTime = 0f;
+                return;
+            }
+
+            if (inputDirection != heldDirection)
+            {
+                heldDirection = inputDirection;
+                heldDirectionTime = 0f;
+                return;
+            }
+
+            heldDirectionTime += Time.fixedDeltaTime;
+        }
+
+        private bool TryStartMove(Vector2 direction)
+        {
+            Vector2 nextTarget = targetPosition + direction * moveUnitSize;
+            Vector2 collisionSize = Vector2.one * (moveUnitSize * 0.8f);
+            Collider2D hit = Physics2D.OverlapBox(nextTarget, collisionSize, 0f, obstacleLayer);
+
+            if (hit != null && !hit.isTrigger)
+            {
+                PlayDirectionalAnimation(false);
+                return false;
+            }
+
+            targetPosition = nextTarget;
+            isMoving = true;
+            currentMoveDirection = direction;
+            PlayDirectionalAnimation(true);
+            return true;
+        }
+
+        private bool TryRedirectMove(Vector2 direction)
+        {
+            Vector2 nextTarget = GetRedirectTarget(rb.position, direction);
+            Vector2 collisionSize = Vector2.one * (moveUnitSize * 0.8f);
+            Collider2D hit = Physics2D.OverlapBox(nextTarget, collisionSize, 0f, obstacleLayer);
+
+            if (hit != null && !hit.isTrigger)
+            {
+                return false;
+            }
+
+            targetPosition = nextTarget;
+            currentMoveDirection = direction;
+            PlayDirectionalAnimation(true);
+            return true;
+        }
+
+        private Vector2 GetRedirectTarget(Vector2 currentPosition, Vector2 direction)
+        {
+            if (moveUnitSize <= 0.001f)
+            {
+                return currentPosition + direction;
+            }
+
+            Vector2 snapped = SnapToMoveUnit(currentPosition);
+
+            if (direction.x != 0f)
+            {
+                return new Vector2(
+                    snapped.x + direction.x * moveUnitSize,
+                    snapped.y);
+            }
+
+            return new Vector2(
+                snapped.x,
+                snapped.y + direction.y * moveUnitSize);
+        }
+
+        private Vector2 ReadCardinalDirection()
+        {
+            Vector2 input = moveAction != null ? moveAction.ReadValue<Vector2>() : Vector2.zero;
+            Vector2 direction = Vector2.zero;
+
+            if (Mathf.Abs(input.x) > Mathf.Abs(input.y))
+            {
+                direction.x = Mathf.Sign(input.x);
+            }
+            else if (Mathf.Abs(input.y) > 0.1f)
+            {
+                direction.y = Mathf.Sign(input.y);
+            }
+
+            return direction;
+        }
+
+        private void UpdateFacingDirection(Vector2 direction)
+        {
+            facingDirection = direction;
+
+            if (spriteRenderer != null && direction.x != 0f)
+            {
+                spriteRenderer.flipX = direction.x < 0f;
+            }
+        }
+
+        private void PlayDirectionalAnimation(bool moving)
+        {
+            if (animator == null)
+            {
+                return;
+            }
+
+            ApplyVisualScale(moving);
+
+            string stateName;
+            if (Mathf.Abs(facingDirection.x) > 0f)
+            {
+                stateName = moving ? WalkSide : IdleSide;
+            }
+            else if (facingDirection.y > 0f)
+            {
+                stateName = moving ? WalkBack : IdleBack;
+            }
+            else
+            {
+                stateName = moving ? WalkFront : IdleFront;
+            }
+
+            if (currentAnimationState == stateName)
+            {
+                return;
+            }
+
+            currentAnimationState = stateName;
+            animator.Play(stateName);
+        }
+
+        private void ApplyVisualScale(bool moving)
+        {
+            if (spriteRenderer == null)
+            {
+                return;
+            }
+
+            float scaleMultiplier = moving ? 1f : idleVisualScaleMultiplier;
+            spriteRenderer.transform.localScale = walkVisualScale * scaleMultiplier;
+        }
 
         private void ResolveInputAction()
         {
-            // 1순위: PlayerInput 컴포넌트
             var playerInput = GetComponent<PlayerInput>();
             if (playerInput != null && playerInput.actions != null)
             {
                 moveAction = playerInput.actions.FindAction("Move", throwIfNotFound: false);
                 if (moveAction != null)
                 {
-                    Debug.Log("[PlayerController] Move action 연결 완료 (PlayerInput).");
                     return;
                 }
             }
 
-            // 2순위: 프로젝트의 기본 InputActionAsset 로드
 #if UNITY_EDITOR
             var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<InputActionAsset>(
                 "Assets/InputSystem_Actions.inputactions");
             if (asset != null)
             {
                 moveAction = asset.FindAction("Player/Move", throwIfNotFound: false);
-                if (moveAction != null)
-                {
-                    Debug.Log("[PlayerController] Move action 연결 완료 (Asset 직접 로드).");
-                    return;
-                }
             }
 #endif
-            Debug.LogWarning("[PlayerController] Move 액션을 찾을 수 없습니다. " +
-                             "PlayerInput.actions에 InputSystem_Actions를 연결하세요.");
         }
 
-        // ── SPUM 애니메이션 ────────────────────────────────────
-
-        private void PlayAnimation(string stateName)
-        {
-            if (spumPrefabs == null) return;
-            try { spumPrefabs._anim.Play(stateName); }
-            catch { /* 애니메이터 없는 경우 무시 */ }
-        }
-
-        // ── 공개 API ───────────────────────────────────────────
-
-        /// <summary>입력 잠금/해제 (컷씬, 상점 진입 등).</summary>
+        /// <summary>Locks or unlocks input for dialogue, shops, and scene transitions.</summary>
         public void SetInputEnabled(bool enabled)
         {
             inputEnabled = enabled;
             if (!enabled)
             {
-                moveInput = Vector2.zero;
-                rb.linearVelocity = Vector2.zero;
-                PlayAnimation(ANIM_IDLE);
+                isMoving = false;
+                currentMoveDirection = Vector2.zero;
+                heldDirection = Vector2.zero;
+                heldDirectionTime = 0f;
+                targetPosition = SnapToMoveUnit(rb.position);
+                rb.position = targetPosition;
+                PlayDirectionalAnimation(false);
             }
         }
 

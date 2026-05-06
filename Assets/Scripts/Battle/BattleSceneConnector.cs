@@ -20,12 +20,21 @@ namespace CardAdventure
         private void Awake()
         {
             battleManager = GetComponent<BattleManager>();
+            ConfigureBattle();
+        }
+
+        private void OnEnable()
+        {
+            SubscribeEvents();
+        }
+
+        private void OnDisable()
+        {
+            UnsubscribeEvents();
         }
 
         private void Start()
         {
-            ConfigureBattle();
-            SubscribeEvents();
         }
 
         private void OnDestroy()

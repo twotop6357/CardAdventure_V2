@@ -1,140 +1,113 @@
+using System.IO;
+using Unity.Cinemachine;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Tilemaps;
-using Unity.Cinemachine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Tilemaps;
 
 namespace CardAdventure
 {
     /// <summary>
-    /// AdventureScene 기본 계층을 자동으로 구성하는 에디터 도구.
-    /// 메뉴: CardAdventure > Build Adventure Scene
+    /// Editor utility that rebuilds the basic AdventureScene.
+    /// Menu: CardAdventure > Build Adventure Scene
     /// </summary>
     public static class AdventureSceneBuilder
     {
-        private const string SCENE_PATH = "Assets/Scenes/AdventureScene.unity";
-        private const string SPUM_UNIT_PATH =
-            "Assets/Assets/SPUM/Resources/Addons/Legacy/2_Prefab/SPUM_20250915183854408.prefab";
+        private const string ScenePath = "Assets/Scenes/AdventureScene.unity";
+        private const string PlayerControllerPath = "Assets/Animations/Player/Player_Warrior.controller";
+        private const string PlayerIdleSpritePath =
+            "Assets/Assets/Sprites/Character/Warrior/Idle/Warrior_IdleFront.png";
 
         [MenuItem("CardAdventure/Build Adventure Scene")]
         public static void BuildAdventureScene()
         {
-            // ── 씬 생성/로드 ────────────────────────────────────
-            var scene = EditorSceneManager.NewScene(
-                NewSceneSetup.EmptyScene,
-                NewSceneMode.Single);
+            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
-            // ── GameManagers 오브젝트 ────────────────────────────
             GameObject managers = new GameObject("GameManagers");
-            managers.AddComponent<CardAdventure.GameDataManager>();
-            managers.AddComponent<CardAdventure.SceneLoader>();
+            GameDataManager gameDataManager = managers.AddComponent<GameDataManager>();
+            managers.AddComponent<SceneLoader>();
+            ConfigureStarterDeck(gameDataManager);
 
-            // ── 카메라 (URP 2D) ───────────────────────────────────
             GameObject camGo = new GameObject("Main Camera");
             camGo.tag = "MainCamera";
             Camera cam = camGo.AddComponent<Camera>();
-            cam.orthographic     = true;
+            cam.orthographic = true;
             cam.orthographicSize = 5f;
-            cam.clearFlags       = CameraClearFlags.SolidColor;
-            cam.backgroundColor  = new Color(0.09f, 0.13f, 0.17f, 1f);
-            cam.nearClipPlane    = -100f;
-            cam.farClipPlane     = 100f;
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.09f, 0.13f, 0.17f, 1f);
+            cam.nearClipPlane = -100f;
+            cam.farClipPlane = 100f;
             camGo.AddComponent<AudioListener>();
             camGo.AddComponent<UniversalAdditionalCameraData>();
 
-            // ── Tilemap Grid ─────────────────────────────────────
-            GameObject gridGo    = new GameObject("Grid");
-            Grid grid            = gridGo.AddComponent<Grid>();
-            grid.cellSize        = new Vector3(1f, 1f, 0f);
+            GameObject gridGo = new GameObject("Grid");
+            Grid grid = gridGo.AddComponent<Grid>();
+            grid.cellSize = new Vector3(1f, 1f, 0f);
 
-            // Ground 레이어
-            GameObject groundGo  = new GameObject("Ground");
+            GameObject groundGo = new GameObject("Ground");
             groundGo.transform.SetParent(gridGo.transform);
-            Tilemap groundTm     = groundGo.AddComponent<Tilemap>();
+            groundGo.AddComponent<Tilemap>();
             TilemapRenderer groundTr = groundGo.AddComponent<TilemapRenderer>();
             groundTr.sortingLayerName = "Default";
-            groundTr.sortingOrder     = 0;
+            groundTr.sortingOrder = 0;
 
-            // Wall 레이어
-            GameObject wallGo    = new GameObject("Walls");
+            GameObject wallGo = new GameObject("Walls");
             wallGo.transform.SetParent(gridGo.transform);
-            Tilemap wallTm       = wallGo.AddComponent<Tilemap>();
+            wallGo.AddComponent<Tilemap>();
             TilemapRenderer wallTr = wallGo.AddComponent<TilemapRenderer>();
             wallTr.sortingLayerName = "Default";
-            wallTr.sortingOrder     = 1;
-            // 벽 충돌용 콜라이더
+            wallTr.sortingOrder = 1;
             TilemapCollider2D wallCol = wallGo.AddComponent<TilemapCollider2D>();
-            // Unity 6: compositeOperation으로 CompositeCollider2D와 결합
             wallCol.compositeOperation = Collider2D.CompositeOperation.Merge;
             CompositeCollider2D composite = wallGo.AddComponent<CompositeCollider2D>();
             composite.geometryType = CompositeCollider2D.GeometryType.Outlines;
             Rigidbody2D wallRb = wallGo.GetComponent<Rigidbody2D>();
-            if (wallRb == null) wallRb = wallGo.AddComponent<Rigidbody2D>();
+            if (wallRb == null)
+            {
+                wallRb = wallGo.AddComponent<Rigidbody2D>();
+            }
             wallRb.bodyType = RigidbodyType2D.Static;
 
-            // ── 플레이어 ────────────────────────────────────────
             GameObject playerGo = new GameObject("Player");
-            playerGo.tag   = "Player";
+            playerGo.tag = "Player";
             playerGo.layer = LayerMask.NameToLayer("Default");
             playerGo.transform.position = Vector3.zero;
 
-            // Rigidbody2D + Collider
-            Rigidbody2D playerRb        = playerGo.AddComponent<Rigidbody2D>();
-            playerRb.gravityScale       = 0f;
-            playerRb.freezeRotation     = true;
+            Rigidbody2D playerRb = playerGo.AddComponent<Rigidbody2D>();
+            playerRb.gravityScale = 0f;
+            playerRb.freezeRotation = true;
             playerRb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            playerRb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
-            CircleCollider2D playerCol  = playerGo.AddComponent<CircleCollider2D>();
-            playerCol.radius            = 0.3f;
+            CircleCollider2D playerCol = playerGo.AddComponent<CircleCollider2D>();
+            playerCol.radius = 0.45f;
 
-            // PlayerController
             PlayerController pc = playerGo.AddComponent<PlayerController>();
 
-            // Input System — PlayerInput 컴포넌트
             PlayerInput pi = playerGo.AddComponent<PlayerInput>();
-
-            // SPUM 캐릭터 프리팹 자식으로 추가
-            GameObject spumPrefabAsset =
-                AssetDatabase.LoadAssetAtPath<GameObject>(SPUM_UNIT_PATH);
-            if (spumPrefabAsset != null)
+            InputActionAsset inputActions =
+                AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/InputSystem_Actions.inputactions");
+            if (inputActions != null)
             {
-                GameObject spumGo = (GameObject)PrefabUtility.InstantiatePrefab(
-                    spumPrefabAsset, playerGo.transform);
-                spumGo.transform.localPosition = Vector3.zero;
-                spumGo.transform.localScale    = Vector3.one * 0.5f;
-
-                // PlayerController에 SPUM 연결
-                SerializedObject pcSo = new SerializedObject(pc);
-                SPUM_Prefabs spumComp = spumGo.GetComponent<SPUM_Prefabs>();
-                if (spumComp != null)
-                    pcSo.FindProperty("spumPrefabs").objectReferenceValue = spumComp;
-                pcSo.ApplyModifiedProperties();
-            }
-            else
-            {
-                // SPUM이 없으면 임시 스프라이트 렌더러
-                SpriteRenderer sr = playerGo.AddComponent<SpriteRenderer>();
-                sr.color = new Color(0.3f, 0.6f, 1f, 1f);
-                Debug.LogWarning("[AdventureSceneBuilder] SPUM 프리팹을 찾을 수 없습니다. 임시 스프라이트 사용.");
+                pi.actions = inputActions;
+                pi.defaultActionMap = "Player";
+                pi.notificationBehavior = PlayerNotifications.SendMessages;
             }
 
-            // ── Cinemachine 카메라 팔로우 ─────────────────────────
+            CreatePlayerVisual(playerGo.transform, pc);
+
             GameObject cmCamGo = new GameObject("CinemachineCamera");
             CinemachineCamera cmCam = cmCamGo.AddComponent<CinemachineCamera>();
             cmCam.Follow = playerGo.transform;
             cmCam.Lens.OrthographicSize = 5f;
 
-            // PositionComposer 추가 (팔로우 감쇠)
-            CinemachinePositionComposer composer =
-                cmCamGo.AddComponent<CinemachinePositionComposer>();
+            CinemachinePositionComposer composer = cmCamGo.AddComponent<CinemachinePositionComposer>();
             composer.Damping = new Vector3(0.5f, 0.5f, 0f);
-
-            // CinemachineBrain은 Main Camera에
             camGo.AddComponent<CinemachineBrain>();
 
-            // ── 샘플 배틀 입구 (베르데 슬라임) ─────────────────────
             EnemyData slime = AssetDatabase.LoadAssetAtPath<EnemyData>(
                 "Assets/ScriptableObjects/Enemies/Enemy_Verde_Slime.asset");
 
@@ -145,30 +118,110 @@ namespace CardAdventure
 
                 CircleCollider2D entranceCol = entranceGo.AddComponent<CircleCollider2D>();
                 entranceCol.isTrigger = true;
-                entranceCol.radius    = 0.8f;
+                entranceCol.radius = 0.8f;
 
                 BattleEntrance be = entranceGo.AddComponent<BattleEntrance>();
 
-                // 적 비주얼 (임시 스프라이트)
                 GameObject visGo = new GameObject("EnemyVisual");
                 visGo.transform.SetParent(entranceGo.transform);
                 visGo.transform.localPosition = Vector3.zero;
                 SpriteRenderer visSr = visGo.AddComponent<SpriteRenderer>();
                 visSr.color = new Color(1f, 0.4f, 0.4f, 1f);
 
-                // BattleEntrance 필드 연결
                 SerializedObject beSo = new SerializedObject(be);
-                beSo.FindProperty("enemyData").objectReferenceValue   = slime;
+                beSo.FindProperty("enemyData").objectReferenceValue = slime;
                 beSo.FindProperty("enemyVisual").objectReferenceValue = visGo;
                 beSo.ApplyModifiedProperties();
             }
 
-            // ── 씬 저장 ─────────────────────────────────────────
-            System.IO.Directory.CreateDirectory("Assets/Scenes");
-            EditorSceneManager.SaveScene(scene, SCENE_PATH);
+            Directory.CreateDirectory("Assets/Scenes");
+            EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.Refresh();
 
-            Debug.Log("[AdventureSceneBuilder] ✅ AdventureScene 생성 완료: " + SCENE_PATH);
+            Debug.Log("[AdventureSceneBuilder] AdventureScene build complete: " + ScenePath);
+        }
+
+        [MenuItem("CardAdventure/Setup Adventure Starter Deck")]
+        public static void SetupAdventureStarterDeck()
+        {
+            EditorSceneManager.OpenScene(ScenePath);
+            GameDataManager gameDataManager = Object.FindFirstObjectByType<GameDataManager>();
+            if (gameDataManager == null)
+            {
+                Debug.LogError("[AdventureSceneBuilder] GameDataManager를 찾을 수 없습니다.");
+                return;
+            }
+
+            ConfigureStarterDeck(gameDataManager);
+            EditorSceneManager.SaveScene(gameDataManager.gameObject.scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[AdventureSceneBuilder] Adventure starter deck setup complete.");
+        }
+
+        private static void CreatePlayerVisual(Transform parent, PlayerController playerController)
+        {
+            GameObject visualGo = new GameObject("PlayerVisual");
+            visualGo.transform.SetParent(parent);
+            visualGo.transform.localPosition = new Vector3(0f, -0.25f, 0f);
+            visualGo.transform.localScale = Vector3.one;
+
+            SpriteRenderer spriteRenderer = visualGo.AddComponent<SpriteRenderer>();
+            spriteRenderer.sortingOrder = 2;
+            spriteRenderer.sprite = LoadSpriteByName(PlayerIdleSpritePath, "Warrior_IdleFront_0");
+
+            Animator animator = visualGo.AddComponent<Animator>();
+            animator.runtimeAnimatorController =
+                AssetDatabase.LoadAssetAtPath<AnimatorController>(PlayerControllerPath);
+
+            SerializedObject pcSo = new SerializedObject(playerController);
+            pcSo.FindProperty("spriteRenderer").objectReferenceValue = spriteRenderer;
+            pcSo.FindProperty("animator").objectReferenceValue = animator;
+            pcSo.FindProperty("moveUnitSize").floatValue = 1f;
+            pcSo.FindProperty("useGridCellSize").boolValue = true;
+            pcSo.FindProperty("moveHoldThreshold").floatValue = 0.06f;
+            pcSo.FindProperty("walkVisualScale").vector3Value = Vector3.one;
+            pcSo.FindProperty("idleVisualScaleMultiplier").floatValue = 0.267f;
+            pcSo.ApplyModifiedProperties();
+        }
+
+        private static void ConfigureStarterDeck(GameDataManager gameDataManager)
+        {
+            string[] cardPaths =
+            {
+                "Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_Strike.asset",
+                "Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_Strike.asset",
+                "Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_Strike.asset",
+                "Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_Defend.asset",
+                "Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_Defend.asset",
+                "Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_ShieldBash.asset",
+                "Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_Rage.asset",
+                "Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_Taunt.asset"
+            };
+
+            SerializedObject so = new SerializedObject(gameDataManager);
+            SerializedProperty starterDeck = so.FindProperty("starterDeck");
+            starterDeck.ClearArray();
+            for (int i = 0; i < cardPaths.Length; i++)
+            {
+                starterDeck.InsertArrayElementAtIndex(i);
+                starterDeck.GetArrayElementAtIndex(i).objectReferenceValue =
+                    AssetDatabase.LoadAssetAtPath<CardData>(cardPaths[i]);
+            }
+            so.ApplyModifiedProperties();
+        }
+
+        private static Sprite LoadSpriteByName(string assetPath, string spriteName)
+        {
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            foreach (Object asset in assets)
+            {
+                if (asset is Sprite sprite && sprite.name == spriteName)
+                {
+                    return sprite;
+                }
+            }
+
+            return AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
         }
     }
 }

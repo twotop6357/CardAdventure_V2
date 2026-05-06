@@ -70,10 +70,24 @@
   - CCGKit Demo의 `GameSceneBackground`, `CardBackground`, `EndTurnButton`, `Top-Background` 텍스처를 `BattleDebugHud`에 연결했다.
   - 공격 카드 또는 적 대상 상태이상 카드는 즉시 사용하지 않고, 대상 선택 상태로 들어간 뒤 붉은 화살표 UI와 적 선택 버튼을 표시한다.
   - 턴 종료 후 남은 방어막이 유지되도록 변경했다.
+- `AdventureScene` 플레이어 비주얼을 SPUM 프리팹에서 `Assets/Assets/Sprites/Character/Warrior` 기반 `SpriteRenderer + Animator` 구조로 교체했다.
+  - 방향별 Idle/Walk 애니메이션 6종 생성: `Assets/Animations/Player/Player_*.anim`.
+  - 각 클립은 선별 프레임만 사용하며 4fps(프레임 간격 약 0.25초), 루프 설정.
+  - `PlayerController`는 이동 방향에 따라 `Player_IdleFront/Back/Side`, `Player_WalkFront/Back/Side` 상태를 직접 재생한다.
+  - Idle 원본 스프라이트가 Walk보다 커서, Idle 상태에서는 `idleVisualScaleMultiplier=0.26`으로 비주얼 스케일을 줄여 Walk 상태와 시각적 크기를 맞춘다.
+  - 이동 입력은 `moveHoldThreshold=0.06`초 이상 유지해야 한 칸 이동하며, 짧은 입력은 바라보는 방향만 바꾼다.
+  - 이동 단위는 Grid cell size를 자동 참조하며 현재 `Grid.m_CellSize={x:1,y:1}`와 `moveUnitSize=1`이 일치한다.
+  - 연속 입력 중에는 한 칸 도착 직후 Idle로 끊기지 않고 다음 칸 이동을 즉시 시작하며, Rigidbody2D interpolation을 켜 카메라 추적 끊김을 줄였다.
+  - PlayerVisual Walk 스케일을 1로 조정해 Walk 기준 높이가 약 1유닛(타일 1칸)에 맞도록 했다. Idle은 `idleVisualScaleMultiplier=0.267`로 같은 시각 크기에 맞춘다.
+- 어드벤처 → 배틀 씬 전환 연결을 보강했다.
+  - `BattleSceneConnector`는 `Awake()`에서 GameDataManager 데이터를 BattleManager에 먼저 적용하고, `OnEnable/OnDisable`에서 이벤트를 구독/해제한다.
+  - `AdventureScene`의 `GameDataManager.starterDeck`에 전사 테스트 덱 8장을 연결했다.
+  - 메뉴 `CardAdventure > Setup Adventure Starter Deck`으로 현재 AdventureScene의 시작 덱을 재설정할 수 있다.
+  - 메뉴 `CardAdventure > Verify Adventure Battle Entrance`로 PlayMode에서 BattleEntrance → BattleTest 전환 및 전투 데이터 연결을 검증할 수 있다.
 
 ## 다음 작업 후보
 
-1. **어드벤처 씬 PlayMode 검증** — Player 이동, BattleEntrance 트리거 → BattleTest 씬 전환 확인.
+1. **어드벤처 씬 PlayMode 재검증** — `CardAdventure > Verify Adventure Battle Entrance` 재실행 후 PASS 로그 확인. 현재 덱 비어 있음 문제는 수정됐으나 도구 사용량 제한으로 재실행 미완료.
 2. **NPC 대화 시스템 기초** — `DialogueManager.cs` + Febucci TextAnimator 연동, 말풍선 프리팹.
 3. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 개선.
 4. 챕터 1 Tilemap 맵 제작 (베르데 평원 거점 마을 레이아웃).
@@ -182,7 +196,9 @@ Assets/Scenes/BattleTest.unity
 ## 검증 상태
 
 - **Phase 2 스크립트 validate_script standard 검증 (세션 5)**: GameDataManager, PlayerController, SceneLoader, BattleEntrance, BattleSceneConnector, AdventureSceneBuilder — 오류 0개 (경고 1개: PlayerController GC false positive).
-- **AdventureScene 생성 확인 (세션 5)**: `[AdventureSceneBuilder] ✅ 완료` 콘솔 확인. 계층: GameManagers, Main Camera, Grid(Ground+Walls), Player(SPUM), CinemachineCamera, BattleEntrance_Slime.
+- **AdventureScene 플레이어 비주얼 교체 확인 (세션 6)**: Player 하위 `PlayerVisual(SpriteRenderer + Animator)` 구성, `Player_Warrior.controller` 연결, Warrior IdleFront 초기 스프라이트 연결 확인.
+- **Warrior 애니메이션 검증 (세션 6)**: `Player_IdleFront`, `Player_WalkFront`, `Player_WalkSide` 등 6개 상태가 컨트롤러에 연결됨. 샘플레이트 4fps, 루프 true 확인.
+- **AdventureScene 생성 확인 (세션 5)**: `[AdventureSceneBuilder] ✅ 완료` 콘솔 확인. 계층: GameManagers, Main Camera, Grid(Ground+Walls), Player(현재는 Warrior PlayerVisual), CinemachineCamera, BattleEntrance_Slime.
 - **Build Settings 업데이트 (세션 5)**: AdventureScene(0), BattleTest(1), SampleScene(2).
 - **FontSetupTool 실행 결과 (세션 4)**: 씬 TMP 11개, 프리팹 TMP 5개 교체. `MaruMinyaHangul SDF.asset` 생성 확인. TMP Settings 기본 폰트 갱신 확인.
 - 문서 파일 UTF-8 읽기 확인 완료.
@@ -198,6 +214,10 @@ Assets/Scenes/BattleTest.unity
 - `BattleDebugHud`는 Unity MCP `validate_script` 표준 검증에서 오류/경고 0개 확인.
 - `BattleTest` 씬에 `BattleManager`, `Main Camera`, `BattleDebugHud` 루트 오브젝트가 있는 것을 Unity 씬 계층 기준으로 확인.
 - PlayMode 진입/종료 시 새 게임 코드 오류 없음.
+- Warrior 플레이어 비주얼 적용 후 PlayMode 진입 오류 0개 확인. Game View 캡처: `Assets/Screenshots/warrior_player_visual_check.png`.
+- Idle 크기 보정 후 PlayMode 진입 오류 0개 확인. Game View 캡처: `Assets/Screenshots/warrior_player_idle_scaled_check.png`.
+- 이동 입력/크기 조정 후 PlayMode 진입 및 Game View 캡처 확인. 캡처: `Assets/Screenshots/player_unit_size_check.png`. 콘솔의 MCPForUnity client handler 로그 외 게임 코드 오류 없음.
+- **BattleEntrance 전환 검증 (세션 7)**: 검증 메뉴 1차 실행에서 BattleTest 전환까지 도달했으나 `GameDataManager` 덱이 비어 있어 FAIL 확인. 이후 AdventureScene starterDeck 8장 연결 및 `BattleSceneConnector` 초기화 순서 수정 완료. 재검증은 Codex/Unity 도구 사용량 제한으로 미완료.
 - Unity 스크립트 컴파일 요청 수행. 콘솔에는 MCPForUnity 클라이언트 핸들러 관련 도구 로그가 있었고, 새 코드 컴파일 오류는 확인되지 않음.
 - PlayMode 수동 조작은 사용자가 직접 진행 예정.
 - Git 저장소는 이전 작업에서 복구됐으나 현재 세션 사용자가 달라 `dubious ownership` 경고로 `git status`가 막힌다. 필요 시 `git config --global --add safe.directory C:/UnityProjects/CardAdventure` 처리 후 확인한다.
@@ -230,14 +250,98 @@ Assets/Scenes/BattleTest.unity
 
 ## 작업 로그
 
+### 2026-05-06 (세션 7 — 다음 단계: 어드벤처 전투 진입 검증)
+
+- 다음 작업 후보 1번인 어드벤처 씬 PlayMode 검증을 진행.
+- 관련 스크립트 분석:
+  - `BattleEntrance`는 Player Trigger 진입 시 `SceneLoader.EnterBattle(enemyData, currentScene)` 호출.
+  - `SceneLoader.EnterBattle`는 `GameDataManager.PrepareBattle()` 후 `BattleTest` 로드.
+  - `BattleSceneConnector`는 BattleTest 진입 후 GameDataManager 데이터를 `BattleManager.Configure()`에 전달.
+- 발견/수정:
+  - `AdventureScene`의 `GameDataManager.starterDeck`이 비어 있어, 어드벤처에서 진입한 전투의 덱이 비는 문제 확인.
+  - `BattleSceneConnector.ConfigureBattle()`가 `Start()`에 있어 `BattleManager.Start()`보다 늦을 수 있는 초기화 순서 리스크 확인.
+- 변경 파일:
+  - `Assets/Scripts/Battle/BattleSceneConnector.cs`
+    - `ConfigureBattle()`를 `Awake()`에서 실행하도록 변경.
+    - 이벤트 구독을 `OnEnable`, 해제를 `OnDisable`로 이동.
+  - `Assets/Scripts/Editor/AdventureSceneBuilder.cs`
+    - AdventureScene 생성 시 전사 시작 덱 8장 자동 연결.
+    - `CardAdventure > Setup Adventure Starter Deck` 메뉴 추가.
+  - `Assets/Scripts/Editor/AdventurePlayModeVerifier.cs` 추가.
+    - `CardAdventure > Verify Adventure Battle Entrance` 메뉴.
+    - AdventureScene을 열고 PlayMode 진입 후 BattleEntrance를 호출해 BattleTest 전환, PendingEnemy, 덱, 손패, 적 데이터 연결을 검증.
+    - 저장 확인 모달을 띄우지 않도록 `SaveOpenScenes()` 사용.
+  - `Assets/Scenes/AdventureScene.unity`
+    - `GameDataManager.starterDeck`에 전사 테스트 덱 8장 연결.
+- 검증:
+  - `BattleSceneConnector.cs`, `AdventureSceneBuilder.cs`, `AdventurePlayModeVerifier.cs` validate_script standard 오류 0개.
+  - `CardAdventure > Setup Adventure Starter Deck` 실행 성공, AdventureScene YAML 기준 starterDeck 8장 저장 확인.
+  - `CardAdventure > Verify Adventure Battle Entrance` 1차 실행 결과: `GameDataManager 덱이 비어 있습니다` FAIL로 문제 확인.
+  - 해당 문제 수정 후 재실행하려 했으나 Codex/Unity 도구 사용량 제한으로 메뉴 재실행이 차단됨. 다음 세션에서 검증 메뉴 재실행 필요.
+
+### 2026-05-06 (세션 6 — Warrior 플레이어 이미지 적용)
+
+- 후속 수정:
+  - `PlayerController`에 `walkVisualScale`과 `idleVisualScaleMultiplier` 추가.
+  - Idle 시트(약 270×359px)가 Walk 시트(약 68×96px)보다 커서, Idle 상태에서만 비주얼 스케일을 0.26배로 줄이도록 적용.
+  - `AdventureSceneBuilder`, `WarriorPlayerVisualSetup`도 같은 기본값을 직렬화하도록 수정.
+  - 현재 `AdventureScene` PlayerController 필드 갱신 및 저장.
+  - PlayMode 진입 오류 0개, 캡처 `Assets/Screenshots/warrior_player_idle_scaled_check.png` 확인.
+- 이동/크기 후속 수정:
+  - `PlayerController`에 `moveUnitSize`, `useGridCellSize`, `moveHoldThreshold` 추가.
+  - 현재 Grid cell size 1과 이동 단위 1이 일치함을 확인하고, Grid cell size 자동 참조 로직 추가.
+  - 짧은 방향키 입력은 이동하지 않고 바라보는 방향만 바꾸도록 변경. 임계값은 `0.12`초에서 `0.06`초로 단축.
+  - 방향키를 계속 누르는 동안에는 칸 경계에서 Idle 상태로 돌아가지 않고 다음 이동을 즉시 시작하도록 변경.
+  - 이동 중 방향을 바꾸면 임계값 없이 즉시 새 방향으로 도착점을 재계산한다. 도착점은 현재 위치를 가장 가까운 타일 좌표로 스냅한 뒤 새 입력 방향으로 1유닛 떨어진 칸으로 잡는다.
+  - Rigidbody2D interpolation을 Interpolate로 설정해 카메라 추적 시 물리 프레임 기반 끊김을 완화.
+  - PlayerVisual Walk 스케일을 1로 변경해 타일 1칸 높이에 가깝게 맞추고, Idle 보정값을 0.267로 조정.
+  - Player CircleCollider2D radius를 0.45로 조정.
+  - PlayMode 진입 및 캡처 `Assets/Screenshots/player_unit_size_check.png` 확인. 실제 키보드 연속 입력 체감은 추가 수동 검증 권장.
+- 이전 에이전트 작업 분석:
+  - Phase 2 어드벤처 기초가 구현되어 있었고, `AdventureScene`에는 PlayerController/Input/Rigidbody2D/Collider2D와 SPUM 기반 Warrior 자식 오브젝트가 연결되어 있었다.
+  - 다음 단계는 어드벤처 PlayMode 수동 검증이었으나, 사용자 요청에 따라 먼저 플레이어 이미지를 프로젝트 내부 Warrior 스프라이트로 교체했다.
+- `Assets/Scripts/Adventure/PlayerController.cs` 수정:
+  - SPUM 전용 `SPUM_Prefabs._anim.Play("IDLE"/"MOVE")` 호출 제거.
+  - `SpriteRenderer`/`Animator` 직렬화 필드 추가.
+  - 4방향 타일 이동은 유지하면서 이동 방향에 따라 Front/Back/Side Idle/Walk 상태를 직접 재생.
+  - 좌우 이동은 Side 애니메이션을 공유하고 `SpriteRenderer.flipX`로 좌우 반전.
+- `Assets/Scripts/Editor/AdventureSceneBuilder.cs` 수정:
+  - 새로 씬을 빌드할 때 SPUM 프리팹 대신 `PlayerVisual` 자식 오브젝트를 만들고 `Player_Warrior.controller`를 연결하도록 변경.
+- `Assets/Scripts/Editor/WarriorPlayerVisualSetup.cs` 추가:
+  - 메뉴 `CardAdventure > Setup Warrior Player Visual`.
+  - Warrior 스프라이트 클립/컨트롤러를 생성 또는 갱신하고 현재 `AdventureScene`의 Player 비주얼을 재구성.
+- 생성/갱신된 애니메이션 에셋:
+  - `Assets/Animations/Player/Player_IdleFront.anim`: `Warrior_IdleFront` 프레임 0,2,4,2 사용.
+  - `Assets/Animations/Player/Player_IdleBack.anim`: `Warrior_IdleBack` 프레임 0,2,4,2 사용.
+  - `Assets/Animations/Player/Player_IdleSide.anim`: `Warrior_IdleBeside` 프레임 0,2,4,2 사용.
+  - `Assets/Animations/Player/Player_WalkFront.anim`: `Warrior_WalkFront` 프레임 0,2,4,6 사용.
+  - `Assets/Animations/Player/Player_WalkBack.anim`: `Warrior_WalkBack` 프레임 0,2,4,6 사용.
+  - `Assets/Animations/Player/Player_WalkSide.anim`: `Warrior_WalkBeside` 프레임 0,2,4,6 사용.
+  - 모든 클립은 4fps(약 0.25초 간격), loop true.
+- `Assets/Scenes/AdventureScene.unity` 수정:
+  - 기존 Player 하위 `Warrior` 프리팹 제거.
+  - `PlayerVisual` 자식 추가: `SpriteRenderer`, `Animator`, `Player_Warrior.controller`, 초기 `Warrior_IdleFront_0` 스프라이트 연결.
+  - `PlayerController.spriteRenderer`, `PlayerController.animator` 참조 연결.
+- 검증:
+  - `PlayerController.cs`, `AdventureSceneBuilder.cs`, `WarriorPlayerVisualSetup.cs` validate_script standard 수행. 오류 0개. 경고는 도구성 false positive/권장 경고만 확인.
+  - `CardAdventure > Setup Warrior Player Visual` 메뉴 실행 성공 로그 확인.
+  - `Player_Warrior.controller` 6개 상태와 기본 상태 `Player_IdleFront` 확인.
+  - PlayMode 진입 후 콘솔 에러 0개 확인.
+  - Game View 캡처 `Assets/Screenshots/warrior_player_visual_check.png`에서 플레이어 표시 확인.
+- 다음 작업:
+  - 실제 키보드 입력으로 방향별 Walk/Idle 전환 체감 확인.
+  - BattleEntrance 트리거 후 `BattleTest` 씬 전환 및 복귀 흐름 수동 검증.
+
 ### 2026-05-06 (세션 5 — Phase 2 계속)
 
 - `FontSetupTool.cs` 수정: Dynamic SDF 폰트 생성 시 텍스처 아틀라스가 누락되어 발생하던 에러(UnassignedReferenceException) 해결을 위해 `atlasTextures`와 `material`을 Sub-Asset으로 추가하도록 변경.
 - `MaruMinyaHangul SDF.asset` 재생성 완료 (정상 용량 8MB 확인). 콘솔 에러 모두 해결.
 - `AdventureScene`의 `PlayerInput`에 `InputSystem_Actions.inputactions` 할당 확인.
 - `BattleTest` 씬의 `BattleManager`에 `BattleSceneConnector` 컴포넌트 추가 및 저장 완료.
-- 다음 에이전트는 어드벤처 씬 PlayMode(Player 이동, BattleEntrance 트리거 씬 전환)를 수동 검증하면 된다.
-
+- `PlayerController.cs` 수정: 포켓몬스터 4세대 스타일의 타일(1x1) 기반 4방향 연속 이동 구현 (isMoving, targetPosition 상태 기반, 대각선 무시, 장애물 OverlapBox 검사 적용).
+- 이동 방향에 맞춰 플레이어 스프라이트가 좌우로 회전하도록 적용.
+- `AdventureScene`의 `Player` 하위 오브젝트를 `Warrior.prefab`으로 교체.
+- 다음 에이전트는 어드벤처 씬 PlayMode(타일 기반 Player 이동 정상 작동 여부, BattleEntrance 트리거 씬 전환)를 수동 검증하면 된다.
 ### 2026-05-06 (세션 5 — Phase 2 시작)
 
 **Phase 2: 어드벤처 씬 기초**
