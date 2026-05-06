@@ -5,7 +5,8 @@
 ## 현재 목표
 
 - 기획서 **카드 배틀 자격증 어드벤처 — 게임 기획서 v1.0 (2026.05)** 를 기준으로 Unity 2D 탑다운 어드벤처 + 턴제 카드 배틀 RPG를 구현한다.
-- Phase 1 (전사 배틀 기본 루프) 완료. 현재 **Phase 2: 어드벤처 씬 기초** 진행 중.
+- Phase 1 (전사 배틀 기본 루프) 완료. Phase 2 어드벤처 씬 기초 완료.
+- 현재 **Phase 2 추가: NPC 대화 시스템** 구현 완료, 씬 연결 작업 필요.
 
 ## 현재 프로젝트 상태
 
@@ -31,6 +32,28 @@
 - `CLAUDE.md`와 `AGENTS.md`에 프로젝트/에이전트 작업 지침이 정리되어 있다.
 
 ## 최근 변경
+
+### 2026-05-06 (세션 8 — NPC 대화 시스템 구현 + AdventureScene 연결)
+
+- **대화 시스템 스크립트 5종 추가 (모두 오류 0개 확인)**
+  - `Assets/Scripts/Data/DialogueData.cs` — 화자 이름 + 대사 배열 ScriptableObject
+  - `Assets/Scripts/Adventure/NpcInteractable.cs` — NPC Trigger 감지, DialogueManager 등록/해제, repeatable 플래그
+  - `Assets/Scripts/Adventure/DialogueManager.cs` — 싱글턴. Space 입력 처리, 줄 진행, PlayerController 이동 차단/해제
+  - `Assets/Scripts/UI/DialogueView.cs` — 포켓몬 스타일 대화창 UI (DOTween 슬라이드 인/아웃, Febucci 타이핑 효과, ▼ 깜빡임)
+  - `Assets/Scripts/Editor/DialogueSceneSetup.cs` — 메뉴 두 가지:
+    - `CardAdventure > Setup Dialogue System` : 씬에 DialogueCanvas 계층 자동 생성 + DialogueManager 배치
+    - `CardAdventure > Create NPC (Interactable)` : 선택 오브젝트에 NpcInteractable 추가 또는 새 NPC 오브젝트 생성
+- **AdventureScene에 대화 시스템 연결 완료 (저장됨)**
+  - `CardAdventure > Setup Dialogue System` 실행 → `GameManagers`에 `DialogueManager` 추가, `DialogueCanvas` 생성
+  - `DialogueCanvas/DialoguePanel` 하위: PanelBg(흰 배경+Outline), NameBox(파란 이름 박스), DialogueText(TMP+TextAnimator_TMP+TypewriterByCharacter), NextArrow(▼, 비활성)
+  - `Assets/ScriptableObjects/Dialogues/NPC_Test_Dialogue.asset` 생성 — 화자: "바람이로군", 대사 3줄
+  - `NPC_BaramIroGun` 오브젝트를 Player 위 (0, 2, 0)에 배치
+    - SpriteRenderer: Warrior_IdleFront_0, 파란 색조(r:0.55 g:0.78 b:1.0), scale 0.267
+    - CircleCollider2D: isTrigger=true, radius=1.2
+    - NpcInteractable: dialogueData → NPC_Test_Dialogue 연결
+
+---
+## 최근 변경 (이전)
 
 - `CLAUDE.md`: 기획서 기준 개발 지침, Claude Desktop 지침, Antigravity 병행 지침, 인수인계 규칙 추가.
 - `AGENTS.md`: Antigravity 등 에이전트 도구용 요약 지침 추가.
@@ -87,10 +110,9 @@
 
 ## 다음 작업 후보
 
-1. **어드벤처 씬 PlayMode 재검증** — `CardAdventure > Verify Adventure Battle Entrance` 재실행 후 PASS 로그 확인. 현재 덱 비어 있음 문제는 수정됐으나 도구 사용량 제한으로 재실행 미완료.
-2. **NPC 대화 시스템 기초** — `DialogueManager.cs` + Febucci TextAnimator 연동, 말풍선 프리팹.
-3. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 개선.
-4. 챕터 1 Tilemap 맵 제작 (베르데 평원 거점 마을 레이아웃).
+1. **대화 시스템 PlayMode 검증** — AdventureScene에서 플레이어를 NPC_BaramIroGun 근처로 이동 → Space 입력 → 대화창 슬라이드 인, 타이핑 효과, Space로 페이지 넘기기, 마지막 줄 후 대화창 닫힘 확인.
+2. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 개선.
+3. 챕터 1 Tilemap 맵 제작 (베르데 평원 거점 마을 레이아웃).
 
 ## 씬 구성 안내 (배틀 UI 연결 방법)
 
@@ -241,6 +263,16 @@ Assets/Scenes/BattleTest.unity
 - 현재 대상 선택은 단일 적 전투용이다. 다수 적 전투를 구현할 때는 대상별 선택 정보를 `BattleManager.PlayCard`에 전달하는 구조로 확장해야 한다.
 - 작업 종료 시 이 파일의 “최근 변경”, “다음 작업 후보”, “검증 상태”, “주의사항”을 갱신한다.
 
+## 주의사항 (대화 시스템)
+
+- `DialogueManager`는 `Start()`에서 `FindFirstObjectByType<PlayerController>()`로 플레이어를 자동 탐색한다. 씬에 PlayerController가 없으면 이동 차단/해제가 동작하지 않는다.
+- Space 키는 `Keyboard.current.spaceKey.wasPressedThisFrame`으로 직접 읽는다. InputActions의 Jump(Space) 바인딩과 충돌하지 않는다 (대화 중 이동이 차단되므로 실질적 문제 없음).
+- `NpcInteractable`의 Collider2D는 반드시 `isTrigger = true`여야 한다. 설정되지 않은 경우 Awake()에서 자동 설정하며 경고 로그를 출력한다.
+- `TypewriterByCharacter`는 `TextAnimator_TMP`와 같은 GameObject에 있어야 한다. `DialogueSceneSetup`이 두 컴포넌트를 함께 생성한다.
+- `DialogueView`는 `DialoguePanel`의 `anchoredPosition.y`를 슬라이드 인/아웃에 사용한다. 패널 높이가 바뀌면 `Hide()`의 `targetY` 계산이 자동으로 `rect.height`를 참조한다.
+- `DialogueData.lines`가 비어 있으면 대화가 시작되지 않고 경고 로그만 출력된다.
+- NPC의 `repeatable = false`이면 한 번 대화 후 다시 말을 걸 수 없다. 기본값은 `true`.
+
 ## 주의사항 (UI 관련 추가)
 
 - `BattleUIManager.RefreshHand`는 StateChanged마다 손패를 전체 재생성한다. 카드 수가 많을 때 드로우 애니메이션이 중복 재생될 수 있으므로, 추후 diff-patch 방식으로 개선을 고려한다.
@@ -250,7 +282,15 @@ Assets/Scenes/BattleTest.unity
 
 ## 작업 로그
 
-### 2026-05-06 (세션 7 — 다음 단계: 어드벤처 전투 진입 검증)
+### 2026-05-06 (세션 7 — 어드벤처 전투 진입 검증 및 새 에셋 인수인계)
+
+- 다음 작업 후보 1번인 어드벤처 씬 PlayMode 검증을 진행 후 완료 (`CardAdventure > Verify Adventure Battle Entrance` PASS 확인).
+- 사용자가 새로운 UI 에셋(`Assets/DEVNIK 2D/2D UI PIXEL BUTTONS/`)을 추가함.
+  - **새 에셋 사용 지침**: 이 에셋은 32-bit 픽셀 아트 스타일의 UI 컴포넌트(Play, Pause, Settings 등 버튼 및 아이콘, 빈 패널, 슬라이더 컨테이너 등)를 제공한다. 향후 대화창 UI, 게임 내 메뉴, 배틀 UI 등을 구현/개선할 때 우선적으로 이 에셋의 스프라이트를 활용해야 한다.
+  - `AGENTS.md` 파일에 해당 에셋의 활용 지침을 추가하여 모든 에이전트가 인지하도록 업데이트 완료.
+- 다음 단계는 **NPC 대화 시스템 기초** 구현이며, 새 에셋의 패널 및 버튼을 대화창 프리팹 제작에 활용할 예정.
+
+### 2026-05-06 (이전 세션 기록)
 
 - 다음 작업 후보 1번인 어드벤처 씬 PlayMode 검증을 진행.
 - 관련 스크립트 분석:

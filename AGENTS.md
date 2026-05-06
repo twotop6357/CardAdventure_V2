@@ -14,6 +14,7 @@
 ## 현재 에셋 활용
 
 - `Assets/Assets/SPUM/`: 플레이어, NPC, 적, 시험관 픽셀 캐릭터와 애니메이션 제작에 우선 사용합니다.
+- `Assets/DEVNIK 2D/2D UI PIXEL BUTTONS/`: 2D 픽셀 스타일의 UI 요소(버튼, 아이콘, 대화창 패널, 컨테이너 등) 제작에 사용합니다. (최근 추가됨)
 - `Assets/Assets/CCGKit/`: 카드 게임 구조와 데모 UI 참고용입니다. 네트워킹/Mirror 기반 구조는 사용하지 않습니다.
 - `Assets/Plugins/Demigiant/`: DOTween PRO로 카드/전투/UI 연출을 구현합니다.
 - `Assets/Assets/TheraBytes/BetterUI/`, `Assets/TheraBytes/`: 반응형 UI 레이아웃에 사용합니다.
