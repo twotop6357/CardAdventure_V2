@@ -51,7 +51,7 @@ namespace CardAdventure
             rb = GetComponent<Rigidbody2D>();
             rb.gravityScale = 0f;
             rb.freezeRotation = true;
-            rb.isKinematic = true;
+            rb.bodyType = RigidbodyType2D.Kinematic;
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
             ResolveMoveUnitSize();
@@ -95,7 +95,15 @@ namespace CardAdventure
             targetPosition = SnapToMoveUnit(pos);
             transform.position = targetPosition;
 
+            // 초기 위치 타일 예약
+            GridOccupancy.TryReserve(targetPosition, moveUnitSize);
+
             PlayDirectionalAnimation(false);
+        }
+
+        private void OnDestroy()
+        {
+            GridOccupancy.Release(targetPosition, moveUnitSize);
         }
 
         private void FixedUpdate()
@@ -126,10 +134,11 @@ namespace CardAdventure
             }
             else
             {
+                // 이동 중 방향 전환: 스프라이트는 즉시 바라보는 방향을 바꾸되
+                // 실제 이동 목표는 현재 타일 도착 후 변경한다 (포켓몬 스타일).
                 if (inputDirection != Vector2.zero && inputDirection != currentMoveDirection)
                 {
                     UpdateFacingDirection(inputDirection);
-                    TryRedirectMove(inputDirection);
                 }
 
                 Vector2 currentPos = rb.position;
@@ -142,6 +151,7 @@ namespace CardAdventure
                     isMoving = false;
                     currentMoveDirection = Vector2.zero;
 
+                    // 타일 도착 시점의 입력 방향으로 다음 이동 즉시 시작
                     if (inputDirection != Vector2.zero)
                     {
                         UpdateFacingDirection(inputDirection);
@@ -214,14 +224,23 @@ namespace CardAdventure
         {
             Vector2 nextTarget = targetPosition + direction * moveUnitSize;
             Vector2 collisionSize = Vector2.one * (moveUnitSize * 0.8f);
-            Collider2D hit = Physics2D.OverlapBox(nextTarget, collisionSize, 0f, obstacleLayer);
 
+            // 1단계: 물리 콜라이더 검사 (벽, 솔리드 오브젝트)
+            Collider2D hit = Physics2D.OverlapBox(nextTarget, collisionSize, 0f, obstacleLayer);
             if (hit != null && !hit.isTrigger)
             {
                 PlayDirectionalAnimation(false);
                 return false;
             }
 
+            // 2단계: 타일 예약 검사 (동시 이동 충돌 방지)
+            if (!GridOccupancy.TryReserve(nextTarget, moveUnitSize))
+            {
+                PlayDirectionalAnimation(false);
+                return false;
+            }
+
+            GridOccupancy.Release(targetPosition, moveUnitSize);
             targetPosition = nextTarget;
             isMoving = true;
             currentMoveDirection = direction;
@@ -229,43 +248,6 @@ namespace CardAdventure
             return true;
         }
 
-        private bool TryRedirectMove(Vector2 direction)
-        {
-            Vector2 nextTarget = GetRedirectTarget(rb.position, direction);
-            Vector2 collisionSize = Vector2.one * (moveUnitSize * 0.8f);
-            Collider2D hit = Physics2D.OverlapBox(nextTarget, collisionSize, 0f, obstacleLayer);
-
-            if (hit != null && !hit.isTrigger)
-            {
-                return false;
-            }
-
-            targetPosition = nextTarget;
-            currentMoveDirection = direction;
-            PlayDirectionalAnimation(true);
-            return true;
-        }
-
-        private Vector2 GetRedirectTarget(Vector2 currentPosition, Vector2 direction)
-        {
-            if (moveUnitSize <= 0.001f)
-            {
-                return currentPosition + direction;
-            }
-
-            Vector2 snapped = SnapToMoveUnit(currentPosition);
-
-            if (direction.x != 0f)
-            {
-                return new Vector2(
-                    snapped.x + direction.x * moveUnitSize,
-                    snapped.y);
-            }
-
-            return new Vector2(
-                snapped.x,
-                snapped.y + direction.y * moveUnitSize);
-        }
 
         private Vector2 ReadCardinalDirection()
         {
@@ -369,8 +351,18 @@ namespace CardAdventure
                 currentMoveDirection = Vector2.zero;
                 heldDirection = Vector2.zero;
                 heldDirectionTime = 0f;
-                targetPosition = SnapToMoveUnit(rb.position);
-                rb.position = targetPosition;
+
+                // rb가 아직 초기화되지 않았거나 이미 파괴된 경우를 방어한다.
+                if (rb != null)
+                {
+                    Vector2 snapped = SnapToMoveUnit(rb.position);
+                    // 기존 예약 타일(이동 도중이었을 경우 목적지)을 해제하고 실제 위치를 재예약
+                    GridOccupancy.Release(targetPosition, moveUnitSize);
+                    GridOccupancy.TryReserve(snapped, moveUnitSize);
+                    targetPosition = snapped;
+                    rb.position    = snapped;
+                }
+
                 PlayDirectionalAnimation(false);
             }
         }

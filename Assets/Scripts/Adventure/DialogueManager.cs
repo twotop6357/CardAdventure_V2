@@ -64,31 +64,50 @@ namespace CardAdventure
             if (Keyboard.current == null) return;
 
             bool spaceDown = Keyboard.current.spaceKey.wasPressedThisFrame;
-            if (!spaceDown) return;
 
             if (isDialogueActive)
             {
-                HandleSpaceDuringDialogue();
+                if (spaceDown)
+                {
+                    HandleSpaceDuringDialogue();
+                }
             }
-            else if (pendingNpc != null)
+            else
             {
-                BeginDialogue(pendingNpc);
+                UpdatePendingNpc();
+
+                if (spaceDown && pendingNpc != null)
+                {
+                    BeginDialogue(pendingNpc);
+                }
             }
         }
 
-        // ══════════════════════════════════════════════════════
-        //  NPC 등록 (NpcInteractable이 호출)
-        // ══════════════════════════════════════════════════════
-
-        public void RegisterNpc(NpcInteractable npc)
+        private void UpdatePendingNpc()
         {
-            pendingNpc = npc;
-        }
+            pendingNpc = null;
+            if (activePlayer == null) return;
 
-        public void UnregisterNpc(NpcInteractable npc)
-        {
-            if (pendingNpc == npc)
-                pendingNpc = null;
+            float minDistance = 1.2f; // 상호작용 가능 거리 (NPC의 CircleCollider 반경과 유사하게 설정)
+            foreach (var npc in NpcInteractable.AllNpcs)
+            {
+                npc.SetHintActive(false); // 일단 숨김
+
+                if (!npc.CanInteract()) continue;
+
+                float dist = Vector2.Distance(activePlayer.transform.position, npc.transform.position);
+                if (dist <= minDistance)
+                {
+                    pendingNpc = npc;
+                    minDistance = dist;
+                }
+            }
+
+            // 가장 가까운 NPC의 힌트만 활성화
+            if (pendingNpc != null)
+            {
+                pendingNpc.SetHintActive(true);
+            }
         }
 
         // ══════════════════════════════════════════════════════

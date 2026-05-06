@@ -1,16 +1,22 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CardAdventure
 {
     /// <summary>
     /// NPC 오브젝트에 붙이는 컴포넌트.
-    /// 플레이어가 상호작용 범위(Collider2D IsTrigger)에 들어오면
-    /// DialogueManager에 이 NPC를 등록하고, 나가면 해제한다.
-    /// Space 입력 처리는 DialogueManager가 담당한다.
+    ///
+    /// 변경 사항 (Kinematic-Kinematic 트리거 미발동 문제 해결):
+    ///   - OnTriggerEnter/Exit2D 제거. 물리 트리거 의존 없음.
+    ///   - AllNpcs 정적 리스트에 자신을 등록하여
+    ///     DialogueManager가 매 프레임 거리 기반으로 상호작용 대상을 결정한다.
     /// </summary>
     [RequireComponent(typeof(Collider2D))]
     public class NpcInteractable : MonoBehaviour
     {
+        // ── 전체 NPC 목록 (DialogueManager 거리 검사용) ─────────
+        public static readonly List<NpcInteractable> AllNpcs = new List<NpcInteractable>();
+
         [Header("대화 데이터")]
         [SerializeField] private DialogueData dialogueData;
 
@@ -26,40 +32,37 @@ namespace CardAdventure
 
         public DialogueData DialogueData => dialogueData;
 
+        /// <summary>플레이어가 상호작용할 수 있는 상태인지 반환.</summary>
+        public bool CanInteract() => repeatable || !hasSpoken;
+
+        // ── Unity 생명주기 ────────────────────────────────────────
+
         private void Awake()
         {
-            // 트리거 확인
-            Collider2D col = GetComponent<Collider2D>();
-            if (col != null && !col.isTrigger)
-            {
-                col.isTrigger = true;
-                Debug.LogWarning($"[NpcInteractable] '{gameObject.name}'의 Collider2D를 IsTrigger=true로 자동 설정했습니다.", this);
-            }
-
             if (interactHint != null)
                 interactHint.SetActive(false);
         }
 
-        private void OnTriggerEnter2D(Collider2D other)
+        private void OnEnable()
         {
-            if (!other.CompareTag("Player")) return;
-            if (!repeatable && hasSpoken) return;
-            if (dialogueData == null) return;
-
-            DialogueManager.Instance?.RegisterNpc(this);
-
-            if (interactHint != null)
-                interactHint.SetActive(true);
+            if (!AllNpcs.Contains(this))
+                AllNpcs.Add(this);
         }
 
-        private void OnTriggerExit2D(Collider2D other)
+        private void OnDisable()
         {
-            if (!other.CompareTag("Player")) return;
-
-            DialogueManager.Instance?.UnregisterNpc(this);
-
+            AllNpcs.Remove(this);
             if (interactHint != null)
                 interactHint.SetActive(false);
+        }
+
+        // ── DialogueManager 호출용 공개 API ──────────────────────
+
+        /// <summary>상호작용 힌트 표시/숨김.</summary>
+        public void SetHintActive(bool active)
+        {
+            if (interactHint != null)
+                interactHint.SetActive(active);
         }
 
         /// <summary>DialogueManager가 대화 종료 후 호출한다.</summary>
@@ -71,14 +74,9 @@ namespace CardAdventure
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
-            Collider2D col = GetComponent<Collider2D>();
-            if (col == null) return;
-
+            // 상호작용 범위 시각화 (1.2 유닛)
             Gizmos.color = new Color(0.2f, 0.9f, 0.4f, 0.35f);
-            if (col is CircleCollider2D circle)
-                Gizmos.DrawSphere(transform.position, circle.radius);
-            else if (col is BoxCollider2D box)
-                Gizmos.DrawCube(transform.position + (Vector3)box.offset, box.size);
+            Gizmos.DrawWireSphere(transform.position, 1.2f);
 
             if (dialogueData != null)
             {

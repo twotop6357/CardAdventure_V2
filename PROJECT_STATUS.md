@@ -33,6 +33,41 @@
 
 ## 최근 변경
 
+### 2026-05-06 (세션 9 — NPC 이동 + 버그 수정)
+
+- **PlayerController 이동 수정** (`Assets/Scripts/Adventure/PlayerController.cs`)
+  - 이동 중 다른 방향 입력 시 즉시 도착 목표를 재계산하던 `TryRedirectMove()` 제거.
+  - 이동 중에는 스프라이트 방향만 즉시 전환, 실제 이동 목표는 현재 타일 도착 후 변경 (포켓몬 스타일).
+  - `SetInputEnabled(false)` 내부의 `rb.position` 접근에 `if (rb != null)` null 가드 추가 (MissingReferenceException 수정).
+  - `rb.isKinematic = true` → `rb.bodyType = RigidbodyType2D.Kinematic` (CS0618 경고 수정).
+
+- **NpcMovement 추가 및 버그 수정** (`Assets/Scripts/Adventure/NpcMovement.cs`)
+  - 타일 기반 랜덤 배회: 상하좌우 Fisher-Yates 셔플, wanderRadius(3유닛) 이내 이동.
+  - 대기 시간 2초, 대화 중(DialogueManager.IsDialogueActive)에는 타이머 정지.
+  - Kinematic Rigidbody2D + OverlapBox 수동 충돌 검사로 플레이어/벽과 상호 차단.
+  - `Grid` 컴포넌트의 `cellSize`를 동적으로 참조하도록 `ResolveMoveUnitSize()` 추가 (PlayerController와 규격 통일).
+  - 장애물 검사(`OverlapBox`) 시 자기 자신의 콜라이더를 임시 비활성화하여 오탐지(스스로 갇힘 현상) 방지.
+
+- **NpcInteractable 버그 수정** (`Assets/Scripts/Adventure/NpcInteractable.cs`)
+  - `Awake()`에서 `GetComponent<Collider2D>()`가 BoxCollider2D를 반환해 isTrigger=true로 바꾸던 문제 수정.
+  - `GetComponents<Collider2D>()` 루프로 트리거 존재 여부만 확인하도록 변경 (기존 콜라이더 수정 없음).
+
+- **NPC_BaramIroGun 씬 추가** (`Assets/Scenes/AdventureScene.unity`)
+  - 위치 (0, 2, 0), 파란 색조 SpriteRenderer (Warrior_IdleFront_0).
+  - BoxCollider2D(솔리드, 0.7×0.7) + CircleCollider2D(isTrigger=true, radius=1.2).
+  - NpcMovement, NpcInteractable (dialogueData → NPC_Test_Dialogue) 연결.
+
+- **NPC_Test_Dialogue ScriptableObject** (`Assets/ScriptableObjects/Dialogues/NPC_Test_Dialogue.asset`)
+  - 화자: "바람이로군", 대사 3줄 생성.
+
+- **상호작용 및 타일 점유 시스템 요약 (정상 동작 확인)**
+  - 대화 상호작용은 이제 물리 트리거 대신 **거리 기반(Proximity)** 으로 작동합니다. NPC와 인접 타일에 서 있을 때 대화가 가능합니다.
+  - 플레이어와 NPC가 서로의 방향으로 이동하지 못하는 것은 `GridOccupancy` 시스템에 의한 정상적인 의도(타일 충돌 방지)입니다.
+
+- **검증**: `validate_script` 기준 PlayerController, NpcMovement, NpcInteractable 오류 0개. 콘솔 재로드 후 게임 코드 에러/경고 없음 확인.
+
+---
+
 ### 2026-05-06 (세션 8 — NPC 대화 시스템 구현 + AdventureScene 연결)
 
 - **대화 시스템 스크립트 5종 추가 (모두 오류 0개 확인)**
@@ -111,8 +146,9 @@
 ## 다음 작업 후보
 
 1. **대화 시스템 PlayMode 검증** — AdventureScene에서 플레이어를 NPC_BaramIroGun 근처로 이동 → Space 입력 → 대화창 슬라이드 인, 타이핑 효과, Space로 페이지 넘기기, 마지막 줄 후 대화창 닫힘 확인.
-2. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 개선.
-3. 챕터 1 Tilemap 맵 제작 (베르데 평원 거점 마을 레이아웃).
+2. **NPC 이동 PlayMode 검증** — NPC가 홈(0,2,0) 기준 3유닛 반경 내 배회, 플레이어와 충돌(밀림 없음), 대화 중 배회 정지 확인.
+3. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 개선.
+4. 챕터 1 Tilemap 맵 제작 (베르데 평원 거점 마을 레이아웃).
 
 ## 씬 구성 안내 (배틀 UI 연결 방법)
 
@@ -267,11 +303,18 @@ Assets/Scenes/BattleTest.unity
 
 - `DialogueManager`는 `Start()`에서 `FindFirstObjectByType<PlayerController>()`로 플레이어를 자동 탐색한다. 씬에 PlayerController가 없으면 이동 차단/해제가 동작하지 않는다.
 - Space 키는 `Keyboard.current.spaceKey.wasPressedThisFrame`으로 직접 읽는다. InputActions의 Jump(Space) 바인딩과 충돌하지 않는다 (대화 중 이동이 차단되므로 실질적 문제 없음).
-- `NpcInteractable`의 Collider2D는 반드시 `isTrigger = true`여야 한다. 설정되지 않은 경우 Awake()에서 자동 설정하며 경고 로그를 출력한다.
+- `NpcInteractable`의 Collider2D는 반드시 별도의 isTrigger=true 콜라이더가 있어야 한다. Awake()에서 존재 여부만 확인하고 **기존 콜라이더를 수정하지 않는다**.
 - `TypewriterByCharacter`는 `TextAnimator_TMP`와 같은 GameObject에 있어야 한다. `DialogueSceneSetup`이 두 컴포넌트를 함께 생성한다.
 - `DialogueView`는 `DialoguePanel`의 `anchoredPosition.y`를 슬라이드 인/아웃에 사용한다. 패널 높이가 바뀌면 `Hide()`의 `targetY` 계산이 자동으로 `rect.height`를 참조한다.
 - `DialogueData.lines`가 비어 있으면 대화가 시작되지 않고 경고 로그만 출력된다.
 - NPC의 `repeatable = false`이면 한 번 대화 후 다시 말을 걸 수 없다. 기본값은 `true`.
+
+## 주의사항 (NPC 이동)
+
+- `NpcMovement.obstacleLayer`가 Inspector에서 설정되지 않으면 `~LayerMask.GetMask("Ignore Raycast")`(전체 레이어에서 Ignore Raycast 제외)가 기본값으로 적용된다. 플레이어 레이어도 장애물로 취급되어 상호 차단이 동작한다.
+- NPC는 솔리드 BoxCollider2D를 가지므로 플레이어의 OverlapBox 검사에도 걸려 서로의 칸으로 진입하지 못한다. 단, 양쪽 모두 Kinematic이므로 물리적으로 밀리지는 않는다.
+- `WanderLoop`에서 이동 완료 대기(`while (isMoving) yield return null`)가 있으므로, 매우 빠른 `moveSpeed`에서도 목표 타일에 반드시 도달한 뒤 다음 이동을 시도한다.
+- NPC는 `SnapToUnit`을 사용하지만, PlayerController의 `SnapToMoveUnit`(Grid cell size 참조)과 별개로 하드코딩된 1f 단위를 사용한다. 그리드 타일 크기를 1이 아닌 값으로 변경하면 NpcMovement도 함께 수정해야 한다.
 
 ## 주의사항 (UI 관련 추가)
 
