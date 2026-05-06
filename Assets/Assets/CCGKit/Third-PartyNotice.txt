@@ -1,0 +1,25 @@
+CCG Kit is governed by the Asset Store EULA; however, the following components are governed by the licenses indicated below:
+
+* Fonts (CCGKit/Fonts folder)
+
+    - Apache License, Version 2.0
+    
+    - License details available here: https://www.apache.org/licenses/LICENSE-2.0
+
+* DOTween asset:
+
+    - Asset Store EULA
+    
+    - License details available here: https://unity3d.com/es/legal/as_terms
+
+* Mirror asset:
+
+    - Asset Store EULA
+    
+    - License details available here: https://unity3d.com/es/legal/as_terms
+    
+* Full Serializer library:
+
+    - The MIT License (MIT)
+    
+    - License details available here: https://github.com/jacobdufault/fullserializer/blob/master/LICENSE.md

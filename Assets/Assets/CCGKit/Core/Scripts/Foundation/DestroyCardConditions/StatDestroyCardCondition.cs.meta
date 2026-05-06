@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: d3f8bdc47a994b24daefc5ffde84efa8
+timeCreated: 1500291684
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Core/Scripts/Foundation/DestroyCardConditions/StatDestroyCardCondition.cs
+  uploadId: 750409

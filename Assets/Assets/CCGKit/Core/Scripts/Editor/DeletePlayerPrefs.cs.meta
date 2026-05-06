@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: ed55eccd830474a80831cfcb33aff2ba
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Core/Scripts/Editor/DeletePlayerPrefs.cs
+  uploadId: 750409

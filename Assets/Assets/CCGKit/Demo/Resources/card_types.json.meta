@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d9f1e81c6e540aa4e84fdf9c67831d1d
+timeCreated: 1483637400
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Resources/card_types.json
+  uploadId: 750409

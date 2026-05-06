@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 34580d00209ad874b9fbee07080e4522
+timeCreated: 1460575446
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Resources/card_definitions.json
+  uploadId: 750409

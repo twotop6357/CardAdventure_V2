@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 0d888286086769a4c8bf229cae0a3caa
+timeCreated: 1495731059
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Scripts/Game/SpellTargetingArrow.cs
+  uploadId: 750409

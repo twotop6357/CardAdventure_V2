@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ff1e0176929f54840b9c52396841a1ce
+timeCreated: 1461240516
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Resources/game_properties.json
+  uploadId: 750409

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 45a01629bfe611f449fc6b19354b0877
+timeCreated: 1447602840
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Prefabs/DemoPlayer.prefab
+  uploadId: 750409

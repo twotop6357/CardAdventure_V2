@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: db7b534a44c35584d9f59f444df8194b
+timeCreated: 1536079145
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Core/Scripts/Foundation/Attributes/StringFieldAttribute.cs
+  uploadId: 750409

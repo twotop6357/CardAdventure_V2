@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5254104446245ac48a7fd73be58eaba8
+timeCreated: 1465738984
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Resources/game_zones.json
+  uploadId: 750409

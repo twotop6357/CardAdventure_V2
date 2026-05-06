@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: bb4845d9c64c7224badfe6c13099cf76
+timeCreated: 1523342795
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Core/Scripts/Foundation/Effects/DrawCardsEffect.cs
+  uploadId: 750409

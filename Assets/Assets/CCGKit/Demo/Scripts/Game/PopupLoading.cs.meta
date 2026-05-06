@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: b1ea8e3b9b0619941a9bc54286e900df
+timeCreated: 1496161288
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Scripts/Game/PopupLoading.cs
+  uploadId: 750409

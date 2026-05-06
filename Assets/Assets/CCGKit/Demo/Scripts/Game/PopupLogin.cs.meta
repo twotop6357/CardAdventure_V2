@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 438bc5aa363eb6c498770dbe0d5a4087
+timeCreated: 1499851993
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Scripts/Game/PopupLogin.cs
+  uploadId: 750409

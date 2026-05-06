@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: d85c60fbae4da754984d81e9836581b7
+timeCreated: 1536154946
+licenseType: Store
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Third-PartyNotice.txt
+  uploadId: 750409

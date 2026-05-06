@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8040aa347a6d71c4ebed812610f365e1
+timeCreated: 1499879312
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Scenes/GameServer.unity
+  uploadId: 750409

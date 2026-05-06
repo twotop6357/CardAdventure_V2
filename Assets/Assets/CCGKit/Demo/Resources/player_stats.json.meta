@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 977a07f6cba1792438830350f50fc726
+timeCreated: 1483637108
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Resources/player_stats.json
+  uploadId: 750409

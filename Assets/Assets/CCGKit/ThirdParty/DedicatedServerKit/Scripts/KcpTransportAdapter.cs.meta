@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 11bac7503a60647348632fd68b1f44cf
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/ThirdParty/DedicatedServerKit/Scripts/KcpTransportAdapter.cs
+  uploadId: 750409

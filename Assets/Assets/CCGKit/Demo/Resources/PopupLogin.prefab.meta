@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 52e966e81148f34489d90f5cacf7b1b3
+timeCreated: 1499794861
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Resources/PopupLogin.prefab
+  uploadId: 750409

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 6f9ff7b593c504e40b584cc4e1f4c5b1
+timeCreated: 1494522397
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Scenes/Bot.unity
+  uploadId: 750409

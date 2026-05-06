@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 4ddd0410bdb1a4c6e828e9badd7cb363
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/ThirdParty/DedicatedServerKit/Scripts/GameServer.cs
+  uploadId: 750409

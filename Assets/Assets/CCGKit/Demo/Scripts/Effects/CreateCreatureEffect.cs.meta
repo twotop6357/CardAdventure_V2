@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 72034053f371abc448bcc20c702b939f
+timeCreated: 1535989645
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Scripts/Effects/CreateCreatureEffect.cs
+  uploadId: 750409

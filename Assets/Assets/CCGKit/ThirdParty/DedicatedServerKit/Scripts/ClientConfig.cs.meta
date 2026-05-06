@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: a2380b42dbaec4dc8ab3e9cdc6f473b5
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/ThirdParty/DedicatedServerKit/Scripts/ClientConfig.cs
+  uploadId: 750409

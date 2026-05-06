@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8ca680df51c7e42e6b00a12a533fca50
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/ThirdParty/DedicatedServerKit/Config/GameNetworkManager.prefab
+  uploadId: 750409

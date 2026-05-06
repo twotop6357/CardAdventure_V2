@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 49b73047cb65dc948ad5734239d0a8bf
+timeCreated: 1496161462
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Resources/PopupLoading.prefab
+  uploadId: 750409

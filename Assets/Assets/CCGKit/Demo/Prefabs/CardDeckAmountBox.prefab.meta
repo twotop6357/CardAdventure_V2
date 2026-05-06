@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: ffb03cc8d164f408797d77f8f7786005
+timeCreated: 1494435576
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Prefabs/CardDeckAmountBox.prefab
+  uploadId: 750409

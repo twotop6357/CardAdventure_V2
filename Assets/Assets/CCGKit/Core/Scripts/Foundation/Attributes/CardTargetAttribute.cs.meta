@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 0611378ecf3a64d468fac5f348632dc4
+timeCreated: 1495467806
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Core/Scripts/Foundation/Attributes/CardTargetAttribute.cs
+  uploadId: 750409

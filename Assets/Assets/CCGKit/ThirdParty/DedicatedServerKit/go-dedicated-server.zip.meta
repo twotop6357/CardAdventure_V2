@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 2ab52f15de3bc474aa029012810484bc
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/ThirdParty/DedicatedServerKit/go-dedicated-server.zip
+  uploadId: 750409

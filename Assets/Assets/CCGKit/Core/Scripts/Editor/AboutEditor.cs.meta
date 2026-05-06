@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: acefae71294176045bf89d0fdbe3dd10
+timeCreated: 1454182620
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Core/Scripts/Editor/AboutEditor.cs
+  uploadId: 750409

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c18ac9e7459cc4a398210ddc8968221e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/ThirdParty/DedicatedServerKit/Config/ClientConfig.asset
+  uploadId: 750409

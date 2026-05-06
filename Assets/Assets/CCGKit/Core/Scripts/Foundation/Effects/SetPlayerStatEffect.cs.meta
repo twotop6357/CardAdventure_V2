@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 948f56b1798fbc74483033b11599e2c4
+timeCreated: 1494780205
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Core/Scripts/Foundation/Effects/SetPlayerStatEffect.cs
+  uploadId: 750409

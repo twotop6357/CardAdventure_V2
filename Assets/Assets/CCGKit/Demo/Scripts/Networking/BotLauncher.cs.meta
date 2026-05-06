@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: e3c7e2e2a0b5c4f0c97e17b2765fbb7f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Scripts/Networking/BotLauncher.cs
+  uploadId: 750409

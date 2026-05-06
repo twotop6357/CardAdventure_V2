@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 79de9646b33f473419e6895390cd9825
+timeCreated: 1487699510
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/Demo/Resources/card_library.json
+  uploadId: 750409

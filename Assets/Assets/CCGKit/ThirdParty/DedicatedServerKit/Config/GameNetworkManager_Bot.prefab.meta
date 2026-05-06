@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 46fb7ee15c4754fd89c64e44d2b87f95
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 52739
+  packageName: CCG Kit
+  packageVersion: 2.7.0
+  assetPath: Assets/CCGKit/ThirdParty/DedicatedServerKit/Config/GameNetworkManager_Bot.prefab
+  uploadId: 750409
