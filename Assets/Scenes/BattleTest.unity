@@ -187,7 +187,8 @@ MonoBehaviour:
   m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 630b28598a1a84c4280365d58b96d800, type: 2}
-  m_sharedMaterial: {fileID: 454764912}
+  m_sharedMaterial: {fileID: 3757751203109296358, guid: 630b28598a1a84c4280365d58b96d800,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -624,7 +625,8 @@ MonoBehaviour:
   m_text: "\uACF5\uACA9 6"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 630b28598a1a84c4280365d58b96d800, type: 2}
-  m_sharedMaterial: {fileID: 454764912}
+  m_sharedMaterial: {fileID: 3757751203109296358, guid: 630b28598a1a84c4280365d58b96d800,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1250,7 +1252,8 @@ MonoBehaviour:
   m_text: "\uD134 \uC885\uB8CC"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 630b28598a1a84c4280365d58b96d800, type: 2}
-  m_sharedMaterial: {fileID: 454764912}
+  m_sharedMaterial: {fileID: 3757751203109296358, guid: 630b28598a1a84c4280365d58b96d800,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1727,7 +1730,8 @@ MonoBehaviour:
   m_text: 3 / 3
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 630b28598a1a84c4280365d58b96d800, type: 2}
-  m_sharedMaterial: {fileID: 454764912}
+  m_sharedMaterial: {fileID: 3757751203109296358, guid: 630b28598a1a84c4280365d58b96d800,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2098,7 +2102,8 @@ MonoBehaviour:
   m_text: "\uD134 1"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 630b28598a1a84c4280365d58b96d800, type: 2}
-  m_sharedMaterial: {fileID: 454764912}
+  m_sharedMaterial: {fileID: 3757751203109296358, guid: 630b28598a1a84c4280365d58b96d800,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2830,7 +2835,8 @@ MonoBehaviour:
   m_text: "\uC2AC\uB77C\uC784"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 630b28598a1a84c4280365d58b96d800, type: 2}
-  m_sharedMaterial: {fileID: 454764912}
+  m_sharedMaterial: {fileID: 3757751203109296358, guid: 630b28598a1a84c4280365d58b96d800,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -3473,6 +3479,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1573733676}
   - component: {fileID: 1573733675}
+  - component: {fileID: 1573733677}
   m_Layer: 0
   m_Name: BattleManager
   m_TagString: Untagged
@@ -3521,6 +3528,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1573733677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573733674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3faa17a6846a364aa965c482812bd6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.BattleSceneConnector
+  fallbackEnemy: {fileID: 0}
 --- !u!1 &1704282455
 GameObject:
   m_ObjectHideFlags: 0
@@ -3664,7 +3684,8 @@ MonoBehaviour:
   m_text: 30 / 30
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 630b28598a1a84c4280365d58b96d800, type: 2}
-  m_sharedMaterial: {fileID: 454764912}
+  m_sharedMaterial: {fileID: 3757751203109296358, guid: 630b28598a1a84c4280365d58b96d800,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -4301,7 +4322,8 @@ MonoBehaviour:
   m_text: 50 / 50
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 630b28598a1a84c4280365d58b96d800, type: 2}
-  m_sharedMaterial: {fileID: 454764912}
+  m_sharedMaterial: {fileID: 3757751203109296358, guid: 630b28598a1a84c4280365d58b96d800,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

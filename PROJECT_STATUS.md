@@ -5,7 +5,7 @@
 ## 현재 목표
 
 - 기획서 **카드 배틀 자격증 어드벤처 — 게임 기획서 v1.0 (2026.05)** 를 기준으로 Unity 2D 탑다운 어드벤처 + 턴제 카드 배틀 RPG를 구현한다.
-- 우선순위는 Phase 1: **전사 덱 기반 카드 배틀 기본 루프** 완성이다.
+- Phase 1 (전사 배틀 기본 루프) 완료. 현재 **Phase 2: 어드벤처 씬 기초** 진행 중.
 
 ## 현재 프로젝트 상태
 
@@ -73,11 +73,10 @@
 
 ## 다음 작업 후보
 
-1. **PlayMode 수동 검증** — BattleTest 씬 PlayMode 진입 → 카드 클릭 → 공격 화살표 → 턴 종료 → 승패 패널 흐름 확인.
-2. 플레이어·적 스프라이트 연결 — SPUM 파츠(Human_1.png 등)를 BattleManager EnemyData.enemySprite에 연결.
+1. **어드벤처 씬 PlayMode 검증** — Player 이동, BattleEntrance 트리거 → BattleTest 씬 전환 확인.
+2. **NPC 대화 시스템 기초** — `DialogueManager.cs` + Febucci TextAnimator 연동, 말풍선 프리팹.
 3. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 개선.
-4. 손패 카드 드로우 애니메이션 diff-patch 최적화(StateChanged마다 전체 재생성 → 기존 뷰 재사용).
-5. 챕터 1 탑다운 어드벤처 씬 기초 작업 시작(Phase 2).
+4. 챕터 1 Tilemap 맵 제작 (베르데 평원 거점 마을 레이아웃).
 
 ## 씬 구성 안내 (배틀 UI 연결 방법)
 
@@ -182,6 +181,9 @@ Assets/Scenes/BattleTest.unity
 
 ## 검증 상태
 
+- **Phase 2 스크립트 validate_script standard 검증 (세션 5)**: GameDataManager, PlayerController, SceneLoader, BattleEntrance, BattleSceneConnector, AdventureSceneBuilder — 오류 0개 (경고 1개: PlayerController GC false positive).
+- **AdventureScene 생성 확인 (세션 5)**: `[AdventureSceneBuilder] ✅ 완료` 콘솔 확인. 계층: GameManagers, Main Camera, Grid(Ground+Walls), Player(SPUM), CinemachineCamera, BattleEntrance_Slime.
+- **Build Settings 업데이트 (세션 5)**: AdventureScene(0), BattleTest(1), SampleScene(2).
 - **FontSetupTool 실행 결과 (세션 4)**: 씬 TMP 11개, 프리팹 TMP 5개 교체. `MaruMinyaHangul SDF.asset` 생성 확인. TMP Settings 기본 폰트 갱신 확인.
 - 문서 파일 UTF-8 읽기 확인 완료.
 - 새 전투 런타임 스크립트 6개는 Unity MCP `validate_script` 표준 검증에서 오류/경고 0개 확인.
@@ -202,6 +204,9 @@ Assets/Scenes/BattleTest.unity
 
 ## 주의사항
 
+- `PlayerInput.actions`에 Input Action Asset(`Assets/InputSystem_Actions.inputactions`) 연결 완료됨.
+- `BattleSceneConnector`를 BattleTest.unity의 BattleManager에 추가 완료.
+- `SceneLoader.BATTLE_SCENE_NAME = "BattleTest"` — 정식 BattleScene 제작 후 상수값 변경 필요.
 - `Assets/Assets/`와 `Assets/Plugins/`의 서드파티 코드는 직접 수정하지 않는다.
 - `CardAdventure.CardType`과 CCGKit `CardType` 이름 충돌에 주의한다.
 - 기존 ScriptableObject 필드 삭제/이름 변경은 피한다.
@@ -224,6 +229,34 @@ Assets/Scenes/BattleTest.unity
 - BetterUI 반응형 컴포넌트(BetterContentSizeFitter 등)는 씬 구성 시 Unity Layout Group 대신 직접 Inspector에서 교체한다.
 
 ## 작업 로그
+
+### 2026-05-06 (세션 5 — Phase 2 계속)
+
+- `FontSetupTool.cs` 수정: Dynamic SDF 폰트 생성 시 텍스처 아틀라스가 누락되어 발생하던 에러(UnassignedReferenceException) 해결을 위해 `atlasTextures`와 `material`을 Sub-Asset으로 추가하도록 변경.
+- `MaruMinyaHangul SDF.asset` 재생성 완료 (정상 용량 8MB 확인). 콘솔 에러 모두 해결.
+- `AdventureScene`의 `PlayerInput`에 `InputSystem_Actions.inputactions` 할당 확인.
+- `BattleTest` 씬의 `BattleManager`에 `BattleSceneConnector` 컴포넌트 추가 및 저장 완료.
+- 다음 에이전트는 어드벤처 씬 PlayMode(Player 이동, BattleEntrance 트리거 씬 전환)를 수동 검증하면 된다.
+
+### 2026-05-06 (세션 5 — Phase 2 시작)
+
+**Phase 2: 어드벤처 씬 기초**
+
+- `Assets/Scripts/Core/GameDataManager.cs` 추가 — DontDestroyOnLoad 싱글턴. 플레이어 덱, HP, 골드, 챕터 진행도, 전투 복귀 씬명 관리.
+- `Assets/Scripts/Core/SceneLoader.cs` 추가 — DOTween 페이드(0.4s) 씬 전환 싱글턴. `EnterBattle(enemy, returnScene)` / `ReturnFromBattle(hp, reward)` API.
+- `Assets/Scripts/Adventure/PlayerController.cs` 추가 — Input System Send Messages 방식, 8방향 탑다운 이동, SPUM 애니메이션(IDLE/MOVE), 스프라이트 좌우 플립.
+- `Assets/Scripts/Adventure/BattleEntrance.cs` 추가 — Trigger2D 전투 진입, EnemyData 연결, 클리어 후 비활성화.
+- `Assets/Scripts/Battle/BattleSceneConnector.cs` 추가 — BattleScene 진입 시 GameDataManager → BattleManager.Configure() 연결, 전투 종료 시 어드벤처 씬 복귀.
+- `Assets/Scenes/AdventureScene.unity` 생성 (메뉴: CardAdventure > Build Adventure Scene):
+  - GameManagers (GameDataManager + SceneLoader)
+  - Main Camera (URP + CinemachineBrain)
+  - Grid → Ground Tilemap + Walls Tilemap (CompositeCollider2D)
+  - Player (PlayerController + PlayerInput + CircleCollider2D + SPUM 자식)
+  - CinemachineCamera (팔로우 + PositionComposer 감쇠 0.5)
+  - BattleEntrance_Slime (Enemy_Verde_Slime 연결, 위치 x=3)
+- Build Settings: AdventureScene(0), BattleTest(1), SampleScene(2) 등록.
+- SceneLoader: 배틀 씬 이름 `"BattleTest"` 상수로 관리 (추후 `BattleScene` 정식화).
+- 다음 에이전트는 Input Action Asset 연결(`PlayerInput.actions`) + BattleSceneConnector를 BattleTest 씬 BattleManager에 추가하는 작업을 진행하면 된다.
 
 ### 2026-05-06 (세션 4)
 

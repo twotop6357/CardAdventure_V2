@@ -1,0 +1,132 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace CardAdventure
+{
+    /// <summary>
+    /// 씬 간 플레이어 데이터(덱, 골드, 챕터 진행도)를 유지하는 싱글턴.
+    /// DontDestroyOnLoad로 게임 전체 생존.
+    /// </summary>
+    public class GameDataManager : MonoBehaviour
+    {
+        // ── 싱글턴 ────────────────────────────────────────────────
+        public static GameDataManager Instance { get; private set; }
+
+        // ── 플레이어 기본 설정 ─────────────────────────────────
+        [Header("플레이어 설정")]
+        [SerializeField] private string playerName    = "플레이어";
+        [SerializeField] private int    playerMaxHp   = 50;
+        [SerializeField] private List<CardData> starterDeck = new List<CardData>();
+
+        // ── 런타임 데이터 ──────────────────────────────────────
+        /// <summary>현재 플레이어 HP (배틀 간 유지).</summary>
+        public int CurrentHp   { get; set; }
+        public int MaxHp       { get; private set; }
+
+        /// <summary>보유 골드.</summary>
+        public int Gold { get; set; }
+
+        /// <summary>현재 덱 (배틀 보상으로 카드 추가됨).</summary>
+        public List<CardData> Deck { get; private set; } = new List<CardData>();
+
+        /// <summary>챕터 진행도 (0 = 미시작, 1 = 챕터1 진행 중 …).</summary>
+        public int ChapterProgress { get; set; }
+
+        /// <summary>마지막으로 진입한 전투의 적 데이터.</summary>
+        public EnemyData PendingEnemy { get; set; }
+
+        /// <summary>배틀에서 돌아올 어드벤처 씬 이름.</summary>
+        public string ReturnSceneName { get; set; } = "AdventureScene";
+
+        public string PlayerName => playerName;
+
+        // ── 라이프사이클 ───────────────────────────────────────
+
+        private void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+
+            InitDefaults();
+        }
+
+        // ── 초기화 ─────────────────────────────────────────────
+
+        private void InitDefaults()
+        {
+            MaxHp     = playerMaxHp;
+            CurrentHp = playerMaxHp;
+            Gold      = 0;
+            ChapterProgress = 0;
+
+            Deck.Clear();
+            foreach (CardData card in starterDeck)
+            {
+                if (card != null) Deck.Add(card);
+            }
+        }
+
+        // ── 공개 API ───────────────────────────────────────────
+
+        /// <summary>
+        /// BattleScene 진입 직전 호출.
+        /// BattleManager.Configure()에 넘길 데이터를 세팅한다.
+        /// </summary>
+        public void PrepareBattle(EnemyData enemy, string returnScene)
+        {
+            PendingEnemy    = enemy;
+            ReturnSceneName = returnScene;
+        }
+
+        /// <summary>
+        /// 배틀 결과 반영 (승리 시 카드 보상, HP 동기화 등).
+        /// BattleScene 종료 시 호출한다.
+        /// </summary>
+        public void ApplyBattleResult(int remainingHp, CardData rewardCard = null)
+        {
+            CurrentHp = Mathf.Clamp(remainingHp, 0, MaxHp);
+
+            if (rewardCard != null && !Deck.Contains(rewardCard))
+                Deck.Add(rewardCard);
+        }
+
+        /// <summary>
+        /// 카드를 덱에 추가한다 (상점/보물상자 등).
+        /// </summary>
+        public void AddCardToDeck(CardData card)
+        {
+            if (card != null) Deck.Add(card);
+        }
+
+        /// <summary>
+        /// 골드 변경. 음수 허용 안 함.
+        /// </summary>
+        public bool SpendGold(int amount)
+        {
+            if (Gold < amount) return false;
+            Gold -= amount;
+            return true;
+        }
+
+        public void EarnGold(int amount) => Gold += Mathf.Max(0, amount);
+
+        /// <summary>
+        /// 데이터를 초기 상태로 리셋 (뉴 게임).
+        /// </summary>
+        public void ResetForNewGame()
+        {
+            InitDefaults();
+        }
+
+        /// <summary>
+        /// 현재 덱의 읽기 전용 뷰.
+        /// </summary>
+        public IReadOnlyList<CardData> ReadOnlyDeck => Deck;
+    }
+}

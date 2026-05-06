@@ -101,6 +101,19 @@ public static class FontSetupTool
             AssetDatabase.CreateFolder("Assets", "Fonts");
 
         AssetDatabase.CreateAsset(fontAsset, FONT_ASSET_PATH);
+        
+        if (fontAsset.atlasTextures != null && fontAsset.atlasTextures.Length > 0)
+        {
+            for (int i = 0; i < fontAsset.atlasTextures.Length; i++)
+            {
+                if (fontAsset.atlasTextures[i] != null)
+                    AssetDatabase.AddObjectToAsset(fontAsset.atlasTextures[i], fontAsset);
+            }
+        }
+        
+        if (fontAsset.material != null)
+            AssetDatabase.AddObjectToAsset(fontAsset.material, fontAsset);
+
         AssetDatabase.SaveAssets();
 
         Debug.Log("[FontSetupTool] Font Asset 생성 완료: " + FONT_ASSET_PATH);
