@@ -33,6 +33,13 @@
 
 ## 최근 변경
 
+### 2026-05-06 (세션 10 — 타일맵 자동 생성 도구 추가)
+
+- `Assets/Scripts/Editor/TownGenerator.cs` 작성
+  - InteliMap Pro 에셋의 예제 타일(Plains 잔디/흙길, Dungeon 벽)을 조합하여 집 4개가 있는 마을(Verde Plains) 타일맵을 자동 생성하는 에디터 툴 추가.
+  - 상단 메뉴 `CardAdventure > Map > Generate Town (4 Houses)`에서 실행 가능 (자동 타일 할당 기능 포함).
+  - 현재 MCP를 통한 C# 코드 실행 시 mono.exe 경로 문제("파일 이름이나 확장명이 너무 깁니다")로 자동 실행은 실패하나, 에디터 GUI를 통해 정상 이용 가능.
+
 ### 2026-05-06 (세션 9 — NPC 이동 + 버그 수정)
 
 - **PlayerController 이동 수정** (`Assets/Scripts/Adventure/PlayerController.cs`)
