@@ -64,8 +64,7 @@ namespace CardAdventure
                 return;
             }
 
-            BattleStatusInstance existingStatus = statuses.Find(
-                status => status.Data != null && status.Data.effectType == statusEffect.effectType);
+            BattleStatusInstance existingStatus = statuses.Find(status => status.EffectType == statusEffect.effectType);
 
             if (existingStatus != null)
             {
@@ -74,6 +73,36 @@ namespace CardAdventure
             }
 
             statuses.Add(new BattleStatusInstance(statusEffect, stacks));
+        }
+
+        public void ApplyStatus(StatusEffectType effectType, int stacks, int duration)
+        {
+            if (stacks <= 0)
+            {
+                return;
+            }
+
+            BattleStatusInstance existingStatus = statuses.Find(status => status.EffectType == effectType);
+
+            if (existingStatus != null)
+            {
+                existingStatus.AddStacks(stacks);
+                existingStatus.RefreshDuration(duration);
+                return;
+            }
+
+            statuses.Add(new BattleStatusInstance(effectType, stacks, duration));
+        }
+
+        public int GetStatusStacks(StatusEffectType effectType)
+        {
+            BattleStatusInstance status = statuses.Find(instance => instance.EffectType == effectType);
+            return status != null ? status.Stacks : 0;
+        }
+
+        public bool HasStatus(StatusEffectType effectType)
+        {
+            return GetStatusStacks(effectType) > 0;
         }
 
         public void TickStatusDurations()

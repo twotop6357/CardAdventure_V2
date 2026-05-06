@@ -177,11 +177,12 @@ namespace CardAdventure
         private void ApplyCardEffect(BattleRuntimeCard card)
         {
             CardData data = card.Data;
+            string cardAssetName = data.name;
 
             switch (data.cardType)
             {
                 case CardType.Attack:
-                    Enemy.Combatant.ReceiveDamage(data.effectValue);
+                    ApplyAttackCard(data, cardAssetName);
                     break;
                 case CardType.Defense:
                     Player.Combatant.AddBlock(data.effectValue);
@@ -195,8 +196,33 @@ namespace CardAdventure
             }
         }
 
+        private void ApplyAttackCard(CardData data, string cardAssetName)
+        {
+            int baseDamage = data.effectValue;
+
+            if (cardAssetName == "Card_Warrior_ShieldBash")
+            {
+                baseDamage += Player.Combatant.Block;
+            }
+
+            int damage = Player.GetAttackDamage(baseDamage);
+            damage = ApplyVulnerableDamageModifier(Enemy.Combatant, damage);
+            Enemy.Combatant.ReceiveDamage(damage);
+        }
+
         private void ApplySkillCard(CardData data)
         {
+            switch (data.name)
+            {
+                case "Card_Warrior_Rage":
+                    Player.AddAttackBonusGainedPerAttackForTurn(data.effectValue);
+                    return;
+                case "Card_Warrior_Taunt":
+                    Player.Combatant.AddBlock(data.effectValue);
+                    Enemy.Combatant.ApplyStatus(StatusEffectType.Weak, 1, 1);
+                    return;
+            }
+
             if (data.statusEffect != null)
             {
                 Enemy.Combatant.ApplyStatus(data.statusEffect, Mathf.Max(1, data.statusEffect.defaultStacks));
@@ -213,7 +239,7 @@ namespace CardAdventure
             switch (action.actionType)
             {
                 case EnemyActionType.Attack:
-                    Player.Combatant.ReceiveDamage(action.value);
+                    Player.Combatant.ReceiveDamage(GetEnemyAttackDamage(action.value));
                     break;
                 case EnemyActionType.Defend:
                     Enemy.Combatant.AddBlock(action.value);
@@ -228,6 +254,31 @@ namespace CardAdventure
                     Enemy.Combatant.Heal(action.value);
                     break;
             }
+
+            Enemy.Combatant.TickStatusDurations();
+            Player.Combatant.TickStatusDurations();
+        }
+
+        private int GetEnemyAttackDamage(int baseDamage)
+        {
+            int damage = Mathf.Max(0, baseDamage + Enemy.Combatant.GetStatusStacks(StatusEffectType.Strength));
+
+            if (Enemy.Combatant.HasStatus(StatusEffectType.Weak))
+            {
+                damage = Mathf.FloorToInt(damage * 0.75f);
+            }
+
+            return ApplyVulnerableDamageModifier(Player.Combatant, damage);
+        }
+
+        private static int ApplyVulnerableDamageModifier(BattleCombatantState target, int damage)
+        {
+            if (target != null && target.HasStatus(StatusEffectType.Vulnerable))
+            {
+                return Mathf.CeilToInt(damage * 1.5f);
+            }
+
+            return damage;
         }
 
         private bool ResolveBattleEndOrNotify()

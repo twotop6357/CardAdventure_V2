@@ -12,26 +12,51 @@ namespace CardAdventure
         public BattleStatusInstance(StatusEffectData data, int stacks)
         {
             Data = data;
+            EffectType = data != null ? data.effectType : StatusEffectType.Strength;
             Stacks = Mathf.Max(0, stacks);
             RemainingDuration = data != null ? data.duration : 0;
+            HasTimedDuration = data != null && data.duration > 0;
+        }
+
+        public BattleStatusInstance(StatusEffectType effectType, int stacks, int duration)
+        {
+            Data = null;
+            EffectType = effectType;
+            Stacks = Mathf.Max(0, stacks);
+            RemainingDuration = Mathf.Max(0, duration);
+            HasTimedDuration = duration > 0;
         }
 
         public StatusEffectData Data { get; }
+
+        public StatusEffectType EffectType { get; }
 
         public int Stacks { get; private set; }
 
         public int RemainingDuration { get; private set; }
 
-        public bool IsExpired => Data == null || Stacks <= 0 || RemainingDuration < 0;
+        public bool HasTimedDuration { get; }
+
+        public bool IsExpired => Stacks <= 0 || (HasTimedDuration && RemainingDuration <= 0);
 
         public void AddStacks(int amount)
         {
             Stacks = Mathf.Max(0, Stacks + amount);
 
-            if (Data != null && Data.duration > 0)
+            if (HasTimedDuration && Data != null)
             {
                 RemainingDuration = Mathf.Max(RemainingDuration, Data.duration);
             }
+        }
+
+        public void RefreshDuration(int duration)
+        {
+            if (!HasTimedDuration)
+            {
+                return;
+            }
+
+            RemainingDuration = Mathf.Max(RemainingDuration, duration);
         }
 
         public void ConsumeStacks(int amount)
@@ -41,7 +66,7 @@ namespace CardAdventure
 
         public void TickDuration()
         {
-            if (Data == null || Data.duration == 0)
+            if (!HasTimedDuration)
             {
                 return;
             }

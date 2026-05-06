@@ -28,10 +28,16 @@ namespace CardAdventure
 
         public int CurrentEnergy { get; private set; }
 
+        public int TurnAttackDamageBonus { get; private set; }
+
+        public int AttackBonusGainedPerAttack { get; private set; }
+
         public void StartTurn()
         {
             Combatant.ClearBlock();
             CurrentEnergy = MaxEnergy;
+            TurnAttackDamageBonus = 0;
+            AttackBonusGainedPerAttack = 0;
         }
 
         public void DrawStartingHand()
@@ -53,6 +59,27 @@ namespace CardAdventure
 
             CurrentEnergy = Mathf.Max(0, CurrentEnergy - card.EnergyCost);
             return true;
+        }
+
+        public void AddAttackDamageBonusForTurn(int amount)
+        {
+            TurnAttackDamageBonus = Mathf.Max(0, TurnAttackDamageBonus + amount);
+        }
+
+        public void AddAttackBonusGainedPerAttackForTurn(int amount)
+        {
+            AttackBonusGainedPerAttack = Mathf.Max(0, AttackBonusGainedPerAttack + amount);
+        }
+
+        public int GetAttackDamage(int baseDamage)
+        {
+            if (AttackBonusGainedPerAttack > 0)
+            {
+                AddAttackDamageBonusForTurn(AttackBonusGainedPerAttack);
+            }
+
+            int strengthStacks = Combatant.GetStatusStacks(StatusEffectType.Strength);
+            return Mathf.Max(0, baseDamage + TurnAttackDamageBonus + strengthStacks);
         }
     }
 }
