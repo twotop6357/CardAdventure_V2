@@ -18,6 +18,11 @@ namespace CardAdventure
         public IReadOnlyList<BattleRuntimeCard> DiscardPile => discardPile;
         public IReadOnlyList<BattleRuntimeCard> ExhaustPile => exhaustPile;
 
+        public bool HasHandCard(BattleRuntimeCard card)
+        {
+            return card != null && hand.Contains(card);
+        }
+
         public void Initialize(IEnumerable<CardData> deck)
         {
             drawPile.Clear();
