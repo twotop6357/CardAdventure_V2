@@ -38,7 +38,7 @@ namespace CardAdventure
 
         public bool IsBattleActive => Phase == BattlePhase.PlayerTurn || Phase == BattlePhase.EnemyTurn;
 
-        private void Awake()
+        private void Start()
         {
             if (startOnAwake)
             {
@@ -170,7 +170,6 @@ namespace CardAdventure
             }
 
             Phase = BattlePhase.EnemyTurn;
-            Enemy.Combatant.ClearBlock();
             ResolveTurnStartStatuses(Enemy.Combatant);
 
             if (ResolveBattleEndOrNotify())

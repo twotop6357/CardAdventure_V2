@@ -66,6 +66,19 @@ namespace CardAdventure.Tests
         }
 
         [Test]
+        public void Block_RemainsAfterTurnEnds()
+        {
+            BattleManager battleManager = CreateBattleManager(CreateAttackEnemy(30, 0), CreateDeck());
+            battleManager.StartBattle();
+
+            battleManager.PlayCard(FindHandCard(battleManager, "Card_Warrior_Defend"));
+            battleManager.EndPlayerTurn();
+
+            Assert.AreEqual(5, battleManager.Player.Combatant.Block);
+            Assert.AreEqual(BattlePhase.PlayerTurn, battleManager.Phase);
+        }
+
+        [Test]
         public void Rage_IncreasesAttackDamageForEachAttackThisTurn()
         {
             BattleManager battleManager = CreateBattleManager(CreateAttackEnemy(30, 5), CreateDeck());

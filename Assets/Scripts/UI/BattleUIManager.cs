@@ -1,0 +1,356 @@
+using DG.Tweening;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace CardAdventure
+{
+    /// <summary>
+    /// 배틀 씬의 모든 UI를 조율하는 컨트롤러.
+    ///
+    /// 손패 갱신 시점:
+    ///   - BattleStarted   → 전체 갱신 (첫 5장 드로우)
+    ///   - EnemyIntentSelected → 새 플레이어 턴 시작 → 손패 갱신 (턴 드로우)
+    ///   - 카드 사용 성공 시 → 해당 카드 뷰만 애니메이션 후 제거
+    ///
+    /// HUD / 적 영역 갱신 시점:
+    ///   - StateChanged 마다 (HP, 방어막, 에너지, 의도)
+    /// </summary>
+    [RequireComponent(typeof(Canvas))]
+    public class BattleUIManager : MonoBehaviour
+    {
+        [Header("핵심 참조")]
+        [SerializeField] private BattleManager battleManager;
+
+        [Header("뷰 참조")]
+        [SerializeField] private BattleHudView   playerHud;
+        [SerializeField] private BattleEnemyView enemyView;
+        [SerializeField] private BattleHandView  handView;
+
+        [Header("버튼")]
+        [SerializeField] private Button endTurnButton;
+
+        [Header("결과 패널")]
+        [SerializeField] private GameObject      resultPanel;
+        [SerializeField] private TextMeshProUGUI resultText;
+        [SerializeField] private Button          resultRestartButton;
+
+        [Header("페이드")]
+        [SerializeField] private CanvasGroup fadeMask;
+        [SerializeField] private float       fadeInDuration = 0.5f;
+
+        [Header("카드 사용 연출 기준점")]
+        [SerializeField] private RectTransform cardPlayTarget;
+
+        [Header("타게팅 화살표")]
+        [SerializeField] private BattleTargetArrow targetArrow;
+
+        // ── 내부 상태 ──────────────────────────────────────────────
+        private BattleCardView pendingCardView;
+        private bool           isCardAnimating;   // 카드 사용 애니메이션 진행 중 여부
+
+        // ── 라이프사이클 ───────────────────────────────────────────
+
+        private void Awake()
+        {
+            if (battleManager == null)
+                battleManager = Object.FindFirstObjectByType<BattleManager>();
+
+            if (battleManager == null)
+            {
+                Debug.LogError("[BattleUIManager] BattleManager를 찾을 수 없습니다.");
+                return;
+            }
+
+            SubscribeEvents();
+            SetupButtons();
+        }
+
+        private void Start()
+        {
+            if (resultPanel != null) resultPanel.SetActive(false);
+
+            if (fadeMask != null)
+            {
+                fadeMask.alpha = 1f;
+                fadeMask.DOFade(0f, fadeInDuration).SetEase(Ease.OutQuad);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            UnsubscribeEvents();
+        }
+
+        // ── 매 프레임: 타게팅 입력 처리 ──────────────────────────
+
+        private void Update()
+        {
+            if (pendingCardView == null) return;
+            if (targetArrow == null || !targetArrow.gameObject.activeSelf) return;
+
+            // 좌클릭 → 카드 사용 확정 (EventSystem이 처리한 클릭은 별도)
+            if (Input.GetMouseButtonDown(0))
+            {
+                TryPlaySelectedCard();
+            }
+            else if (Input.GetMouseButtonDown(1))
+            {
+                CancelTargeting();
+            }
+        }
+
+        // ── 이벤트 구독 ────────────────────────────────────────────
+
+        private void SubscribeEvents()
+        {
+            battleManager.BattleStarted           += OnBattleStarted;
+            battleManager.StateChanged            += OnStateChanged;
+            battleManager.EnemyIntentSelected     += OnEnemyIntentSelected;
+            battleManager.TurnStartStatusResolved += OnTurnStartStatusResolved;
+            battleManager.BattleEnded             += OnBattleEnded;
+        }
+
+        private void UnsubscribeEvents()
+        {
+            if (battleManager == null) return;
+            battleManager.BattleStarted           -= OnBattleStarted;
+            battleManager.StateChanged            -= OnStateChanged;
+            battleManager.EnemyIntentSelected     -= OnEnemyIntentSelected;
+            battleManager.TurnStartStatusResolved -= OnTurnStartStatusResolved;
+            battleManager.BattleEnded             -= OnBattleEnded;
+        }
+
+        // ── 이벤트 핸들러 ──────────────────────────────────────────
+
+        /// <summary>전투 시작 — 손패 포함 전체 갱신.</summary>
+        private void OnBattleStarted(BattleManager manager)
+        {
+            isCardAnimating = false;
+            pendingCardView = null;
+            targetArrow?.Hide();
+
+            if (resultPanel != null) resultPanel.SetActive(false);
+            if (endTurnButton != null) endTurnButton.gameObject.SetActive(true);
+
+            enemyView?.ResetForBattle(manager.Enemy);
+            RefreshHudAndButtons(manager);
+            RefreshHand(manager);   // 첫 5장 드로우
+        }
+
+        /// <summary>
+        /// 상태 변경 — HUD와 버튼만 갱신.
+        /// 손패는 여기서 건드리지 않는다 (카드 애니메이션과 충돌 방지).
+        /// </summary>
+        private void OnStateChanged(BattleManager manager)
+        {
+            RefreshHudAndButtons(manager);
+        }
+
+        /// <summary>
+        /// 적 의도 선택 완료 = 새 플레이어 턴 시작 신호.
+        /// 새 턴 드로우 후 손패를 갱신한다.
+        /// </summary>
+        private void OnEnemyIntentSelected(BattleManager manager, EnemyAction intent)
+        {
+            enemyView?.Refresh(manager.Enemy);
+
+            // 첫 턴(BattleStarted에서 이미 RefreshHand 호출)은 중복 방지
+            if (manager.PlayerTurnCount > 1)
+            {
+                RefreshHand(manager);
+            }
+        }
+
+        private void OnTurnStartStatusResolved(BattleManager manager,
+            BattleCombatantState combatant, BattleStatusTurnResult result)
+        {
+            if (result.PoisonDamage > 0 && combatant == manager.Player?.Combatant)
+                playerHud?.PlayDamageFlash();
+
+            RefreshHudAndButtons(manager);
+        }
+
+        private void OnBattleEnded(BattleManager manager, BattlePhase phase)
+        {
+            handView?.SetInteractable(false);
+            targetArrow?.Hide();
+            pendingCardView = null;
+
+            if (endTurnButton != null) endTurnButton.gameObject.SetActive(false);
+
+            if (resultPanel != null)
+            {
+                resultPanel.SetActive(true);
+                if (resultText != null)
+                    resultText.text = phase == BattlePhase.Won ? "✨ 승리!" : "💀 패배...";
+
+                resultPanel.transform.localScale = Vector3.zero;
+                resultPanel.transform.DOScale(Vector3.one, 0.4f).SetEase(Ease.OutBack);
+            }
+        }
+
+        // ── 버튼 설정 ──────────────────────────────────────────────
+
+        private void SetupButtons()
+        {
+            if (endTurnButton != null)
+                endTurnButton.onClick.AddListener(OnEndTurnClicked);
+
+            if (resultRestartButton != null)
+                resultRestartButton.onClick.AddListener(OnRestartClicked);
+
+            if (handView != null)
+                handView.CardSelected += OnHandCardSelected;
+        }
+
+        // ── 버튼 핸들러 ────────────────────────────────────────────
+
+        public void OnEndTurnClicked()
+        {
+            if (battleManager == null || battleManager.Phase != BattlePhase.PlayerTurn) return;
+
+            CancelTargeting();
+            handView?.SetInteractable(false);
+            battleManager.EndPlayerTurn();
+        }
+
+        private void OnRestartClicked()
+        {
+            DOTween.KillAll();
+            isCardAnimating = false;
+            battleManager.StartBattle();
+        }
+
+        // ── 손패 카드 선택 ─────────────────────────────────────────
+
+        private void OnHandCardSelected(BattleCardView cardView)
+        {
+            if (cardView == null)
+            {
+                CancelTargeting();
+                return;
+            }
+
+            // 이미 애니메이션 중이면 무시
+            if (isCardAnimating) return;
+
+            pendingCardView = cardView;
+
+            bool needsTarget = cardView.RuntimeCard?.Data?.cardType == CardType.Attack
+                            || cardView.RuntimeCard?.Data?.cardType == CardType.StatusEffect;
+
+            if (needsTarget && targetArrow != null)
+            {
+                // 공격/상태이상 → 화살표 표시, 클릭으로 확정
+                targetArrow.Show(cardView.transform.position);
+            }
+            else
+            {
+                // 방어/스킬 → 즉시 사용
+                targetArrow?.Hide();
+                TryPlaySelectedCard();
+            }
+        }
+
+        private void CancelTargeting()
+        {
+            targetArrow?.Hide();
+            pendingCardView?.SetSelected(false);
+            pendingCardView = null;
+            handView?.ClearSelection();
+        }
+
+        // ── 카드 사용 ──────────────────────────────────────────────
+
+        private void TryPlaySelectedCard()
+        {
+            if (pendingCardView == null || battleManager == null) return;
+            if (isCardAnimating) return;
+
+            BattleRuntimeCard card    = pendingCardView.RuntimeCard;
+            BattleCardView    played  = pendingCardView;
+            pendingCardView = null;
+            targetArrow?.Hide();
+            handView?.ClearSelection();
+
+            // 손패 목록에서 먼저 분리 (StateChanged가 RefreshHand를 호출해도 이 카드 뷰는 제외됨)
+            handView?.DetachCardView(played);
+
+            // BattleManager에 사용 요청 (내부에서 StateChanged 발사)
+            BattleCardPlayResult result = battleManager.PlayCard(card);
+
+            if (!result.Success)
+            {
+                // 실패: 카드 뷰를 다시 손패로 복원
+                handView?.ReattachCardView(played, card);
+
+                if (result.FailureReason == BattleCardPlayFailureReason.NotEnoughEnergy)
+                    ShakeCard(played);
+
+                Debug.Log("[BattleUIManager] 카드 사용 실패: " + result.FailureReason);
+                return;
+            }
+
+            // 성공: 카드 사용 애니메이션
+            isCardAnimating = true;
+            handView?.SetInteractable(false);
+
+            Vector3 targetWorld = GetCardPlayTargetWorld();
+            played.PlayCardAnimation(targetWorld, () =>
+            {
+                // 애니메이션 완료 후 상호작용 복원
+                isCardAnimating = false;
+
+                // 현재 플레이어 턴이면 손패 조작 허용
+                if (battleManager.Phase == BattlePhase.PlayerTurn)
+                    handView?.SetInteractable(true);
+            });
+        }
+
+        private Vector3 GetCardPlayTargetWorld()
+        {
+            if (cardPlayTarget != null)
+                return cardPlayTarget.position;
+
+            Camera cam = Camera.main;
+            if (cam != null)
+                return cam.ScreenToWorldPoint(
+                    new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 10f));
+
+            return Vector3.zero;
+        }
+
+        private static void ShakeCard(BattleCardView cv)
+        {
+            if (cv == null) return;
+            RectTransform rt = cv.GetComponent<RectTransform>();
+            if (rt != null)
+                rt.DOShakePosition(0.25f, 10f, 15, 90f, false, true);
+        }
+
+        // ── UI 갱신 ────────────────────────────────────────────────
+
+        /// <summary>HUD, 적, 버튼만 갱신한다. 손패는 건드리지 않는다.</summary>
+        private void RefreshHudAndButtons(BattleManager manager)
+        {
+            playerHud?.Refresh(manager.Player, manager.PlayerTurnCount);
+            enemyView?.Refresh(manager.Enemy);
+
+            bool isPlayerTurn = manager.Phase == BattlePhase.PlayerTurn;
+            if (endTurnButton != null) endTurnButton.interactable = isPlayerTurn;
+
+            // 카드 애니메이션 중에는 상호작용 잠금 유지
+            if (!isCardAnimating)
+                handView?.SetInteractable(isPlayerTurn);
+        }
+
+        /// <summary>손패를 완전히 재구성한다.</summary>
+        private void RefreshHand(BattleManager manager)
+        {
+            if (handView == null || manager.Player == null) return;
+            bool isPlayerTurn = manager.Phase == BattlePhase.PlayerTurn;
+            handView.RefreshHand(manager.Player.CardPiles.Hand, isPlayerTurn);
+        }
+    }
+}

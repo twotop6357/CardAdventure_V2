@@ -34,7 +34,6 @@ namespace CardAdventure
 
         public void StartTurn()
         {
-            Combatant.ClearBlock();
             CurrentEnergy = MaxEnergy;
             TurnAttackDamageBonus = 0;
             AttackBonusGainedPerAttack = 0;
