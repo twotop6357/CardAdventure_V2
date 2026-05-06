@@ -59,14 +59,21 @@
   - 테스트 씬: `Assets/Scenes/BattleTest.unity`.
   - `BattleTest` 씬에는 `BattleManager`가 배치되어 있고, 전사 테스트 덱과 베르데 슬라임이 연결되어 있다.
 - `Assets/Scripts/Editor/CardAdventureTestContentBuilder.cs`: Phase 1 테스트 콘텐츠를 재생성할 수 있는 Editor 전용 빌더를 추가했다.
+- EditMode 자동 테스트를 추가했다.
+  - `Assets/Tests/Editor/BattleManagerEditModeTests.cs`
+  - 전투 시작, 강타, 방패치기, 분노, 도발 약화, 독 턴 시작 피해를 검증한다.
+- 직접 PlayMode 테스트용 환경을 완성했다.
+  - `Assets/Scripts/Battle/BattleDebugHud.cs`
+  - `Assets/Scenes/BattleTest.unity`에 `Main Camera`와 `BattleDebugHud` 오브젝트를 추가했다.
+  - PlayMode에서 Game View 좌측 패널로 플레이어/적 HP, 방어막, 에너지, 상태이상, 적 의도, 손패 카드 버튼, 턴 종료, 전투 재시작을 조작할 수 있다.
 
 ## 다음 작업 후보
 
-1. PlayMode 또는 EditMode 테스트로 전투 시작/카드 사용/적 턴 전환/전사 카드 효과/상태이상 처리를 검증한다.
-2. 기본 배틀 UI: HP, 방어막, 에너지, 손패, 적 의도 표시.
-3. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 옮길지 결정한다.
-4. 상태이상 UI 표시를 위해 `BattleStatusTurnResult`와 `BattleCombatantState.Statuses`를 연결한다.
-5. `BattleTest` 씬에 간단한 디버그 조작 UI 또는 로그 표시기를 붙인다.
+1. 프로토타입용 실제 배틀 UI를 uGUI/Better UI 기반으로 구현한다.
+2. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 옮길지 결정한다.
+3. 상태이상 UI 표시를 실제 UI에 연결한다.
+4. `BattleTest` 씬에서 수동 플레이 후 발견된 밸런스/UX 문제를 정리한다.
+5. PlayMode 테스트로 `BattleTest` 씬 자동 시작 흐름을 자동 검증한다.
 
 ## 검증 상태
 
@@ -77,9 +84,14 @@
 - 상태이상 턴 처리를 위해 추가/수정한 `BattleStatusTurnResult`, `BattleCombatantState`, `BattleManager`는 Unity MCP `validate_script` 표준 검증에서 오류/경고 0개 확인.
 - `CardAdventureTestContentBuilder`는 Unity MCP `validate_script` 표준 검증에서 오류/경고 0개 확인.
 - `BattleTest.unity` 씬의 `BattleManager`에 전사 테스트 덱 8장과 `Enemy_Verde_Slime` 연결이 YAML 기준으로 확인됨.
+- `BattleManagerEditModeTests` 6개 EditMode 테스트 통과.
+  - 총 6개, 성공 6개, 실패 0개, 스킵 0개.
+- `BattleDebugHud`는 Unity MCP `validate_script` 표준 검증에서 오류/경고 0개 확인.
+- `BattleTest` 씬에 `BattleManager`, `Main Camera`, `BattleDebugHud` 루트 오브젝트가 있는 것을 Unity 씬 계층 기준으로 확인.
+- PlayMode 진입/종료 시 새 게임 코드 오류는 없었고, 콘솔에는 MCPForUnity 클라이언트 종료 로그만 확인됨.
 - Unity 스크립트 컴파일 요청 수행. 콘솔에는 MCPForUnity 클라이언트 핸들러 관련 도구 로그가 있었고, 새 코드 컴파일 오류는 확인되지 않음.
-- PlayMode 검증은 아직 수행하지 않음.
-- Git 저장소는 이전 작업에서 복구되어 사용 가능하다. 이번 변경은 아직 커밋하지 않음.
+- PlayMode 수동 조작은 사용자가 직접 진행 예정.
+- Git 저장소는 이전 작업에서 복구됐으나 현재 세션 사용자가 달라 `dubious ownership` 경고로 `git status`가 막힌다. 필요 시 `git config --global --add safe.directory C:/UnityProjects/CardAdventure` 처리 후 확인한다.
 
 ## 주의사항
 
@@ -90,6 +102,9 @@
 - `BattleManager`의 전사 특수 효과는 현재 `CardData.name` 기준으로 분기한다. 장기적으로는 `CardData`에 안정적인 effect id/타입을 추가하는 편이 좋다.
 - 상태이상 지속시간은 각 대상의 턴 종료 시 감소한다. `도발`의 약화 1턴은 적 행동에 적용된 뒤 적 턴 종료 시 제거된다.
 - `execute_code`와 `execute_menu_item`은 현재 Unity 경로/세션 문제로 테스트 콘텐츠 생성 실행에 실패했다. 실제 자산은 MCP ScriptableObject/Scene 도구로 생성했고, Editor 빌더 스크립트는 향후 Unity 메뉴에서 재사용 가능하도록 남겨두었다.
+- EditMode 테스트는 `Assets/Tests/Editor` 아래에 있어야 Test Runner가 발견한다. `Assets/Tests/EditMode`에 둘 경우 현재 프로젝트에서는 `Assembly-CSharp`에 들어가 테스트가 0개로 잡혔다.
+- `BattleDebugHud`는 임시 IMGUI 디버그 HUD다. 실제 제품 UI는 이후 Better UI/uGUI 기반으로 별도 구현한다.
+- Unity MCP 카메라 스크린샷은 카메라 렌더만 캡처해 IMGUI HUD가 보이지 않을 수 있다. 실제 Game View에서는 PlayMode 중 HUD가 표시된다.
 - 작업 종료 시 이 파일의 “최근 변경”, “다음 작업 후보”, “검증 상태”, “주의사항”을 갱신한다.
 
 ## 작업 로그
@@ -115,3 +130,7 @@
 - 다음 에이전트는 적 테스트 데이터와 전투 테스트 씬 또는 자동 테스트를 구성하면 된다.
 - Phase 1 다섯 번째 작업으로 테스트용 상태이상 2종, 적 2종, `BattleTest` 씬을 구성했다.
 - 다음 에이전트는 `BattleTest` 씬을 PlayMode로 열어 자동 시작 전투 상태를 확인하거나, EditMode/PlayMode 테스트를 추가하면 된다.
+- Phase 1 여섯 번째 작업으로 `BattleManagerEditModeTests`를 추가하고 EditMode 테스트 6개를 통과시켰다.
+- 다음 에이전트는 기본 배틀 UI 또는 PlayMode 씬 검증을 진행하면 된다.
+- 수동 PlayMode 테스트를 위해 `BattleTest` 씬에 `Main Camera`와 `BattleDebugHud`를 추가했다.
+- 다음 에이전트는 사용자의 수동 테스트 피드백을 반영하거나 실제 배틀 UI 구현을 시작하면 된다.
