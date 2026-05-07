@@ -1,5 +1,111 @@
 # CardAdventure Project Status
 
+### 2026-05-07 (Codex - 카드 사용 입력 기준 정리)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 문제:
+  - 적 지정 카드의 첫 클릭 프레임이 곧바로 사용 확정 클릭으로도 처리되어, 첫 번째 클릭에서 화살표 UI가 보이지 않거나 적 선택을 할 수 없는 현상이 있었다.
+  - 카드 사용 기준이 모호해 단일 대상 카드, 자기/전체 사용 카드, 취소 입력이 섞여 있었다.
+- 수정:
+  - `Assets/Scripts/UI/BattleUIManager.cs`
+    - 카드 사용 모드를 `SingleTarget`, `PlayArea`로 분리.
+    - 단일 대상 카드: 카드 클릭 시 화살표 표시, 같은 프레임 좌클릭은 무시, 이후 적 영역 클릭 시 사용.
+    - 방어/스킬/전체 대상형 사용 카드: 카드 클릭 시 카드가 마우스를 따라다니며, 크기 확대 없이 회전 0 상태 유지. 손패 영역 위쪽 공간을 좌클릭하면 사용.
+    - 모든 대기 중 카드 사용은 우클릭으로 취소.
+    - 취소/전투 종료/전투 시작 시 pending 상태와 추적 카드를 정리.
+  - `Assets/Scripts/UI/BattleCardView.cs`
+    - `BeginPointerFollow()`, `EndPointerFollow()` 추가.
+    - 마우스 추적 중인 카드는 자체 클릭 이벤트를 무시해 사용 확정 클릭이 선택 해제로 소비되지 않도록 처리.
+    - 추적 중에는 매 프레임 `Input.mousePosition`을 따라가도록 처리.
+  - `Assets/Scripts/UI/BattleHandView.cs`
+    - `IsScreenPointAboveHand()` 추가. 손패 컨테이너 위쪽 클릭인지 판단해 PlayArea 카드 사용 가능 영역으로 사용.
+- 검증:
+  - `BattleUIManager.cs`, `BattleCardView.cs`: Unity MCP `validate_script standard` 오류 0, 기존 Update 관련 GC 권장 경고 각 1개.
+  - `BattleHandView.cs`: Unity MCP `validate_script standard` 오류 0, 경고 0.
+  - Unity refresh/compile 후 에디터 idle 확인.
+  - Console: 게임 코드 신규 오류 없음. MCP 연결 로그만 확인.
+- 다음 작업:
+  - BattleTest PlayMode에서 다음 흐름 확인:
+    - 단일 대상 공격 카드 클릭 → 화살표 표시 → 적 클릭으로 사용.
+    - 방어/스킬/전체 대상 카드 클릭 → 카드가 마우스 추적 → 손패 위쪽 공간 클릭으로 사용.
+    - 각 상태에서 우클릭 취소.
+
+### 2026-05-07 (Codex - 카드 호버 단일 소유권 적용)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 문제:
+  - 카드 호버/프리뷰 중 다른 카드 위치에 마우스를 올리면 이전 카드와 새 카드가 동시에 호버링되는 현상 발생.
+  - 각 `BattleCardView`가 독립적으로 호버 상태와 프리뷰 코루틴을 관리해, 새 카드 입력이 이전 카드 상태를 즉시 종료하지 못했다.
+- 수정:
+  - `Assets/Scripts/UI/BattleCardView.cs`
+    - 정적 `activeHoverView`를 추가해 현재 호버/프리뷰 소유 카드를 1장으로 제한.
+    - 새 카드 `OnPointerEnter()` 시 기존 `activeHoverView`가 있으면 `CancelHoverAndPreview(true)`로 이전 카드의 프리뷰 코루틴, 프록시, 트윈을 정리하고 원위치 복귀 시작.
+    - `ClosePreview()`, `OnPointerExit()`, `OnDisable()`, `DestroyImmediate()`에서 자신이 활성 소유자이면 `activeHoverView`를 해제.
+- 검증:
+  - `BattleCardView.cs` Unity MCP `validate_script standard`: 오류 0, 기존 Update 관련 GC 권장 경고 1개.
+  - Unity refresh/compile 후 에디터 idle 확인.
+  - Console: 게임 코드 신규 오류 없음. 서드파티 obsolete 경고와 MCP 연결 로그만 확인.
+- 다음 작업:
+  - BattleTest PlayMode에서 카드 A 호버 중 카드 B로 마우스를 옮겼을 때 A가 즉시 복귀하고 B만 호버/프리뷰되는지 확인.
+
+### 2026-05-07 (Codex - 확대 카드 호버 유지 제거)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 사용자 확인 원인:
+  - 가운데 확대 카드에 마우스를 올렸을 때도 프리뷰 유지 판정이 적용되어, 원래 카드 위치의 프록시 이벤트와 확대 카드 이벤트가 섞이며 복귀 위치값이 다시 지정되는 문제가 의심됨.
+- 수정:
+  - `Assets/Scripts/UI/BattleCardView.cs`
+    - 프리뷰 유지 판정에서 확대된 카드 RectTransform 영역(`overCard`)을 제거.
+    - 이제 프리뷰는 원래 손패 위치에 생성한 `CardHoverProxy` 위에 마우스가 있을 때만 유지.
+    - `OnPointerEnter()` 시작부에 `isPreviewActive || isTransitioning` 가드를 추가해, 확대 카드가 새 호버/프리뷰 코루틴을 다시 시작하지 못하게 차단.
+- 검증:
+  - `BattleCardView.cs` Unity MCP `validate_script standard`: 오류 0, 기존 Update 관련 GC 권장 경고 1개.
+  - Unity refresh/compile 후 에디터 idle 확인.
+  - Console: 게임 코드 신규 오류 없음. MCP 연결 로그만 확인.
+- 다음 작업:
+  - BattleTest PlayMode에서 확대 카드 위로 마우스를 옮기면 프리뷰가 닫히고, 원래 손패 위치 위에 있을 때만 유지되는지 확인.
+
+### 2026-05-07 (Codex - 카드 호버 후 원위치 미복귀 수정)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 다른 에이전트 진행사항 확인:
+  - 최근 `Card.prefab`의 `CardName` 복구, `ManaCostText` 반영, 카드 호버 프리뷰 지연시간 `0.33s` 조정, `CardHoverProxy` 기반 프리뷰 유지 로직이 추가되어 있었다.
+- 문제:
+  - 일부 카드가 호버링 후 원래 손패 위치로 돌아가지 않음.
+  - 원인 후보: `BattleHandView.ArrangeCards(animate:true)`가 카드 딜/재배치 애니메이션 완료 시점에 `SaveBasePosition()`을 호출해 기준 위치를 저장했다. 이 사이에 마우스 호버, 트윈 kill/complete, 프리뷰 전환이 끼면 기준 위치가 목표 손패 위치가 아니라 딜 시작점/중간 위치로 굳을 수 있었다.
+- 수정:
+  - `Assets/Scripts/UI/BattleCardView.cs`
+    - `SetBaseState(localPosition, localRotation, siblingIndex)` 추가.
+    - 호버 시작 시 기준 회전값을 먼저 복원해 기울어진 카드가 호버 후에도 안정적으로 기준 회전으로 돌아가도록 보정.
+    - `OnDisable()`에서 프리뷰 코루틴, DOTween, 프록시 오브젝트를 정리.
+  - `Assets/Scripts/UI/BattleHandView.cs`
+    - 손패 레이아웃 목표 위치/회전을 계산한 즉시 `SetBaseState()`로 기준 상태를 저장.
+    - 애니메이션 완료 콜백에서 현재 위치를 기준으로 다시 저장하던 로직 제거.
+- 검증:
+  - `BattleCardView.cs` Unity MCP `validate_script standard`: 오류 0, 기존 Update 관련 GC 권장 경고 1개.
+  - `BattleHandView.cs` Unity MCP `validate_script standard`: 오류 0, 경고 0.
+  - Unity refresh/compile 후 에디터 idle 확인.
+  - Console: 신규 게임 코드 오류 없음. 서드파티 obsolete 경고와 MCP 연결 로그만 확인.
+- 다음 작업:
+  - BattleTest PlayMode에서 카드 딜 애니메이션 중/직후 빠른 호버, 프리뷰 진입/해제, 연속 호버를 육안 확인.
+
+### 2026-05-07 (Claude Desktop — Card.prefab CardName 복구 + 깨진 참조 정리)
+
+- 목적: 카드 이름이 표시되지 않는 버그 수정.
+- 원인: Unity 에디터에서 CardName / CardImage 자식 오브젝트가 삭제되어 BattleCardView의 `cardNameText`·`cardArtImage` 참조가 모두 null로 깨진 상태. 루트 RT m_Children에도 stale fileID 잔재.
+- 변경 파일:
+  - `Assets/Prefabs/UI/Card.prefab` **(수정)**
+    - 새 `CardName` 자식 추가 (GO/RT/CanvasRenderer/TMP, fileID: 6400500600700800904).
+      - 앵커: 상단 중앙, AnchoredPosition (0, -20), SizeDelta (160, 25), 폰트 크기 13 bold 흰색.
+    - BattleCardView.cardNameText → 새 TMP (fileID: 6400500600700800904).
+    - BattleCardView.cardArtImage → null (fileID: 0) — CardImage 자식 삭제 반영.
+    - 루트 RT m_Children에서 stale CardName·CardImage RT 참조 2개 제거.
+- 검증: prefab 저장 후 참조 정합성 확인 완료.
+- Unity 에디터 확인 필요:
+  - Refresh 후 Card.prefab Inspector에서 CardName 자식·BattleCardView.cardNameText 연결 확인.
+  - BattleTest 씬 실행 → 카드 이름이 표시되는지 확인.
+- 주의: cardArtImage가 null이므로 카드 아트 이미지 표시가 필요하면 CardImage 자식 재추가 필요.
+
 ### 2026-05-07 (Claude Desktop — 카드 호버 프리뷰 딜레이 0.33초로 조정)
 
 - 변경 파일:

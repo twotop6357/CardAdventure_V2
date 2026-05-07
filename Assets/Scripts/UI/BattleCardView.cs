@@ -65,6 +65,9 @@ namespace CardAdventure
         private Coroutine previewCoroutine;
         private Transform previewOriginalParent;
         private int       previewOriginalSiblingIndex;
+        private Transform pointerFollowOriginalParent;
+        private int       pointerFollowOriginalSiblingIndex;
+        private bool      isPointerFollowing;
 
         // 프록시 (원래 손패 위치 히트박스)
         private GameObject    proxyGo;
@@ -72,11 +75,13 @@ namespace CardAdventure
 
         // Canvas 루트 캐시
         private Canvas rootCanvas;
+        private static BattleCardView activeHoverView;
 
         /// <summary>카드 클릭 이벤트. BattleHandView가 구독한다.</summary>
         public event System.Action<BattleCardView> Clicked;
 
         public BattleRuntimeCard RuntimeCard => runtimeCard;
+        public bool IsPointerFollowing => isPointerFollowing;
 
         // ── 초기화 ─────────────────────────────────────────────────
 
@@ -117,7 +122,12 @@ namespace CardAdventure
 
         private void Update()
         {
-            // 프리뷰 중이고 전환 애니메이션이 끝난 뒤에만 폴링
+            if (isPointerFollowing)
+            {
+                transform.position = Input.mousePosition;
+                return;
+            }
+
             if (!isPreviewActive || isTransitioning) return;
 
             Camera uiCam = (rootCanvas != null &&
@@ -126,13 +136,11 @@ namespace CardAdventure
 
             Vector2 ptr = Input.mousePosition;
 
-            bool overCard  = RectTransformUtility.RectangleContainsScreenPoint(
-                                 transform as RectTransform, ptr, uiCam);
             bool overProxy = proxyRt != null &&
                              RectTransformUtility.RectangleContainsScreenPoint(
                                  proxyRt, ptr, uiCam);
 
-            if (!overCard && !overProxy)
+            if (!overProxy)
             {
                 CancelPreviewCoroutine();
                 ClosePreview(animate: true);
@@ -173,6 +181,16 @@ namespace CardAdventure
             baseLocalPosition = transform.localPosition;
             baseLocalRotation = transform.localRotation;
             baseSiblingIndex  = transform.GetSiblingIndex();
+
+            RectTransform rt = transform as RectTransform;
+            baseSize = rt != null ? rt.sizeDelta : new Vector2(200f, 300f);
+        }
+
+        public void SetBaseState(Vector3 localPosition, Quaternion localRotation, int siblingIndex)
+        {
+            baseLocalPosition = localPosition;
+            baseLocalRotation = localRotation;
+            baseSiblingIndex  = siblingIndex;
 
             RectTransform rt = transform as RectTransform;
             baseSize = rt != null ? rt.sizeDelta : new Vector2(200f, 300f);
@@ -238,9 +256,17 @@ namespace CardAdventure
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            if (isPreviewActive || isTransitioning) return;
             if (!isInteractable || isSelected) return;
 
+            if (activeHoverView != null && activeHoverView != this)
+            {
+                activeHoverView.CancelHoverAndPreview(animate: true);
+            }
+            activeHoverView = this;
+
             DOTween.Kill(transform, complete: true);
+            transform.localRotation = baseLocalRotation;
             transform.DOLocalMoveY(baseLocalPosition.y + hoverLiftY, hoverDuration)
                      .SetEase(Ease.OutQuad);
 
@@ -257,10 +283,15 @@ namespace CardAdventure
             if (isSelected) return;
 
             ClosePreview(animate: true);
+            if (activeHoverView == this)
+            {
+                activeHoverView = null;
+            }
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
+            if (isPointerFollowing) return;
             if (!isInteractable) return;
 
             CancelPreviewCoroutine();
@@ -300,6 +331,54 @@ namespace CardAdventure
                 transform.DOScale(1f, hoverDuration).SetEase(Ease.OutQuad);
             }
         }
+
+        public void BeginPointerFollow(Canvas targetCanvas)
+        {
+            CancelPreviewCoroutine();
+            ClosePreview(animate: false);
+            DOTween.Kill(transform, complete: false);
+
+            if (!isPointerFollowing)
+            {
+                pointerFollowOriginalParent = transform.parent;
+                pointerFollowOriginalSiblingIndex = transform.GetSiblingIndex();
+            }
+
+            Canvas canvas = targetCanvas != null ? targetCanvas.rootCanvas : rootCanvas;
+            if (canvas != null)
+            {
+                transform.SetParent(canvas.transform, worldPositionStays: true);
+            }
+
+            transform.SetAsLastSibling();
+            transform.localRotation = Quaternion.identity;
+            transform.localScale = Vector3.one;
+            transform.position = Input.mousePosition;
+            isPointerFollowing = true;
+        }
+
+        public void EndPointerFollow(bool restoreToHand)
+        {
+            if (!isPointerFollowing)
+            {
+                return;
+            }
+
+            DOTween.Kill(transform, complete: false);
+            isPointerFollowing = false;
+
+            if (restoreToHand && pointerFollowOriginalParent != null)
+            {
+                transform.SetParent(pointerFollowOriginalParent, worldPositionStays: false);
+                transform.SetSiblingIndex(pointerFollowOriginalSiblingIndex);
+                transform.localPosition = baseLocalPosition;
+                transform.localRotation = baseLocalRotation;
+                transform.localScale = Vector3.one;
+            }
+
+            pointerFollowOriginalParent = null;
+        }
+
 
         // ── 프리뷰 ─────────────────────────────────────────────────
 
@@ -407,6 +486,23 @@ namespace CardAdventure
                 transform.localRotation = baseLocalRotation;
                 transform.localScale    = Vector3.one;
             }
+
+            if (activeHoverView == this)
+            {
+                activeHoverView = null;
+            }
+        }
+
+        private void CancelHoverAndPreview(bool animate)
+        {
+            CancelPreviewCoroutine();
+            if (isSelected) return;
+
+            ClosePreview(animate);
+            if (activeHoverView == this)
+            {
+                activeHoverView = null;
+            }
         }
 
         // ── 카드 사용 연출 ─────────────────────────────────────────
@@ -425,9 +521,33 @@ namespace CardAdventure
             transform.DOScale(0f, 0.35f).SetEase(Ease.InBack);
         }
 
+        private void OnDisable()
+        {
+            CancelPreviewCoroutine();
+            isPointerFollowing = false;
+            pointerFollowOriginalParent = null;
+            if (activeHoverView == this)
+            {
+                activeHoverView = null;
+            }
+            DOTween.Kill(transform, complete: false);
+            if (proxyGo != null)
+            {
+                Destroy(proxyGo);
+                proxyGo = null;
+                proxyRt = null;
+            }
+        }
+
         public void DestroyImmediate()
         {
             CancelPreviewCoroutine();
+            isPointerFollowing = false;
+            pointerFollowOriginalParent = null;
+            if (activeHoverView == this)
+            {
+                activeHoverView = null;
+            }
             DOTween.Kill(transform, complete: false);
             Destroy(gameObject);
         }

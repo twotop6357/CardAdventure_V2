@@ -121,6 +121,31 @@ namespace CardAdventure
             }
         }
 
+        public bool IsScreenPointAboveHand(Vector2 screenPoint, Canvas canvas)
+        {
+            if (handContainer == null)
+            {
+                return true;
+            }
+
+            Camera cam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+                ? canvas.worldCamera
+                : null;
+
+            Vector3[] corners = new Vector3[4];
+            handContainer.GetWorldCorners(corners);
+
+            float topY = float.MinValue;
+            for (int i = 0; i < corners.Length; i++)
+            {
+                Vector3 screenCorner = RectTransformUtility.WorldToScreenPoint(cam, corners[i]);
+                topY = Mathf.Max(topY, screenCorner.y);
+            }
+
+            return screenPoint.y > topY;
+        }
+
+
         /// <summary>현재 선택된 카드를 해제한다.</summary>
         public void ClearSelection()
         {
@@ -183,6 +208,8 @@ namespace CardAdventure
                 RectTransform rt = cv.GetComponent<RectTransform>();
                 if (rt == null) continue;
 
+                cv.SetBaseState(targetPos, targetRot, i);
+
                 if (animate)
                 {
                     // 드로우 연출: dealOriginLocal → 목표 위치
@@ -192,15 +219,13 @@ namespace CardAdventure
 
                     rt.DOLocalMove(targetPos, dealDuration).SetEase(Ease.OutBack);
                     rt.DOLocalRotate(targetRot.eulerAngles, dealDuration).SetEase(Ease.OutQuad);
-                    rt.DOScale(Vector3.one, dealDuration).SetEase(Ease.OutBack)
-                      .OnComplete(() => cv.SaveBasePosition());
+                    rt.DOScale(Vector3.one, dealDuration).SetEase(Ease.OutBack);
                 }
                 else
                 {
                     rt.localPosition = targetPos;
                     rt.localRotation = targetRot;
                     rt.localScale    = Vector3.one;
-                    cv.SaveBasePosition();
                 }
             }
         }

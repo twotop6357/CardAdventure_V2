@@ -47,6 +47,16 @@ namespace CardAdventure
 
         // ── 내부 상태 ──────────────────────────────────────────────
         private BattleCardView pendingCardView;
+        private CardUseMode    pendingUseMode;
+        private int            pendingStartedFrame = -1;
+        private Canvas         rootCanvas;
+
+        private enum CardUseMode
+        {
+            None,
+            SingleTarget,
+            PlayArea
+        }
         private bool           isCardAnimating;   // 카드 사용 애니메이션 진행 중 여부
 
         // ── 라이프사이클 ───────────────────────────────────────────
@@ -61,6 +71,8 @@ namespace CardAdventure
                 Debug.LogError("[BattleUIManager] BattleManager를 찾을 수 없습니다.");
                 return;
             }
+
+            rootCanvas = GetComponent<Canvas>()?.rootCanvas;
 
             SubscribeEvents();
             SetupButtons();
@@ -87,16 +99,30 @@ namespace CardAdventure
         private void Update()
         {
             if (pendingCardView == null) return;
-            if (targetArrow == null || !targetArrow.gameObject.activeSelf) return;
+            if (isCardAnimating) return;
 
-            // 좌클릭 → 카드 사용 확정 (EventSystem이 처리한 클릭은 별도)
-            if (Input.GetMouseButtonDown(0))
-            {
-                TryPlaySelectedCard();
-            }
-            else if (Input.GetMouseButtonDown(1))
+            if (Input.GetMouseButtonDown(1))
             {
                 CancelTargeting();
+                return;
+            }
+
+            if (Input.GetMouseButtonDown(0) && Time.frameCount > pendingStartedFrame)
+            {
+                if (pendingUseMode == CardUseMode.SingleTarget)
+                {
+                    if (IsPointerOverEnemy())
+                    {
+                        TryPlaySelectedCard();
+                    }
+                }
+                else if (pendingUseMode == CardUseMode.PlayArea)
+                {
+                    if (handView == null || handView.IsScreenPointAboveHand(Input.mousePosition, rootCanvas))
+                    {
+                        TryPlaySelectedCard();
+                    }
+                }
             }
         }
 
@@ -128,6 +154,8 @@ namespace CardAdventure
         {
             isCardAnimating = false;
             pendingCardView = null;
+            pendingUseMode = CardUseMode.None;
+            pendingStartedFrame = -1;
             targetArrow?.Hide();
 
             if (resultPanel != null) resultPanel.SetActive(false);
@@ -175,7 +203,10 @@ namespace CardAdventure
         {
             handView?.SetInteractable(false);
             targetArrow?.Hide();
+            pendingCardView?.EndPointerFollow(restoreToHand: true);
             pendingCardView = null;
+            pendingUseMode = CardUseMode.None;
+            pendingStartedFrame = -1;
 
             if (endTurnButton != null) endTurnButton.gameObject.SetActive(false);
 
@@ -232,32 +263,82 @@ namespace CardAdventure
                 return;
             }
 
-            // 이미 애니메이션 중이면 무시
             if (isCardAnimating) return;
 
-            pendingCardView = cardView;
-
-            bool needsTarget = cardView.RuntimeCard?.Data?.cardType == CardType.Attack
-                            || cardView.RuntimeCard?.Data?.cardType == CardType.StatusEffect;
-
-            if (needsTarget && targetArrow != null)
+            if (pendingCardView != null && pendingCardView != cardView)
             {
-                // 공격/상태이상 → 화살표 표시, 클릭으로 확정
-                targetArrow.Show(cardView.transform.position);
+                CancelTargeting();
+            }
+
+            pendingCardView = cardView;
+            pendingUseMode = GetCardUseMode(cardView.RuntimeCard);
+            pendingStartedFrame = Time.frameCount;
+
+            if (pendingUseMode == CardUseMode.SingleTarget)
+            {
+                cardView.EndPointerFollow(restoreToHand: true);
+                if (targetArrow != null)
+                {
+                    targetArrow.Show(cardView.transform.position);
+                }
             }
             else
             {
-                // 방어/스킬 → 즉시 사용
                 targetArrow?.Hide();
-                TryPlaySelectedCard();
+                cardView.BeginPointerFollow(rootCanvas);
             }
         }
+
+        private CardUseMode GetCardUseMode(BattleRuntimeCard card)
+        {
+            return RequiresSingleEnemyTarget(card) ? CardUseMode.SingleTarget : CardUseMode.PlayArea;
+        }
+
+        private static bool RequiresSingleEnemyTarget(BattleRuntimeCard card)
+        {
+            if (card == null || card.Data == null)
+            {
+                return false;
+            }
+
+            CardEffectType effectType = card.Data.effectType;
+            return effectType == CardEffectType.BasicAttack
+                || effectType == CardEffectType.ShieldBash
+                || effectType == CardEffectType.DoubleStrike
+                || effectType == CardEffectType.BerserkerAttack
+                || effectType == CardEffectType.AttackAndDefend
+                || effectType == CardEffectType.AttackAndApplyStatus
+                || effectType == CardEffectType.ApplyStatusToEnemy;
+        }
+
+        private bool IsPointerOverEnemy()
+        {
+            RectTransform enemyRect = enemyView != null
+                ? enemyView.GetComponent<RectTransform>()
+                : null;
+
+            if (enemyRect == null)
+            {
+                return true;
+            }
+
+            Camera cam = rootCanvas != null && rootCanvas.renderMode != RenderMode.ScreenSpaceOverlay
+                ? rootCanvas.worldCamera
+                : null;
+
+            return RectTransformUtility.RectangleContainsScreenPoint(
+                enemyRect, Input.mousePosition, cam);
+        }
+
 
         private void CancelTargeting()
         {
             targetArrow?.Hide();
+            pendingCardView?.EndPointerFollow(restoreToHand: true);
             pendingCardView?.SetSelected(false);
             pendingCardView = null;
+            pendingUseMode = CardUseMode.None;
+            pendingStartedFrame = -1;
             handView?.ClearSelection();
         }
 
@@ -268,21 +349,26 @@ namespace CardAdventure
             if (pendingCardView == null || battleManager == null) return;
             if (isCardAnimating) return;
 
-            BattleRuntimeCard card    = pendingCardView.RuntimeCard;
-            BattleCardView    played  = pendingCardView;
-            pendingCardView = null;
-            targetArrow?.Hide();
-            handView?.ClearSelection();
+            BattleRuntimeCard card = pendingCardView.RuntimeCard;
+            BattleCardView played = pendingCardView;
+            CardUseMode useMode = pendingUseMode;
 
-            // 손패 목록에서 먼저 분리 (StateChanged가 RefreshHand를 호출해도 이 카드 뷰는 제외됨)
+            pendingCardView = null;
+            pendingUseMode = CardUseMode.None;
+            pendingStartedFrame = -1;
+            targetArrow?.Hide();
+
+            if (useMode == CardUseMode.PlayArea)
+            {
+                played.EndPointerFollow(restoreToHand: false);
+            }
+
             handView?.DetachCardView(played);
 
-            // BattleManager에 사용 요청 (내부에서 StateChanged 발사)
             BattleCardPlayResult result = battleManager.PlayCard(card);
 
             if (!result.Success)
             {
-                // 실패: 카드 뷰를 다시 손패로 복원
                 handView?.ReattachCardView(played, card);
 
                 if (result.FailureReason == BattleCardPlayFailureReason.NotEnoughEnergy)
@@ -292,17 +378,14 @@ namespace CardAdventure
                 return;
             }
 
-            // 성공: 카드 사용 애니메이션
             isCardAnimating = true;
             handView?.SetInteractable(false);
 
             Vector3 targetWorld = GetCardPlayTargetWorld();
             played.PlayCardAnimation(targetWorld, () =>
             {
-                // 애니메이션 완료 후 상호작용 복원
                 isCardAnimating = false;
 
-                // 현재 플레이어 턴이면 손패 조작 허용
                 if (battleManager.Phase == BattlePhase.PlayerTurn)
                     handView?.SetInteractable(true);
             });

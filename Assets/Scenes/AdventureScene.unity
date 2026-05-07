@@ -454,8 +454,6 @@ GameObject:
   m_Component:
   - component: {fileID: 291140569}
   - component: {fileID: 291140568}
-  - component: {fileID: 291140567}
-  - component: {fileID: 291140566}
   m_Layer: 0
   m_Name: Grid
   m_TagString: Untagged
@@ -463,76 +461,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &291140566
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 291140565}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52d2d213b6de77d42a5cc17e9ce71db3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InteliMapPro.InteliMapGenerator
-  generatorData: {fileID: 11400000, guid: 475cbc12d54aaca469abdd7cfb103bfc, type: 2}
-  mapToFill:
-  - {fileID: 2012807002}
-  boundsToFill:
-    m_Position: {x: 0, y: 0, z: 0}
-    m_Size: {x: 25, y: 25, z: 1}
-  generateOnStart: 1
-  forceful: 1
-  multiLayeredMode: 0
-  unrecognizedMode: 0
-  temperature: 0
-  randomOrder: 0.1
-  useTimeout: 1
-  timeoutSeconds: 20
-  animated: 0
-  tilesPerSecond: 30
---- !u!114 &291140567
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 291140565}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9fa82a03cc23c14daa4742dd7dd21e1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InteliMapPro.InteliMapBuilder
-  epochs: 1000
-  generator: {fileID: 11400000, guid: 475cbc12d54aaca469abdd7cfb103bfc, type: 2}
-  neighborhoodRadius: 2
-  buildMaps: []
-  generatorSettings:
-    connectivity: 1
-    enforceBorderConnectivity:
-      top: 0
-      bottom: 0
-      left: 0
-      right: 0
-    interpretEmptyAsTile: 0
-    useXPositionAsInput: 0
-    useYPositionAsInput: 0
-    acknowledgeBounds:
-      top: 0
-      bottom: 0
-      left: 0
-      right: 0
-  trainingSettings:
-    trainingThreads: 16
-    trainingThreadPriority: 2
-    startLearningRate: 0.05
-    endLearningRate: 0.0005
-  epoch: 1008
-  totalEpochs: 1008
-  lossLastIteration: 0.050774664
-  avgLossLast20Epochs: 0.061035663
-  currentLearningRate: 0.0005187643
-  buildResult: 3
 --- !u!156049354 &291140568
 Grid:
   m_ObjectHideFlags: 0
@@ -1107,7 +1035,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -6, y: -1}
+  m_AnchoredPosition: {x: -5.999939, y: -1}
   m_SizeDelta: {x: -100, y: -54}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &751492758
