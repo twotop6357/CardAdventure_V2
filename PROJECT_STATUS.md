@@ -1,5 +1,41 @@
 # CardAdventure Project Status
 
+### 2026-05-07 (Codex - 대화창 콘솔 에러 핫픽스)
+
+- 콘솔 에러 확인:
+  - `CardAdventure.DialogueView.ShowLine()`에서 `Febucci.UI.TypewriterByCharacter.ShowText()` 호출 중 TMP `TextMeshProUGUI.GenerateTextMesh()` `NullReferenceException` 발생.
+- `Assets/Scripts/UI/DialogueView.cs` 수정:
+  - Febucci 타입라이터 호출을 `try/catch`로 감싸고, 실패 시 일반 TMP 텍스트 즉시 표시로 폴백.
+  - 같은 세션에서 타입라이터가 다시 같은 예외를 반복하지 않도록 `typewriterUnavailable` 런타임 플래그 추가.
+  - null 문자열은 `string.Empty`로 처리.
+- 검증:
+  - `DialogueView.cs` Unity MCP `validate_script standard`: 오류 0, 경고 0.
+  - Console clear 후 원래 TMP/Febucci `NullReferenceException` 재발 없음.
+- 주의:
+  - 현재 남는 MCP client handler exited 로그는 Unity MCP 연결 종료 로그이며 게임 코드 에러가 아님.
+
+### 2026-05-07 (Codex - DEVNIK 픽셀 대화창 적용)
+
+- 작업 시작 시 `PROJECT_STATUS.md`를 먼저 확인했다.
+- `Assets/Assets/DEVNIK 2D/2D UI PIXEL BUTTONS/UI SIMPLE PIXEL UNSPLIT.png.meta`
+  - 대화창에 사용할 `BG_BAR2` 스프라이트에 9-slice border `{x:32,y:32,z:32,w:32}` 적용.
+  - 이름 탭/바 계열 스프라이트(`SET_BAR`, `BAR1`~`BAR4`, `PLAY BAR`, `LEVEL_BAR`, `EXIT_BAR`)에 9-slice border `{x:28,y:24,z:28,w:24}` 적용.
+  - `BAR_BG`, `BAR_OUTLINE`에 작은 9-slice border 적용.
+  - 픽셀 보존을 위해 Point 필터, mipmap off, 기본 플랫폼 Uncompressed 설정을 확인/적용.
+- `Assets/Scenes/AdventureScene.unity`
+  - `DialogueCanvas/DialoguePanel/PanelBg`를 DEVNIK `BG_BAR2` 스프라이트 기반 `Image.Type.Sliced` 패널로 변경.
+  - `NameBox`를 DEVNIK `SET_BAR` 스프라이트 기반 `Image.Type.Sliced` 이름 탭으로 변경.
+  - 패널/텍스트/화자 이름 영역 여백과 크기를 픽셀 UI에 맞게 조정하고 기존 Outline 컴포넌트를 제거.
+- `Assets/Scripts/Editor/DialoguePixelUiStyleTool.cs` 추가.
+  - 메뉴: `CardAdventure > UI > Apply DEVNIK Dialogue Window`.
+  - DEVNIK UI 텍스처 import 설정과 현재 씬 대화창 스타일을 재적용할 수 있는 Editor 유틸리티.
+- 검증
+  - `DialoguePixelUiStyleTool.cs` Unity MCP `validate_script standard`: 오류 0, 경고 0.
+  - Unity Console: 신규 컴파일 오류 없음. MCP 연결 종료 로그만 확인.
+  - `PanelBg`, `NameBox` Image가 `Sliced`, `hasBorder=true`, DEVNIK PNG 스프라이트 참조 상태임을 확인.
+- 미검증
+  - PlayMode에서 실제 NPC 대화 시작 후 최종 화면 캡처는 진행하지 못함.
+
 이 파일은 Codex, Claude Desktop, Antigravity가 작업을 바로 이어받기 위한 공용 인수인계 문서입니다. 모든 에이전트는 작업 시작 시 이 파일을 먼저 읽고, 작업 종료 시 최신 상태로 갱신합니다.
 
 ## 현재 목표

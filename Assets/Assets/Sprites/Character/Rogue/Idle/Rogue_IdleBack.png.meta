@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: 67e787d580e10c74697f4093b3ecdb1f
+guid: 0b59c5ca1a16ee24a90df65a87508d08
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7384290322352760091
-    second: Warrior_Idle_0
+      213: 2490135114447660800
+    second: Rogue_IdleBack_0
+  - first:
+      213: -3123695094600825127
+    second: Rogue_IdleBack_1
+  - first:
+      213: -3466122075465112766
+    second: Rogue_IdleBack_2
+  - first:
+      213: -4927482157140373042
+    second: Rogue_IdleBack_3
+  - first:
+      213: 6603538736549133569
+    second: Rogue_IdleBack_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +112,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Warrior_Idle_0
+      name: Rogue_IdleBack_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1254
-        height: 1254
+        x: 26
+        y: 109
+        width: 100
+        height: 161
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +127,96 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b15e03eace44a7660800000000000000
-      internalID: 7384290322352760091
+      spriteID: 007216b71bcbe8220800000000000000
+      internalID: 2490135114447660800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_IdleBack_1
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 109
+        width: 93
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d600bb8cd766a4d0800000000000000
+      internalID: -3123695094600825127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_IdleBack_2
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 109
+        width: 92
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24323cf265cd5efc0800000000000000
+      internalID: -3466122075465112766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_IdleBack_3
+      rect:
+        serializedVersion: 2
+        x: 411
+        y: 109
+        width: 90
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec19292c5111e9bb0800000000000000
+      internalID: -4927482157140373042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_IdleBack_4
+      rect:
+        serializedVersion: 2
+        x: 536
+        y: 109
+        width: 94
+        height: 161
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10dfa8c6e7b74ab50800000000000000
+      internalID: 6603538736549133569
       vertices: []
       indices: 
       edges: []
@@ -135,7 +235,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Warrior_Idle_0: 7384290322352760091
+      Rogue_IdleBack_0: 2490135114447660800
+      Rogue_IdleBack_1: -3123695094600825127
+      Rogue_IdleBack_2: -3466122075465112766
+      Rogue_IdleBack_3: -4927482157140373042
+      Rogue_IdleBack_4: 6603538736549133569
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

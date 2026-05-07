@@ -1,5 +1,6 @@
 using DG.Tweening;
 using Febucci.UI;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -44,6 +45,7 @@ namespace CardAdventure
 
         // ── 런타임 상태 ────────────────────────────────────────
         private bool     isTyping;
+        private bool     typewriterUnavailable;
         private Sequence arrowSeq;
         private Tween    panelTween;
 
@@ -118,15 +120,25 @@ namespace CardAdventure
             isTyping = true;
             HideArrow();
 
-            if (typewriter != null)
+            if (typewriter != null && !typewriterUnavailable)
             {
-                // Febucci TypewriterByCharacter
-                typewriter.ShowText(line);
+                try
+                {
+                    // Febucci TypewriterByCharacter
+                    typewriter.ShowText(line ?? string.Empty);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    typewriterUnavailable = true;
+                    Debug.LogWarning($"[DialogueView] Typewriter 표시 실패. 일반 텍스트 표시로 전환합니다. ({ex.GetType().Name}: {ex.Message})", this);
+                }
             }
-            else if (dialogueText != null)
+
+            if (dialogueText != null)
             {
                 // 폴백: 타이핑 없이 즉시 표시
-                dialogueText.text = line;
+                dialogueText.text = line ?? string.Empty;
                 isTyping = false;
                 ShowArrow();
             }
