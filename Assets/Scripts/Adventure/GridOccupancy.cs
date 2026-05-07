@@ -17,11 +17,18 @@ namespace CardAdventure
 
         private static Vector2Int ToCell(Vector2 worldPos, float unitSize)
         {
+            Grid grid = AdventureGridUtility.FindGrid();
+            if (grid != null)
+            {
+                Vector3Int cell = grid.WorldToCell(worldPos);
+                return new Vector2Int(cell.x, cell.y);
+            }
+
             return unitSize > 0.001f
-                ? new Vector2Int(Mathf.RoundToInt(worldPos.x / unitSize),
-                                 Mathf.RoundToInt(worldPos.y / unitSize))
-                : new Vector2Int(Mathf.RoundToInt(worldPos.x),
-                                 Mathf.RoundToInt(worldPos.y));
+                ? new Vector2Int(Mathf.FloorToInt(worldPos.x / unitSize),
+                                 Mathf.FloorToInt(worldPos.y / unitSize))
+                : new Vector2Int(Mathf.FloorToInt(worldPos.x),
+                                 Mathf.FloorToInt(worldPos.y));
         }
 
         /// <summary>타일 예약 시도. 이미 예약된 타일이면 false 반환.</summary>

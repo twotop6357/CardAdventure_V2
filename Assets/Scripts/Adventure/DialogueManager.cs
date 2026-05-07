@@ -19,6 +19,10 @@ namespace CardAdventure
         [Header("UI 참조")]
         [SerializeField] private DialogueView dialogueView;
 
+        [Header("Interaction")]
+        [SerializeField] private float interactionFallbackDistance = 1.35f;
+
+
         // ── 런타임 상태 ────────────────────────────────────────
         private DialogueData     currentDialogue;
         private NpcInteractable  currentNpc;
@@ -49,14 +53,8 @@ namespace CardAdventure
 
         private void Start()
         {
-            // 씬 내 PlayerController 자동 탐색
             activePlayer = FindFirstObjectByType<PlayerController>();
-
-            if (dialogueView == null)
-                dialogueView = FindFirstObjectByType<DialogueView>();
-
-            if (dialogueView == null)
-                Debug.LogWarning("[DialogueManager] DialogueView를 찾을 수 없습니다. Inspector에서 직접 연결하거나 씬에 배치하세요.", this);
+            EnsureDialogueView();
         }
 
         private void Update()
@@ -86,7 +84,11 @@ namespace CardAdventure
         private void UpdatePendingNpc()
         {
             pendingNpc = null;
-            if (activePlayer == null) return;
+            if (activePlayer == null)
+            {
+                activePlayer = FindFirstObjectByType<PlayerController>();
+                if (activePlayer == null) return;
+            }
 
             Vector2 playerInteractionCenter = GetPlayerInteractionCenter();
             float playerInteractionRadius = GetPlayerInteractionRadius();
@@ -94,12 +96,16 @@ namespace CardAdventure
 
             foreach (var npc in NpcInteractable.AllNpcs)
             {
+                if (npc == null) continue;
+
                 npc.SetHintActive(false);
 
                 if (!npc.CanInteract()) continue;
 
                 float dist = Vector2.Distance(playerInteractionCenter, npc.InteractionCenter);
-                float allowedDistance = playerInteractionRadius + npc.InteractionRadius + 0.05f;
+                float allowedDistance = Mathf.Max(
+                    interactionFallbackDistance,
+                    playerInteractionRadius + npc.InteractionRadius + 0.05f);
                 if (dist <= allowedDistance && dist <= minDistance)
                 {
                     pendingNpc = npc;
@@ -115,29 +121,51 @@ namespace CardAdventure
 
         private Vector2 GetPlayerInteractionCenter()
         {
-            CircleCollider2D circle = activePlayer != null
-                ? activePlayer.GetComponent<CircleCollider2D>()
-                : null;
+            Collider2D collider = GetPlayerFootCollider();
 
-            return circle != null
-                ? circle.transform.TransformPoint(circle.offset)
+            return collider != null
+                ? collider.bounds.center
                 : activePlayer.transform.position;
         }
 
         private float GetPlayerInteractionRadius()
         {
-            CircleCollider2D circle = activePlayer != null
-                ? activePlayer.GetComponent<CircleCollider2D>()
-                : null;
+            Collider2D collider = GetPlayerFootCollider();
 
-            if (circle == null)
+            if (collider == null)
             {
-                return 0.225f;
+                Vector2 cellSize = AdventureGridUtility.GetCellSize(1f);
+                return Mathf.Max(cellSize.x, cellSize.y) * 0.5f;
             }
 
-            Vector3 scale = circle.transform.lossyScale;
-            float radius = circle.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
-            return Mathf.Max(radius, 0.5f);
+            Bounds bounds = collider.bounds;
+            return Mathf.Max(bounds.extents.x, bounds.extents.y, 0.5f);
+        }
+
+        private Collider2D GetPlayerFootCollider()
+        {
+            if (activePlayer == null)
+            {
+                return null;
+            }
+
+            BoxCollider2D box = activePlayer.GetComponent<BoxCollider2D>();
+            if (box != null && box.enabled && !box.isTrigger)
+            {
+                return box;
+            }
+
+            Collider2D[] colliders = activePlayer.GetComponents<Collider2D>();
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                Collider2D collider = colliders[i];
+                if (collider != null && collider.enabled && !collider.isTrigger)
+                {
+                    return collider;
+                }
+            }
+
+            return null;
         }
 
 
@@ -155,21 +183,22 @@ namespace CardAdventure
                 return;
             }
 
+            if (!EnsureDialogueView())
+            {
+                return;
+            }
+
             currentDialogue = data;
             currentNpc      = npc;
             lineIndex       = 0;
             isDialogueActive = true;
 
-            // 플레이어 이동 차단
             activePlayer?.SetInputEnabled(false);
 
-            // NPC 쪽 바라보게 회전 (PlayerController 확장 없이 간단 처리)
             if (activePlayer != null)
                 FacePlayerTowardNpc(npc);
 
-            // 대화창 표시
-            if (dialogueView != null)
-                dialogueView.Show(data.speakerName, data.lines[0]);
+            dialogueView.Show(data.speakerName, data.lines[0]);
         }
 
         private void HandleSpaceDuringDialogue()
@@ -242,6 +271,23 @@ namespace CardAdventure
         // ══════════════════════════════════════════════════════
         //  외부 주입 (씬 빌더 등에서 사용)
         // ══════════════════════════════════════════════════════
+
+        private bool EnsureDialogueView()
+        {
+            if (dialogueView != null)
+            {
+                return true;
+            }
+
+            dialogueView = FindFirstObjectByType<DialogueView>(FindObjectsInactive.Include);
+            if (dialogueView != null)
+            {
+                return true;
+            }
+
+            Debug.LogWarning("[DialogueManager] DialogueView를 찾을 수 없습니다. Inspector에서 직접 연결하거나 씬에 배치하세요.", this);
+            return false;
+        }
 
         public void SetDialogueView(DialogueView view) => dialogueView = view;
         public void SetActivePlayer(PlayerController player) => activePlayer = player;

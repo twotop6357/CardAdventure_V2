@@ -19,6 +19,12 @@ namespace CardAdventure
         [Tooltip("Layers that block movement. Defaults to every layer except Player and Ignore Raycast.")]
         [SerializeField] private LayerMask obstacleLayer;
 
+        [Header("Tile Alignment")]
+        [SerializeField] private BoxCollider2D footCollider;
+        [SerializeField] private bool alignVisualToTile = true;
+        [SerializeField] private float maxVisualWidthInTiles = 1f;
+        [SerializeField] private float maxVisualHeightInTiles = 2f;
+
         [Header("Visual")]
         [SerializeField] private SpriteRenderer spriteRenderer;
         [SerializeField] private Animator animator;
@@ -55,6 +61,7 @@ namespace CardAdventure
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
             ResolveMoveUnitSize();
+            ConfigureFootCollider();
 
             if (obstacleLayer.value == 0)
             {
@@ -94,6 +101,8 @@ namespace CardAdventure
             Vector3 pos = transform.position;
             targetPosition = SnapToMoveUnit(pos);
             transform.position = targetPosition;
+            rb.position = targetPosition;
+            AlignVisualToTile();
 
             // 초기 위치 타일 예약
             GridOccupancy.TryReserve(targetPosition, moveUnitSize);
@@ -196,9 +205,52 @@ namespace CardAdventure
                 return position;
             }
 
-            return new Vector2(
-                Mathf.Round(position.x / moveUnitSize) * moveUnitSize,
-                Mathf.Round(position.y / moveUnitSize) * moveUnitSize);
+            return AdventureGridUtility.SnapToCellCenter(position, moveUnitSize);
+        }
+
+        private void ConfigureFootCollider()
+        {
+            if (footCollider == null)
+            {
+                footCollider = GetComponent<BoxCollider2D>();
+            }
+
+            if (footCollider == null)
+            {
+                footCollider = gameObject.AddComponent<BoxCollider2D>();
+            }
+
+            Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
+            AdventureGridUtility.ConfigureFootCollider(footCollider, transform, cellSize);
+            AdventureGridUtility.DisableSolidCircles(gameObject);
+        }
+
+        private void AlignVisualToTile()
+        {
+            if (!alignVisualToTile || spriteRenderer == null || spriteRenderer.sprite == null)
+            {
+                return;
+            }
+
+            Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
+            Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
+            if (spriteSize.x <= 0.001f || spriteSize.y <= 0.001f)
+            {
+                return;
+            }
+
+            float idleMultiplier = Mathf.Max(0.001f, idleVisualScaleMultiplier);
+            float targetWidth = cellSize.x * Mathf.Max(0.001f, maxVisualWidthInTiles);
+            float targetHeight = cellSize.y * Mathf.Max(0.001f, maxVisualHeightInTiles);
+            float idleScale = Mathf.Min(targetWidth / spriteSize.x, targetHeight / spriteSize.y);
+            float walkScale = idleScale / idleMultiplier;
+
+            walkVisualScale = new Vector3(walkScale, walkScale, 1f);
+
+            float finalHeight = spriteSize.y * idleScale;
+            Vector3 localPos = spriteRenderer.transform.localPosition;
+            localPos.y = (finalHeight - cellSize.y) * 0.5f;
+            spriteRenderer.transform.localPosition = localPos;
         }
 
         private void UpdateHeldDirection(Vector2 inputDirection)
@@ -222,8 +274,8 @@ namespace CardAdventure
 
         private bool TryStartMove(Vector2 direction)
         {
-            Vector2 nextTarget = targetPosition + direction * moveUnitSize;
-            Vector2 collisionSize = Vector2.one * (moveUnitSize * 0.8f);
+            Vector2 nextTarget = targetPosition + AdventureGridUtility.GetCardinalStep(direction, moveUnitSize);
+            Vector2 collisionSize = AdventureGridUtility.GetCollisionProbeSize(moveUnitSize);
 
             // 1단계: 물리 콜라이더 검사 (벽, 솔리드 오브젝트)
             Collider2D[] hits = Physics2D.OverlapBoxAll(nextTarget, collisionSize, 0f, obstacleLayer);
@@ -398,6 +450,12 @@ namespace CardAdventure
             {
                 Vector3 scale = walkVisualScale == Vector3.zero ? Vector3.one : walkVisualScale;
                 spriteRenderer.transform.localScale = scale * idleVisualScaleMultiplier;
+            }
+
+            if (footCollider != null && !Application.isPlaying)
+            {
+                Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
+                AdventureGridUtility.ConfigureFootCollider(footCollider, transform, cellSize);
             }
         }
 #endif

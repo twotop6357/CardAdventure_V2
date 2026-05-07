@@ -39,9 +39,9 @@ namespace CardAdventure
         {
             get
             {
-                CircleCollider2D triggerCircle = GetInteractionTriggerCircle();
-                return triggerCircle != null
-                    ? triggerCircle.transform.TransformPoint(triggerCircle.offset)
+                Collider2D interactionCollider = GetInteractionCollider();
+                return interactionCollider != null
+                    ? interactionCollider.bounds.center
                     : transform.position;
             }
         }
@@ -50,14 +50,14 @@ namespace CardAdventure
         {
             get
             {
-                CircleCollider2D triggerCircle = GetInteractionTriggerCircle();
-                if (triggerCircle == null)
+                Collider2D interactionCollider = GetInteractionCollider();
+                if (interactionCollider == null)
                 {
                     return 0.6f;
                 }
 
-                Vector3 scale = triggerCircle.transform.lossyScale;
-                return triggerCircle.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
+                Bounds bounds = interactionCollider.bounds;
+                return Mathf.Max(bounds.extents.x, bounds.extents.y);
             }
         }
 
@@ -97,15 +97,21 @@ namespace CardAdventure
             hasSpoken = true;
         }
 
-        private CircleCollider2D GetInteractionTriggerCircle()
+        private Collider2D GetInteractionCollider()
         {
-            CircleCollider2D[] circles = GetComponents<CircleCollider2D>();
-            for (int i = 0; i < circles.Length; i++)
+            BoxCollider2D box = GetComponent<BoxCollider2D>();
+            if (box != null && box.enabled)
             {
-                CircleCollider2D circle = circles[i];
-                if (circle != null && circle.isTrigger)
+                return box;
+            }
+
+            Collider2D[] colliders = GetComponents<Collider2D>();
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                Collider2D collider = colliders[i];
+                if (collider != null && collider.enabled)
                 {
-                    return circle;
+                    return collider;
                 }
             }
 

@@ -17,7 +17,7 @@ namespace CardAdventure
     /// 충돌 규칙:
     ///   - Rigidbody2D(Kinematic) + 솔리드 BoxCollider2D 로 물리 밀침 없이
     ///     OverlapBox 검사를 통해 플레이어/벽과 상호 차단한다.
-    ///   - 대화 범위 트리거(CircleCollider2D isTrigger=true)는 별도로 유지한다.
+    ///   - 대화 판정은 NpcInteractable이 발밑 BoxCollider2D 기준으로 계산한다.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
     public class NpcMovement : MonoBehaviour
@@ -32,6 +32,12 @@ namespace CardAdventure
         [Header("충돌 설정")]
         [Tooltip("장애물로 취급할 레이어 (기본: Ignore Raycast 제외 전체)")]
         [SerializeField] private LayerMask obstacleLayer;
+
+        [Header("Tile Alignment")]
+        [SerializeField] private BoxCollider2D footCollider;
+        [SerializeField] private bool alignVisualToTile = true;
+        [SerializeField] private float maxVisualWidthInTiles = 1f;
+        [SerializeField] private float maxVisualHeightInTiles = 2f;
 
         [Header("비주얼 (선택)")]
         [Tooltip("좌우 이동 시 flipX로 방향 반전할 SpriteRenderer")]
@@ -65,6 +71,8 @@ namespace CardAdventure
                 spriteRenderer = GetComponent<SpriteRenderer>();
 
             ResolveMoveUnitSize();
+            AlignVisualToTile();
+            ConfigureTileColliders();
         }
 
         private void ResolveMoveUnitSize()
@@ -80,10 +88,59 @@ namespace CardAdventure
             }
         }
 
+        private void ConfigureTileColliders()
+        {
+            if (footCollider == null)
+            {
+                footCollider = GetComponent<BoxCollider2D>();
+            }
+
+            if (footCollider == null)
+            {
+                footCollider = gameObject.AddComponent<BoxCollider2D>();
+            }
+
+            Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
+            AdventureGridUtility.ConfigureFootCollider(footCollider, transform, cellSize);
+        }
+
+        private void AlignVisualToTile()
+        {
+            if (!alignVisualToTile || spriteRenderer == null || spriteRenderer.sprite == null)
+            {
+                return;
+            }
+
+            Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
+            Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
+            if (spriteSize.x <= 0.001f || spriteSize.y <= 0.001f)
+            {
+                return;
+            }
+
+            float targetWidth = cellSize.x * Mathf.Max(0.001f, maxVisualWidthInTiles);
+            float targetHeight = cellSize.y * Mathf.Max(0.001f, maxVisualHeightInTiles);
+            float scale = Mathf.Min(targetWidth / spriteSize.x, targetHeight / spriteSize.y);
+
+            if (spriteRenderer.transform == transform)
+            {
+                Vector3 localScale = transform.localScale;
+                transform.localScale = new Vector3(scale, scale, localScale.z);
+                return;
+            }
+
+            spriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+            float finalHeight = spriteSize.y * scale;
+            Vector3 localPos = spriteRenderer.transform.localPosition;
+            localPos.y = (finalHeight - cellSize.y) * 0.5f;
+            spriteRenderer.transform.localPosition = localPos;
+        }
+
         private void Start()
         {
             homePosition   = SnapToUnit(transform.position);
             targetPosition = homePosition;
+            transform.position = homePosition;
             rb.position    = homePosition;
 
             // 초기 위치 타일 예약
@@ -155,20 +212,20 @@ namespace CardAdventure
 
             foreach (Vector2 dir in dirs)
             {
-                Vector2 candidate = targetPosition + dir * moveUnitSize;
+                Vector2 candidate = targetPosition + AdventureGridUtility.GetCardinalStep(dir, moveUnitSize);
 
                 // 홈 반경 초과 → 건너뜀
                 if (Vector2.Distance(candidate, homePosition) > wanderRadius + 0.01f)
                     continue;
 
                 // 1단계: 물리 콜라이더 검사 (벽, 솔리드 오브젝트)
-                float      checkSize = moveUnitSize * 0.8f;
+                Vector2 checkSize = AdventureGridUtility.GetCollisionProbeSize(moveUnitSize);
                 
                 // 자신의 콜라이더를 잠시 끄고 검사하여 자기 자신을 장애물로 인식하는 것을 방지
                 var colliders = GetComponents<Collider2D>();
                 foreach(var col in colliders) col.enabled = false;
                 
-                Collider2D hit = Physics2D.OverlapBox(candidate, Vector2.one * checkSize, 0f, obstacleLayer);
+                Collider2D hit = Physics2D.OverlapBox(candidate, checkSize, 0f, obstacleLayer);
                 
                 foreach(var col in colliders) col.enabled = true;
 
@@ -203,12 +260,9 @@ namespace CardAdventure
         private static bool IsDialogueActive() =>
             DialogueManager.Instance != null && DialogueManager.Instance.IsDialogueActive;
 
-        private static Vector2 SnapToUnit(Vector2 pos)
+        private Vector2 SnapToUnit(Vector2 pos)
         {
-            const float unit = 1f;
-            return new Vector2(
-                Mathf.Round(pos.x / unit) * unit,
-                Mathf.Round(pos.y / unit) * unit);
+            return AdventureGridUtility.SnapToCellCenter(pos, moveUnitSize);
         }
 
         /// <summary>Fisher-Yates 셔플로 새 배열 반환</summary>

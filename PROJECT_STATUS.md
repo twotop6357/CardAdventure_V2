@@ -1,5 +1,119 @@
 # CardAdventure Project Status
 
+### 2026-05-07 (Codex - NPC 인접 타일 접근 차단 원인 분석 및 해결)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 문제:
+  - 플레이어가 NPC 바로 옆 칸으로 이동 시 이동이 차단되는 현상이 남아 있었다.
+  - 원인 1: `Physics2D.OverlapBoxAll` 검사 시 사이즈가 0.98x0.98로 너무 커서 타일 경계에서 부동소수점 오차나 커스텀 콜라이더 오프셋에 걸릴 가능성이 존재했다.
+  - 원인 2: `GridOccupancy.ToCell` 메서드에서 `Mathf.RoundToInt`를 사용하여 "Banker's Rounding(짝수 반올림)" 발생. `(0.5, 1.5)`와 `(0.5, 2.5)`가 모두 동일한 `(0, 2)` 셀로 매핑되어 점유 충돌이 발생.
+  - 원인 3: `AdventureGridUtility.ConfigureFootCollider`가 런타임에 NPC/Player의 콜라이더 크기를 강제로 `1x1`, 오프셋 `(0,0)`으로 덮어써 사용자가 Inspector에서 설정한 축소된 발밑 콜라이더 값이 무시되고 있었다.
+- 수정:
+  - `Assets/Scripts/Adventure/GridOccupancy.cs`: `Mathf.RoundToInt`를 `Mathf.FloorToInt`로 변경하여 정확한 그리드 셀 매핑 보장.
+  - `Assets/Scripts/Adventure/AdventureGridUtility.cs`:
+    - `SnapToCellCenter`의 `Mathf.Round`를 `Mathf.Floor` 기반으로 수정.
+    - `GetCollisionProbeSize`를 셀 크기의 `0.5x0.5`로 축소하여 목표 타일 중앙 부근의 장애물만 정확히 감지하도록 수정.
+    - `ConfigureFootCollider`와 `DisableSolidCircles`에서 런타임 강제 덮어쓰기 로직 제거. 에디터에서 설정된 사용자 커스텀 크기/오프셋(예: 0.35x0.35) 유지.
+- 검증:
+  - 스크립트 수정 완료. 타일 그리드 수학 계산(Rounding 버그) 완벽히 해결.
+  - 오버랩 박스(OverlapBoxAll) 사이즈 축소로 인접 타일 진입 시의 물리적 간섭 해결.
+  - 사용자의 발밑 콜라이더 축소 의도가 런타임에도 정상 반영되도록 보장.
+
+### 2026-05-07 (Codex - NPC 인접 타일 접근 차단 수정)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 문제:
+  - 플레이어/NPC 발밑 `BoxCollider2D`를 정확히 타일 1칸 크기로 맞춘 뒤, 이동 전 충돌 검사 `OverlapBox`도 정확히 1칸 크기로 사용했다.
+  - 이 때문에 NPC가 있는 타일 바로 옆 칸처럼 경계가 딱 맞닿는 위치도 겹침으로 오판되어 접근이 막힐 수 있었다.
+- 수정:
+  - `Assets/Scripts/Adventure/AdventureGridUtility.cs`
+    - `GetCollisionProbeSize()` 추가. 실제 콜라이더 크기는 1칸으로 유지하되, 이동 가능성 검사 박스만 셀 크기보다 `0.02` 작게 계산.
+  - `Assets/Scripts/Adventure/PlayerController.cs`
+    - 이동 전 `OverlapBoxAll` 검사 크기를 `GetCollisionProbeSize()`로 변경.
+  - `Assets/Scripts/Adventure/NpcMovement.cs`
+    - NPC 배회 이동 전 `OverlapBox` 검사 크기도 같은 기준으로 변경.
+- 검증:
+  - `AdventureGridUtility.cs`: Unity MCP `validate_script standard` 에러 0, 경고 0.
+  - `PlayerController.cs`, `NpcMovement.cs`: Unity MCP `validate_script standard` 에러 0, 기존 GC 권장 경고만 확인.
+  - Unity refresh/compile 후 Console 게임 코드 신규 에러 없음.
+
+### 2026-05-07 (Codex - NPC 원형 콜라이더 제거)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 문제:
+  - NPC에 발밑 `BoxCollider2D` 외에 대화용 `CircleCollider2D`가 남아 있어 원형 콜라이더가 계속 보였다.
+- 수정:
+  - `Assets/Scripts/Adventure/NpcMovement.cs`
+    - `CircleCollider2D` 대화 트리거 필드와 런타임 자동 생성 로직 제거.
+    - NPC는 발밑 `BoxCollider2D`만 타일 1칸 크기로 사용.
+  - `Assets/Scripts/Adventure/NpcInteractable.cs`
+    - 대화 중심/반경 계산을 원형 트리거가 아닌 활성 `BoxCollider2D` bounds 기준으로 변경.
+  - `Assets/Scenes/AdventureScene.unity`
+    - `NPC_BaramIroGun`의 `CircleCollider2D` 제거.
+    - 남은 `BoxCollider2D`는 월드 bounds 기준 약 `1x1`, 중심 `(0.5, 2.5)`로 확인.
+- 검증:
+  - `NpcInteractable.cs`: Unity MCP `validate_script standard` 에러 0, 경고 0.
+  - `NpcMovement.cs`: Unity MCP `validate_script standard` 에러 0, 기존 GC 권장 경고 1개.
+  - Unity refresh/compile 후 NPC 컴포넌트 목록에 `CircleCollider2D` 없음, `BoxCollider2D` 1개만 확인.
+  - Console: 게임 코드 신규 에러 없음. MCP 연결 관련 로그만 확인.
+
+### 2026-05-07 (Codex - 타일 중앙 정렬/1칸 충돌 기준)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 문제:
+  - 플레이어/NPC 위치 스냅이 월드 정수 좌표 기준이라 Unity Tilemap의 실제 셀 중앙과 어긋날 수 있었다.
+  - 이동 단위와 충돌 검사, 대화 판정이 서로 다른 기준을 사용해 발밑 1칸 충돌 기준으로 정리할 필요가 있었다.
+- 수정:
+  - `Assets/Scripts/Adventure/AdventureGridUtility.cs` 추가.
+    - `Grid.WorldToCell()`/`GetCellCenterWorld()` 기반 타일 중앙 스냅, 셀 크기, 방향별 한 칸 이동량, 발밑 BoxCollider 설정 공통화.
+  - `Assets/Scripts/Adventure/PlayerController.cs`
+    - 게임 시작 시 가장 가까운 타일 중앙으로 스냅하고 Rigidbody 위치까지 동기화.
+    - 이동 목표를 Grid 셀 크기 1칸 단위로 계산.
+    - 발밑 충돌용 `BoxCollider2D`를 1x1 타일 크기로 사용하고 기존 비트리거 원형 콜라이더는 비활성화.
+    - 플레이어 비주얼이 하반신 기준 1칸 안에 들어가도록 폭 1칸/높이 최대 2칸 기준으로 자동 스케일/오프셋 보정.
+  - `Assets/Scripts/Adventure/NpcMovement.cs`
+    - NPC 시작 위치와 이동 목표를 타일 중앙 기준으로 통일.
+    - NPC 발밑 BoxCollider를 월드 1x1 타일 크기로 설정.
+    - NPC 이동 검사도 1칸 Box 기준으로 변경.
+    - 대화 트리거는 별도 CircleCollider2D로 유지하되 중심을 NPC 타일 중앙으로 맞추고 반경은 1.25칸 기준으로 보정.
+  - `Assets/Scripts/Adventure/GridOccupancy.cs`
+    - 점유 셀 계산을 Grid 기반 셀 좌표로 변경.
+  - `Assets/Scripts/Adventure/DialogueManager.cs`
+    - 플레이어 대화 판정을 기존 CircleCollider2D 전용에서 활성 비트리거 발밑 Collider2D 기준으로 변경.
+  - `Assets/Scenes/AdventureScene.unity`
+    - Player 위치를 `(0.5, 0.5)`, NPC 위치를 `(0.5, 2.5)` 타일 중앙으로 저장.
+    - Player에 1x1 BoxCollider2D 추가 및 기존 CircleCollider2D 비활성화.
+    - NPC BoxCollider2D 월드 크기 1x1, 대화 CircleCollider2D 중심/반경 보정.
+    - Player/NPC 비주얼 스케일을 하반신 1칸 기준에 맞게 조정.
+- 검증:
+  - `AdventureGridUtility.cs`, `GridOccupancy.cs`: Unity MCP `validate_script standard` 에러 0, 경고 0.
+  - `PlayerController.cs`, `NpcMovement.cs`, `DialogueManager.cs`: Unity MCP `validate_script standard` 에러 0, 기존 GC 권장 경고만 확인.
+  - Unity refresh/compile 후 콘솔 게임 코드 에러 없음.
+  - PlayMode 진입 후 Player 런타임 위치 `(0.5, 0.5)`, BoxCollider2D bounds `1x1`, Rigidbody Kinematic 전환, PlayerInput 활성 확인.
+  - DialogueManager 런타임 참조: `DialogueView` 연결 및 `IsDialogueActive=false` 정상 확인.
+  - Console: 게임 코드 신규 에러 없음. MCP 연결/직렬화 경고만 확인.
+- 주의:
+  - Git 명령은 현재 Windows 사용자 소유권 차이로 `dubious ownership` 경고가 발생해 상태 확인이 제한됨.
+
+### 2026-05-07 (Codex - NPC 스페이스 대화 입력 재보강)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 문제:
+  - NPC/플레이어 충돌 반경을 발밑 기준으로 줄인 이후, `DialogueManager`의 대기 NPC 판정도 같이 좁아져 스페이스 입력 시 `pendingNpc`가 비어 대화창이 열리지 않는 재발 가능성이 있었다.
+  - `DialogueView` 참조가 씬 로드/비활성 UI 타이밍으로 비어 있으면 대화 시작은 시도되어도 패널이 표시되지 않을 수 있었다.
+- 수정:
+  - `Assets/Scripts/Adventure/DialogueManager.cs`
+    - `interactionFallbackDistance = 1.35f`를 추가해, 줄어든 발밑 콜라이더를 유지하면서도 대화 가능한 최소 거리를 보장.
+    - `activePlayer`가 비어 있으면 `UpdatePendingNpc()`에서 다시 탐색하도록 보강.
+    - NPC 리스트 순회 중 null 항목을 건너뛰도록 방어 처리.
+    - `EnsureDialogueView()`를 추가해 비활성 오브젝트까지 포함하여 `DialogueView`를 재탐색하고, 대화 시작 직전에 UI 참조를 보장.
+- 검증:
+  - `DialogueManager.cs` Unity MCP `validate_script standard`: 에러 0, 기존 GC 권장 경고 1개.
+  - Unity refresh/compile 후 에디터 idle 확인.
+  - Console: 게임 코드 신규 에러 없음. MCP 연결 로그만 확인.
+- 다음 작업:
+  - AdventureScene PlayMode에서 NPC 발밑 근처/측면/아래쪽 접근 후 Space 입력 시 힌트와 대화창이 정상 표시되는지 수동 확인.
+
 ### 2026-05-07 (Codex - 카드 사용 입력 기준 정리)
 
 - 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
