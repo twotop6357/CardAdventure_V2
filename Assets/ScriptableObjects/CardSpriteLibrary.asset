@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8c4d2e1f0a3974658102938475bcd01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  warrior:
+    common: {fileID: -5288209142280008143, guid: 9a0e95ace2588784bad70f333e5f79b0, type: 3}
+    uncommon: {fileID: 1299386047578245234, guid: d3b0399f60e631842aa7f8601230ad62, type: 3}
+    rare: {fileID: 3295066678883450665, guid: e6dd07bcaa434574689abeee1c5e6695, type: 3}
+    legendary: {fileID: 1410160897593739969, guid: 1ebd2bc626a41df42a41cef17616d9d0, type: 3}
+  mage:
+    common: {fileID: -2848870837748158631, guid: bbcb3fb913966734eaf38f6c60225996, type: 3}
+    uncommon: {fileID: 7213659439283096237, guid: edf7a082292594c4680390a5bf991806, type: 3}
+    rare: {fileID: 5345033013739729415, guid: 75c2c166ab2fc7940bc2f1257c14d570, type: 3}
+    legendary: {fileID: 5160710447476150953, guid: 171f165f3f0d891479b7569d391860a9, type: 3}
+  rogue:
+    common: {fileID: -5018641884072402104, guid: ea80853f6c8337144876f7175cc738bd, type: 3}
+    uncommon: {fileID: -7875498846522942048, guid: cd91d73cfd8d9904382bcd2f6149bb26, type: 3}
+    rare: {fileID: 8798680686178139902, guid: 45a1a518e17cdb04b85a76ad4d5c6ee0, type: 3}
+    legendary: {fileID: 1704815138723632532, guid: 338935124cdce3d408dc6a6a0fa5de35, type: 3}
+  universal:
+    common: {fileID: -5288209142280008143, guid: 9a0e95ace2588784bad70f333e5f79b0, type: 3}
+    uncommon: {fileID: 1299386047578245234, guid: d3b0399f60e631842aa7f8601230ad62, type: 3}
+    rare: {fileID: 3295066678883450665, guid: e6dd07bcaa434574689abeee1c5e6695, type: 3}
+    legendary: {fileID: 1410160897593739969, guid: 1ebd2bc626a41df42a41cef17616d9d0, type: 3}

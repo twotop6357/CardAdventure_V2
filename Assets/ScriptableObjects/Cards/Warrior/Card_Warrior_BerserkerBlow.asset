@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
+  m_Name: Card_Warrior_BerserkerBlow
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
+  cardName: "\uAD11\uC804\uC0AC\uC758 \uC77C\uACA9"
+  energyCost: 0
+  cardType: 0
+  cardClass: 1
+  grade: 1
+  effectType: 103
+  effectValue: 15
+  secondaryValue: 4
+  effectDescription: "\uC790\uC2E0\uC5D0\uAC8C {value2} \uD53C\uD574\uB97C \uBC1B\uACE0 \uC801\uC5D0\uAC8C {value} \uB370\uBBF8\uC9C0\uB97C \uC785\uD78C\uB2E4."
+  cardIcon: {fileID: 0}
+  cardColor: {r: 0.718, g: 0.110, b: 0.110, a: 1}
+  statusEffect: {fileID: 0}
+  isExhaust: 0
+  isStarterCard: 0

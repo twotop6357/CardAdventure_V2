@@ -1,5 +1,173 @@
 # CardAdventure Project Status
 
+### 2026-05-07 (Claude Desktop — 카드 호버 프리뷰 딜레이 0.33초로 조정)
+
+- 변경 파일:
+  - `Assets/Scripts/UI/BattleCardView.cs` **(수정)**
+    - `previewDelay` 기본값 1.0s → 0.33s.
+- 다음 작업: BattleTest 씬에서 체감 반응속도 확인 후 필요 시 Inspector에서 추가 조정.
+
+### 2026-05-07 (Claude Desktop — Card.prefab ManaCostText 반영)
+
+- 목적: Card.prefab에 추가된 ManaCostText(마나 코스트 TMP) 자식을 BattleCardView가 인식하고 값을 표시.
+- 변경 파일:
+  - `Assets/Scripts/UI/BattleCardView.cs` **(수정)**
+    - `energyCostText: TextMeshProUGUI` 필드 추가.
+    - `Awake()`: `transform.Find("ManaCostText")`로 자동 탐색.
+    - `Refresh()`: `energyCostText.text = data.energyCost.ToString()` 반영.
+- 검증: BattleCardView.cs validate_script standard: 오류 0, 경고 1(오탐).
+- 다음 작업:
+  - BattleTest 씬 실행 → 손패 카드에 마나 코스트 숫자가 표시되는지 확인.
+
+### 2026-05-07 (Claude Desktop — 카드 호버 프리뷰 버그 수정: 이동 중 프리뷰 즉시 닫힘)
+
+- 목적: 프리뷰 중 카드가 이동하면 EventSystem이 OnPointerExit를 발생시켜 즉시 닫히는 버그 수정. 중앙 카드·원래 위치 양쪽에서 호버링/클릭 허용.
+- 변경 파일:
+  - `Assets/Scripts/UI/CardHoverProxy.cs` **(신규)**
+    - 프리뷰 중 원래 손패 위치에 런타임 생성되는 투명 히트박스.
+    - `IPointerClickHandler`만 구현해 클릭을 `BattleCardView.OnProxyClick()`으로 전달.
+    - `BattleCardView.SpawnProxy()`가 생성, `ClosePreview()`가 제거.
+  - `Assets/Scripts/UI/BattleCardView.cs` **(수정)**
+    - `OnPointerExit`: 프리뷰 활성 중(`isPreviewActive`)이면 즉시 `return` — 카드 이동으로 인한 오발 방지.
+    - `Update()` 폴링 추가: 프리뷰 중 매 프레임 `RectTransformUtility.RectangleContainsScreenPoint`로 두 영역 검사.
+      - 중앙 카드(reparent된 카드 RectTransform) 위 → 유지.
+      - 원래 손패 위치(proxyRt) 위 → 유지.
+      - 둘 다 벗어남 → `ClosePreview(animate: true)`.
+    - `isTransitioning` 플래그: 전환 애니메이션 중에는 폴링 스킵 (false positive 방지).
+    - `SpawnProxy()`: 원래 부모에 200×300 투명 RectTransform + Image(raycastTarget=true) + CardHoverProxy 생성.
+    - `OnProxyClick()`: 프록시 클릭 시 `ClosePreview(false)` + `Clicked` 이벤트 발생.
+    - `baseSize` 필드 추가 — `SaveBasePosition()`에서 RectTransform.sizeDelta 저장, 프록시 크기 설정에 사용.
+- 검증:
+  - CardHoverProxy.cs validate_script standard: 오류 0, 경고 0.
+  - BattleCardView.cs validate_script standard: 오류 0, 경고 1(Update 내 문자열 연결 오탐 — 실제 없음).
+- 동작 정리:
+  - 마우스를 1초 호버 → 카드 중앙 이동·확대, 원래 위치에 투명 프록시 생성.
+  - 중앙 카드 위 또는 원래 위치 위 → 프리뷰 유지.
+  - 두 영역 모두 벗어남 → 부드럽게 원위치 복원.
+  - 중앙 카드 클릭 또는 원래 위치 클릭 → 카드 사용 처리.
+- 다음 작업:
+  - BattleTest 씬 실행 → 프리뷰 동작 최종 확인.
+  - 에너지 비용 표시 UI (Card.prefab에 EnergyCost TMP 자식 추가).
+  - 배틀 씬 HUD 완성 (HP바, 에너지바, 턴 표시, 적 의도 표시).
+
+### 2026-05-07 (Claude Desktop — 카드 호버 프리뷰 (1초 → 화면 중앙 확대))
+
+- 목적: 손패 카드에 마우스를 1초 이상 올리면 카드가 화면 정중앙으로 이동·확대되어 설명을 읽기 쉽게 표시.
+- 변경 파일:
+  - `Assets/Scripts/UI/BattleCardView.cs` **(수정)**
+    - `PreviewRoutine()` 코루틴 추가: `previewDelay`(기본 1초) 대기 후 프리뷰 발동.
+    - 프리뷰 발동 시: 카드를 `Canvas.rootCanvas` 자식으로 임시 reparent → `localPosition=(0, previewOffsetY, 0)` 트윈 (화면 정중앙) → `localRotation=0` 트윈 (기울기 제거) → `localScale=previewScale(2.4)` 트윈.
+    - `ClosePreview(animate)`: 마우스 이탈·클릭·선택 시 원래 부모/위치/회전/스케일 복원. animate=true면 DOTween, false면 즉시.
+    - `CancelPreviewCoroutine()`: OnPointerExit, OnPointerClick, SetSelected 시 코루틴 취소.
+    - `SaveBasePosition()`에 `baseLocalRotation` 기록 추가.
+    - `rootCanvas` Awake()에서 캐싱.
+    - Inspector 조절 가능 파라미터: `previewDelay`, `previewScale`, `previewOffsetY`, `previewDuration`.
+  - 다른 카드/레이아웃에 영향 없음: reparent 방식이므로 handContainer의 나머지 카드는 그대로 유지.
+- 검증:
+  - BattleCardView.cs validate_script standard: 오류 0, 경고 0.
+- Unity 에디터 확인 필요:
+  - BattleTest 씬 실행 → 손패 카드 1초 호버 → 화면 중앙에 기울기 없이 크게 표시되는지 확인.
+  - 마우스 이탈 → 원래 부채꼴 위치·기울기·크기로 복원되는지 확인.
+  - 카드 클릭(선택·사용) 시 프리뷰가 즉시 닫히는지 확인.
+  - Inspector에서 previewScale, previewOffsetY 값 튜닝 가능.
+- 다음 작업:
+  - 에너지 비용 표시 UI (Card.prefab에 EnergyCost TMP 자식 추가).
+  - 배틀 씬 HUD 완성 (HP바, 에너지바, 턴 표시, 적 의도 표시).
+
+### 2026-05-07 (Claude Desktop — Card.prefab 교체 + 직업·등급별 카드 배경 스프라이트 시스템)
+
+- 목적: 배틀 씬에서 기존 CardView.prefab 대신 Card.prefab 사용. 직업×등급에 따라 카드 배경 스프라이트 자동 적용.
+- 변경 파일:
+  - `Assets/Scripts/UI/CardSpriteLibrary.cs` **(신규)**
+    - `CardSpriteSet` 구조체: Common/Uncommon/Rare/Legendary 스프라이트 4개 + `GetByGrade()`.
+    - `CardSpriteLibrary` ScriptableObject: warrior/mage/rogue/universal 세트 + `GetCardSprite(class, grade)`.
+  - `Assets/Scripts/UI/BattleCardView.cs` **(수정)**
+    - `cardBackground`(Image), `cardNameText`/`descriptionText`(TMP), `cardArtImage`(Image) 필드 유지.
+    - `Awake()`에서 자식 오브젝트 이름("CardName", "CardDescription", "CardImage")으로 자동 탐색.
+    - `SetSpriteLibrary()` 메서드 추가 — BattleHandView가 생성 시 주입.
+    - `ApplyBackgroundSprite()`: 스프라이트 라이브러리 있으면 직업+등급 스프라이트, 없으면 타입 색상 폴백.
+    - `cardTypeIcon`/`energyCostText` 제거 (Card.prefab 구조에 없는 필드 정리).
+    - `SetInteractable()`: 색 대신 알파(0.5)로 비활성화 표현.
+  - `Assets/Scripts/UI/BattleHandView.cs` **(수정)**
+    - `spriteLibrary: CardSpriteLibrary` 필드 추가.
+    - `RefreshHand()`: 카드 뷰 Instantiate 후 `SetSpriteLibrary()` 호출.
+  - `Assets/Prefabs/UI/Card.prefab` **(수정)**
+    - BattleCardView MonoBehaviour 컴포넌트 추가 (fileID: 7143928651094735881).
+    - cardBackground/cardNameText/descriptionText/cardArtImage를 prefab 내 컴포넌트 fileID로 직접 연결.
+  - `Assets/ScriptableObjects/CardSpriteLibrary.asset` **(신규)**
+    - warrior/mage/rogue/universal 각 4등급 스프라이트 12개 모두 연결.
+  - `Assets/Scripts/UI/CardSpriteLibrary.cs.meta` **(신규)** — guid: b8c4d2e1f0a3974658102938475bcd01
+  - `Assets/ScriptableObjects/CardSpriteLibrary.asset.meta` **(신규)** — guid: c1d2e3f4a5b6074839201047586abcde
+  - `Assets/Scenes/BattleTest.unity` **(수정)**
+    - BattleHandView.cardViewPrefab → Card.prefab (guid: 0db826f77733f6d40918da0cf419705a, fileID: 7143928651094735881)
+    - BattleHandView.spriteLibrary → CardSpriteLibrary.asset (guid: c1d2e3f4a5b6074839201047586abcde)
+- 검증:
+  - CardSpriteLibrary.cs validate_script standard: 오류 0, 경고 0.
+  - BattleCardView.cs validate_script standard: 오류 0, 경고 0.
+  - BattleHandView.cs validate_script standard: 오류 0, 경고 0.
+- Unity 에디터 작업 필요 (코드로 불가):
+  - Unity Editor에서 프로젝트 Refresh → Card.prefab Inspector에서 BattleCardView 컴포넌트 연결 확인.
+  - BattleHandView Inspector에서 cardViewPrefab(Card.prefab), spriteLibrary(CardSpriteLibrary) 연결 확인.
+  - CardSpriteLibrary Inspector에서 12개 스프라이트 슬롯이 채워졌는지 확인.
+  - BattleTest 씬 실행 → 손패 카드에 직업별 배경 스프라이트가 표시되는지 확인.
+- 다음 작업:
+  - BattleTest 씬 PlayMode 동작 확인 후 이상 없으면 배틀 UI 완성도 향상 작업.
+  - 향후: 에너지 비용 표시 UI 추가 (Card.prefab에 EnergyCost TMP 자식 추가).
+
+### 2026-05-07 (Claude Desktop — 직업별 카드 데이터 추가)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 먼저 확인했다.
+- 목적: 전사·마법사·도적 각 직업의 카드 컨셉과 덱 다양성을 고려한 카드 데이터 추가.
+- 변경 파일:
+  - `Assets/Scripts/Data/CardData.cs`
+    - `CardEffectType` 신규 7종 추가:
+      - DoubleStrike(102), BerserkerAttack(103), AttackAndDefend(104), AttackAndApplyStatus(105)
+      - DefenseAndDraw(202), DrawCards(302), GainStrength(303)
+  - `Assets/Scripts/Battle/BattleManager.cs`
+    - 신규 effectType 7종 케이스 처리 추가.
+    - `needsEnemyTarget`에 신규 공격 effectType 반영.
+  - 신규 StatusEffect 에셋 3종:
+    - `Assets/ScriptableObjects/StatusEffects/Status_Vulnerable.asset` (취약, Vulnerable=2)
+    - `Assets/ScriptableObjects/StatusEffects/Status_Strength.asset` (강화, Strength=3)
+    - `Assets/ScriptableObjects/StatusEffects/Status_Regeneration.asset` (재생, Regeneration=4)
+  - 신규 카드 에셋 27종:
+    - 전사 7종: 쌍격, 광전사의 일격, 전진, 전사의 절규, 강철 의지, 불굴, 맹공
+    - 마법사 10종: 화염구, 얼음 파편, 독구름, 마력 방패, 집중, 번개, 취약 주문, 연쇄 번개, 원소 강화, 마나 재생
+    - 도적 10종: 단검 투척, 독침, 회피, 속격, 그림자 발걸음, 약점 파악, 기습, 독 안개, 쌍검, 암살
+  - `카드데이터_입력양식.xlsx` 갱신 (전 직업 32종 + 직업 컨셉 시트 추가)
+- 검증:
+  - `CardData.cs` validate_script standard: 오류 0, 경고 0.
+  - `BattleManager.cs` validate_script standard: 오류 0, 경고 0.
+- 다음 작업:
+  - Unity 에디터 Refresh 후 Cards 폴더에서 에셋 로드 확인.
+  - BattleTest 씬에서 신규 카드 PlayMode 동작 확인.
+
+### 2026-05-07 (Claude Desktop — 카드 효과 ID 시스템 리팩터링)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 먼저 확인했다.
+- 목적: `BattleManager`의 `CardData.name` 문자열 비교를 제거하고 명시적 enum ID로 교체.
+- 변경 파일:
+  - `Assets/Scripts/Data/CardData.cs`
+    - `CardEffectType` enum 추가 (None=0, BasicAttack=100, ShieldBash=101, BasicDefense=200, Rage=300, Taunt=301, ApplyStatusToEnemy=400, ApplyStatusToPlayer=401).
+    - `CardData`에 `effectType`, `secondaryValue` 필드 추가.
+    - `GetFormattedDescription()`에 `{value2}` 치환 지원 추가.
+  - `Assets/Scripts/Battle/BattleManager.cs`
+    - `ApplyCardEffect()` 를 `effectType` 스위치 단일 메서드로 통합. `ApplyAttackCard()` / `ApplySkillCard()` 제거.
+    - `needsEnemyTarget` 판별을 `cardType` 대신 `effectType` 기준으로 변경.
+    - 미설정(None) 및 미처리 effectType은 `Debug.LogWarning` 출력.
+  - `Assets/ScriptableObjects/Cards/Warrior/*.asset` 5종
+    - `effectType` 및 `secondaryValue` 필드 직접 기록:
+      - Strike → 100(BasicAttack), Defend → 200(BasicDefense)
+      - ShieldBash → 101(ShieldBash), Rage → 300(Rage), Taunt → 301(Taunt)
+  - `카드데이터_입력양식.xlsx` 생성 (프로젝트 루트)
+    - 구글 스프레드시트 붙여넣기용. 시트 3개: 카드 목록(전사 5종 샘플+드롭다운), 필드 설명, effectType 코드표.
+- 검증:
+  - `CardData.cs` validate_script standard: 오류 0, 경고 0.
+  - `BattleManager.cs` validate_script standard: 오류 0, 경고 0.
+- 다음 작업:
+  - Unity 에디터에서 전사 카드 5종 Inspector 확인 (effectType 드롭다운이 올바른 값으로 표시되는지).
+  - 새 카드 추가 시 `CardEffectType` enum에 항목 추가 → `BattleManager` switch 케이스 추가 → 스프레드시트 코드표 갱신 순서로 진행.
+
 ### 2026-05-07 (Codex - Space 대화 불가 수정)
 
 - 작업 시작 전 `PROJECT_STATUS.md`를 먼저 확인했다.
@@ -308,8 +476,8 @@
 
 1. **대화 시스템 PlayMode 검증** — AdventureScene에서 플레이어를 NPC_BaramIroGun 근처로 이동 → Space 입력 → 대화창 슬라이드 인, 타이핑 효과, Space로 페이지 넘기기, 마지막 줄 후 대화창 닫힘 확인.
 2. **NPC 이동 PlayMode 검증** — NPC가 홈(0,2,0) 기준 3유닛 반경 내 배회, 플레이어와 충돌(밀림 없음), 대화 중 배회 정지 확인.
-3. 카드별 효과 처리를 이름 비교 대신 명시적 ID/효과 타입으로 개선.
-4. 챕터 1 Tilemap 맵 제작 (베르데 평원 거점 마을 레이아웃).
+3. **챕터 1 Tilemap 맵 제작** (베르데 평원 거점 마을 레이아웃) — `CardAdventure > Map > Generate Town` 메뉴 실행 후 레이아웃 배치.
+4. **정식 BattleScene 제작** — `SceneLoader.BATTLE_SCENE_NAME = "BattleTest"` 상수를 정식 씬명으로 교체.
 
 ## 씬 구성 안내 (배틀 UI 연결 방법)
 

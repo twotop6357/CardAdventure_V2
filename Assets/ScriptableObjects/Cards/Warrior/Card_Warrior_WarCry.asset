@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
+  m_Name: Card_Warrior_WarCry
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
+  cardName: "\uC804\uC0AC\uC758 \uC808\uADDC"
+  energyCost: 1
+  cardType: 2
+  cardClass: 1
+  grade: 0
+  effectType: 302
+  effectValue: 2
+  secondaryValue: 0
+  effectDescription: "\uCE74\uB4DC {value}\uC7A5\uC744 \uB4DC\uB85C\uC6B0\uD55C\uB2E4."
+  cardIcon: {fileID: 0}
+  cardColor: {r: 1.000, g: 0.596, b: 0.000, a: 1}
+  statusEffect: {fileID: 0}
+  isExhaust: 0
+  isStarterCard: 0

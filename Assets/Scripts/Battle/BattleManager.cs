@@ -122,7 +122,13 @@ namespace CardAdventure
                 return BattleCardPlayResult.Failed(BattleCardPlayFailureReason.CardNotInHand);
             }
 
-            bool needsEnemyTarget = card.Data.cardType == CardType.Attack || card.Data.statusEffect != null;
+            bool needsEnemyTarget = card.Data.effectType == CardEffectType.BasicAttack
+                                 || card.Data.effectType == CardEffectType.ShieldBash
+                                 || card.Data.effectType == CardEffectType.DoubleStrike
+                                 || card.Data.effectType == CardEffectType.BerserkerAttack
+                                 || card.Data.effectType == CardEffectType.AttackAndDefend
+                                 || card.Data.effectType == CardEffectType.AttackAndApplyStatus
+                                 || card.Data.effectType == CardEffectType.ApplyStatusToEnemy;
             if (needsEnemyTarget && (Enemy == null || Enemy.Combatant.IsDefeated))
             {
                 return BattleCardPlayResult.Failed(BattleCardPlayFailureReason.TargetRequired);
@@ -193,55 +199,127 @@ namespace CardAdventure
         private void ApplyCardEffect(BattleRuntimeCard card)
         {
             CardData data = card.Data;
-            string cardAssetName = data.name;
 
-            switch (data.cardType)
+            if (data.effectType == CardEffectType.None)
             {
-                case CardType.Attack:
-                    ApplyAttackCard(data, cardAssetName);
+                Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}'의 effectType이 None입니다. " +
+                                 "CardData Inspector에서 effectType을 설정해 주세요.");
+                return;
+            }
+
+            switch (data.effectType)
+            {
+                // ── 공격 ──────────────────────────────────────────
+                case CardEffectType.BasicAttack:
+                {
+                    int damage = Player.GetAttackDamage(data.effectValue);
+                    damage = ApplyVulnerableDamageModifier(Enemy.Combatant, damage);
+                    Enemy.Combatant.ReceiveDamage(damage);
                     break;
-                case CardType.Defense:
+                }
+                case CardEffectType.ShieldBash:
+                {
+                    int baseDamage = data.effectValue + Player.Combatant.Block;
+                    int damage = Player.GetAttackDamage(baseDamage);
+                    damage = ApplyVulnerableDamageModifier(Enemy.Combatant, damage);
+                    Enemy.Combatant.ReceiveDamage(damage);
+                    break;
+                }
+
+                // ── 방어 ──────────────────────────────────────────
+                case CardEffectType.BasicDefense:
                     Player.Combatant.AddBlock(data.effectValue);
                     break;
-                case CardType.StatusEffect:
-                    Enemy.Combatant.ApplyStatus(data.statusEffect, data.effectValue);
-                    break;
-                case CardType.Skill:
-                    ApplySkillCard(data);
-                    break;
-            }
-        }
 
-        private void ApplyAttackCard(CardData data, string cardAssetName)
-        {
-            int baseDamage = data.effectValue;
-
-            if (cardAssetName == "Card_Warrior_ShieldBash")
-            {
-                baseDamage += Player.Combatant.Block;
-            }
-
-            int damage = Player.GetAttackDamage(baseDamage);
-            damage = ApplyVulnerableDamageModifier(Enemy.Combatant, damage);
-            Enemy.Combatant.ReceiveDamage(damage);
-        }
-
-        private void ApplySkillCard(CardData data)
-        {
-            switch (data.name)
-            {
-                case "Card_Warrior_Rage":
+                // ── 스킬 ──────────────────────────────────────────
+                case CardEffectType.Rage:
                     Player.AddAttackBonusGainedPerAttackForTurn(data.effectValue);
-                    return;
-                case "Card_Warrior_Taunt":
+                    break;
+
+                case CardEffectType.Taunt:
                     Player.Combatant.AddBlock(data.effectValue);
                     Enemy.Combatant.ApplyStatus(StatusEffectType.Weak, 1, 1);
-                    return;
-            }
+                    break;
 
-            if (data.statusEffect != null)
-            {
-                Enemy.Combatant.ApplyStatus(data.statusEffect, Mathf.Max(1, data.statusEffect.defaultStacks));
+                // ── 상태이상 부여 ─────────────────────────────────
+                case CardEffectType.ApplyStatusToEnemy:
+                    if (data.statusEffect != null)
+                        Enemy.Combatant.ApplyStatus(data.statusEffect,
+                            Mathf.Max(1, data.effectValue > 0 ? data.effectValue : data.statusEffect.defaultStacks));
+                    else
+                        Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}': ApplyStatusToEnemy인데 statusEffect가 없습니다.");
+                    break;
+
+                case CardEffectType.ApplyStatusToPlayer:
+                    if (data.statusEffect != null)
+                        Player.Combatant.ApplyStatus(data.statusEffect,
+                            Mathf.Max(1, data.effectValue > 0 ? data.effectValue : data.statusEffect.defaultStacks));
+                    else
+                        Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}': ApplyStatusToPlayer인데 statusEffect가 없습니다.");
+                    break;
+
+                // ── 공격 확장 ─────────────────────────────────────
+                case CardEffectType.DoubleStrike:
+                {
+                    int dmg = Player.GetAttackDamage(data.effectValue);
+                    dmg = ApplyVulnerableDamageModifier(Enemy.Combatant, dmg);
+                    Enemy.Combatant.ReceiveDamage(dmg);
+                    Enemy.Combatant.ReceiveDamage(dmg);
+                    break;
+                }
+                case CardEffectType.BerserkerAttack:
+                {
+                    int selfDmg = Mathf.Max(0, data.secondaryValue);
+                    Player.Combatant.ReceiveDamage(selfDmg);
+                    int dmg = Player.GetAttackDamage(data.effectValue);
+                    dmg = ApplyVulnerableDamageModifier(Enemy.Combatant, dmg);
+                    Enemy.Combatant.ReceiveDamage(dmg);
+                    break;
+                }
+                case CardEffectType.AttackAndDefend:
+                {
+                    int dmg = Player.GetAttackDamage(data.effectValue);
+                    dmg = ApplyVulnerableDamageModifier(Enemy.Combatant, dmg);
+                    Enemy.Combatant.ReceiveDamage(dmg);
+                    Player.Combatant.AddBlock(data.secondaryValue);
+                    break;
+                }
+                case CardEffectType.AttackAndApplyStatus:
+                {
+                    int dmg = Player.GetAttackDamage(data.effectValue);
+                    dmg = ApplyVulnerableDamageModifier(Enemy.Combatant, dmg);
+                    Enemy.Combatant.ReceiveDamage(dmg);
+                    if (data.statusEffect != null)
+                    {
+                        int stacks = data.secondaryValue > 0 ? data.secondaryValue : data.statusEffect.defaultStacks;
+                        Enemy.Combatant.ApplyStatus(data.statusEffect, Mathf.Max(1, stacks));
+                    }
+                    else
+                        Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}': AttackAndApplyStatus인데 statusEffect가 없습니다.");
+                    break;
+                }
+
+                // ── 방어 확장 ─────────────────────────────────────
+                case CardEffectType.DefenseAndDraw:
+                    Player.Combatant.AddBlock(data.effectValue);
+                    if (data.secondaryValue > 0)
+                        Player.CardPiles.Draw(data.secondaryValue);
+                    break;
+
+                // ── 스킬 확장 ─────────────────────────────────────
+                case CardEffectType.DrawCards:
+                    if (data.effectValue > 0)
+                        Player.CardPiles.Draw(data.effectValue);
+                    break;
+
+                case CardEffectType.GainStrength:
+                    Player.Combatant.ApplyStatus(StatusEffectType.Strength,
+                        Mathf.Max(1, data.effectValue), 0);
+                    break;
+
+                default:
+                    Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}'의 effectType({data.effectType})에 대한 처리가 없습니다.");
+                    break;
             }
         }
 

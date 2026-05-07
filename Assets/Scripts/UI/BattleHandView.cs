@@ -11,8 +11,9 @@ namespace CardAdventure
     public class BattleHandView : MonoBehaviour
     {
         [Header("참조")]
-        [SerializeField] private BattleCardView cardViewPrefab;
-        [SerializeField] private RectTransform handContainer;
+        [SerializeField] private BattleCardView    cardViewPrefab;
+        [SerializeField] private RectTransform     handContainer;
+        [SerializeField] private CardSpriteLibrary spriteLibrary;
 
         [Header("레이아웃 — 부채꼴")]
         [Tooltip("카드 간 최대 가로 간격 (픽셀)")]
@@ -55,6 +56,8 @@ namespace CardAdventure
             foreach (BattleRuntimeCard rc in handCards)
             {
                 BattleCardView cv = Instantiate(cardViewPrefab, handContainer);
+                if (spriteLibrary != null)
+                    cv.SetSpriteLibrary(spriteLibrary);
                 cv.Bind(rc, interactable);
                 cv.Clicked += OnCardClicked;
                 cardViews.Add(cv);

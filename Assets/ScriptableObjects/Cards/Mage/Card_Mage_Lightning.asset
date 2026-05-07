@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
+  m_Name: Card_Mage_Lightning
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
+  cardName: "\uBC88\uAC1C"
+  energyCost: 2
+  cardType: 0
+  cardClass: 2
+  grade: 1
+  effectType: 100
+  effectValue: 14
+  secondaryValue: 0
+  effectDescription: "{value} \uD53C\uD574\uB97C \uC785\uD78C\uB2E4. (\uC18C\uBA78)"
+  cardIcon: {fileID: 0}
+  cardColor: {r: 1.000, g: 0.839, b: 0.000, a: 1}
+  statusEffect: {fileID: 0}
+  isExhaust: 1
+  isStarterCard: 0

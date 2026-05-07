@@ -17,7 +17,9 @@ MonoBehaviour:
   cardType: 2
   cardClass: 1
   grade: 0
+  effectType: 301
   effectValue: 7
+  secondaryValue: 0
   effectDescription: "\uBC29\uC5B4\uB3C4 {value}\uC744 \uC5BB\uACE0, \uC801\uC5D0\uAC8C
     \uC57D\uD654(1\uD134)\uB97C \uBD80\uC5EC\uD55C\uB2E4."
   cardIcon: {fileID: 0}

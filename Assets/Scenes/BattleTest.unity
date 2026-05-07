@@ -4054,8 +4054,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e4816960352b054ba8e36b81848d783, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.BattleHandView
-  cardViewPrefab: {fileID: 212287295263417795, guid: 73dff06e9893fb74dba05f85eb427751,
-    type: 3}
+  cardViewPrefab: {fileID: 7143928651094735881, guid: 0db826f77733f6d40918da0cf419705a, type: 3}
+  spriteLibrary: {fileID: 11400000, guid: c1d2e3f4a5b6074839201047586abcde, type: 2}
   handContainer: {fileID: 670626499}
   cardSpacing: 120
   maxFanAngle: 15
