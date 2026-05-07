@@ -83,7 +83,8 @@ namespace CardAdventure
             playerRb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
             CircleCollider2D playerCol = playerGo.AddComponent<CircleCollider2D>();
-            playerCol.radius = 0.45f;
+            playerCol.radius = 0.225f;
+            playerCol.offset = new Vector2(0f, -0.45f);
 
             PlayerController pc = playerGo.AddComponent<PlayerController>();
 

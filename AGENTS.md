@@ -36,6 +36,7 @@
 - 신규 ScriptableObject 필드는 기본값을 제공하고, 기존 필드 삭제/이름 변경은 피합니다.
 - 씬 전환 전 DOTween 트윈 정리를 고려합니다.
 - Claude Desktop과 병행 작업 시 같은 파일을 동시에 수정하지 않도록 작업 범위를 분리합니다.
+- 플레이어/NPC의 이동 충돌 콜라이더는 전신이 아니라 발밑 기준으로 작게 둡니다. 현재 기준: Player `CircleCollider2D radius=0.225, offset=(0,-0.45)`, NPC 실제 충돌 `BoxCollider2D size=(0.35,0.35), offset=(0,-1.35)`, NPC 상호작용 트리거 `CircleCollider2D radius=0.6, offset=(0,-1.35)`. NPC 오브젝트 스케일이 1이 아니면 `size/radius`는 월드 기준 목표 크기를 유지하도록 로컬 스케일을 보정하고, SPUM 발밑 기준 `offset=(0,-1.35)`는 로컬 오프셋으로 유지합니다.
 
 ## 인수인계
 

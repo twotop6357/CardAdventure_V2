@@ -226,9 +226,15 @@ namespace CardAdventure
             Vector2 collisionSize = Vector2.one * (moveUnitSize * 0.8f);
 
             // 1단계: 물리 콜라이더 검사 (벽, 솔리드 오브젝트)
-            Collider2D hit = Physics2D.OverlapBox(nextTarget, collisionSize, 0f, obstacleLayer);
-            if (hit != null && !hit.isTrigger)
+            Collider2D[] hits = Physics2D.OverlapBoxAll(nextTarget, collisionSize, 0f, obstacleLayer);
+            for (int i = 0; i < hits.Length; i++)
             {
+                Collider2D hit = hits[i];
+                if (hit == null || hit.isTrigger || IsSelfCollider(hit))
+                {
+                    continue;
+                }
+
                 PlayDirectionalAnimation(false);
                 return false;
             }
@@ -246,6 +252,22 @@ namespace CardAdventure
             currentMoveDirection = direction;
             PlayDirectionalAnimation(true);
             return true;
+        }
+
+        private bool IsSelfCollider(Collider2D hit)
+        {
+            if (hit == null)
+            {
+                return false;
+            }
+
+            if (rb != null && hit.attachedRigidbody == rb)
+            {
+                return true;
+            }
+
+            Transform hitTransform = hit.transform;
+            return hitTransform == transform || hitTransform.IsChildOf(transform);
         }
 
 

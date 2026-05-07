@@ -1,5 +1,123 @@
 # CardAdventure Project Status
 
+### 2026-05-07 (Codex - Space 대화 불가 수정)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 먼저 확인했다.
+- 문제:
+  - Player/NPC 콜라이더 축소 후 `Space`를 눌러도 대화가 시작되지 않음.
+  - `DialogueManager`가 NPC/Player 오브젝트 중심 거리로만 대화 후보를 찾고 있어, 발밑으로 옮긴 상호작용 콜라이더 기준과 맞지 않았다.
+  - `NPC_BaramIroGun`은 Transform scale `0.267`이라 `CircleCollider2D radius=0.6`이 실제 월드 반경 `0.16`으로 줄어들어 대화 범위가 지나치게 작아졌다.
+- 수정:
+  - `Assets/Scripts/Adventure/NpcInteractable.cs`
+    - NPC 상호작용 트리거 원의 실제 월드 중심/반경을 반환하는 `InteractionCenter`, `InteractionRadius` 추가.
+  - `Assets/Scripts/Adventure/DialogueManager.cs`
+    - 대화 후보 탐지를 오브젝트 중심 거리에서 Player/NPC 발밑 상호작용 범위 기준으로 변경.
+    - 1칸 그리드에서 NPC 바로 아래 칸에 서면 대화가 가능하도록 Player 상호작용 반경에 최소 0.5 유닛과 0.05 유닛 여유를 적용.
+  - `Assets/Scripts/Editor/DialogueSceneSetup.cs`
+    - 새 NPC 생성 시 오브젝트 스케일이 1이 아니어도 상호작용 트리거의 월드 반경이 0.6이 되도록 `radius`를 로컬 스케일 보정.
+  - 현재 `AdventureScene`의 `NPC_BaramIroGun`
+    - `BoxCollider2D`: 월드 크기 `0.35 x 0.35`, 발밑 로컬 offset `(0,-1.35)` 유지.
+    - `CircleCollider2D`: 월드 반경 `0.6`, 발밑 로컬 offset `(0,-1.35)` 유지.
+    - 씬 저장 완료.
+  - `AGENTS.md`에 NPC 스케일이 1이 아닐 때 `size/radius`는 스케일 보정하고 `offset=(0,-1.35)`는 SPUM 로컬 발밑 기준으로 유지하라는 지침 갱신.
+- 검증:
+  - `DialogueManager.cs`: Unity MCP `validate_script standard` 오류 0, 기존 GC 권장 경고 1개.
+  - `NpcInteractable.cs`, `DialogueSceneSetup.cs`: Unity MCP `validate_script standard` 오류 0, 경고 0.
+  - 씬 컴포넌트 확인: `NPC_BaramIroGun` 상호작용 트리거 월드 중심 `y=1.6395`, 월드 반경 `0.6`.
+  - Console: 게임 코드 신규 오류 없음. 서드파티 obsolete 경고와 MCP 도구 로그만 확인.
+- 다음 작업:
+  - PlayMode에서 Player가 NPC 바로 아래 칸에 섰을 때 Space 대화 시작 여부를 육안 확인.
+
+### 2026-05-07 (Codex - S 아래 이동 차단 수정)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 먼저 확인했다.
+- 문제:
+  - Player 발 콜라이더를 아래로 내린 뒤, `S` 입력으로 아래 칸 이동 시 이동 검사 `OverlapBox`가 플레이어 자신의 콜라이더를 장애물로 오인할 수 있었다.
+- 수정:
+  - `Assets/Scripts/Adventure/PlayerController.cs`
+    - 단일 `Physics2D.OverlapBox` 검사에서 `Physics2D.OverlapBoxAll` 검사로 변경.
+    - 트리거 콜라이더와 플레이어 본인/자식 콜라이더를 건너뛰는 `IsSelfCollider()`를 추가.
+    - 실제 비트리거 장애물 콜라이더가 있을 때만 이동을 막도록 정리.
+- 검증:
+  - Unity MCP `validate_script standard`: 오류 0, 기존 GC 권장 경고 1개만 확인.
+  - Unity refresh/compile 요청 후 에디터 idle 상태 확인.
+  - Console: 게임 코드 신규 오류 없음. MCP client handler 로그만 확인.
+- 다음 작업:
+  - PlayMode에서 `W/A/S/D` 연속 이동과 NPC 근접 충돌을 직접 확인하면 좋다.
+
+### 2026-05-07 (Codex - Player/NPC 발밑 콜라이더 축소)
+
+- 작업 시작 시 `PROJECT_STATUS.md`를 먼저 확인했다.
+- 문제:
+  - Player/NPC의 이동/상호작용 콜라이더가 전신 중심에 가깝고 크게 잡혀 있어 서로 부딪히는 범위가 넓게 느껴짐.
+- 현재 `AdventureScene` 적용:
+  - Player `CircleCollider2D`: `radius 0.45 -> 0.225`, `offset (0,0) -> (0,-0.45)`.
+  - `NPC_BaramIroGun` 실제 충돌 `BoxCollider2D`: `size (0.7,0.7) -> (0.35,0.35)`, `offset (0,0) -> (0,-1.35)`.
+  - `NPC_BaramIroGun` 상호작용 트리거 `CircleCollider2D`: `radius 1.2 -> 0.6`, `offset (0,0) -> (0,-1.35)`.
+  - `AdventureScene` 저장 완료.
+- 생성/재적용 도구 수정:
+  - `Assets/Scripts/Editor/AdventureSceneBuilder.cs`: 새 AdventureScene 생성 시 Player 콜라이더를 발밑 기준 축소값으로 생성.
+  - `Assets/Scripts/Editor/WarriorPlayerVisualSetup.cs`: 직업 비주얼 재적용 시 Player 콜라이더도 발밑 기준 축소값으로 유지.
+  - `Assets/Scripts/Editor/DialogueSceneSetup.cs`: 새 NPC 상호작용 트리거 생성 기본값을 `radius=0.6`, `offset=(0,-1.35)`로 변경.
+  - `Assets/Scripts/Adventure/DialogueManager.cs`: 거리 기반 대화 가능 거리 `1.2 -> 0.6`.
+  - `Assets/Scripts/Adventure/NpcInteractable.cs`: Gizmo 표시를 축소된 발밑 범위에 맞춤.
+- 다른 에이전트 지침:
+  - `AGENTS.md`에 Player/NPC 발밑 콜라이더 기준을 추가.
+  - `CLAUDE.md`는 현재 텍스트 인코딩이 깨진 상태라 안전한 패턴 패치를 적용하지 못했으며, 파일 훼손 방지를 위해 직접 수정하지 않음. 동일 지침은 `AGENTS.md`와 이 상태 문서에 기록.
+- 검증:
+  - Player/NPC 씬 컴포넌트 값 재확인 완료.
+  - `AdventureSceneBuilder.cs`, `DialogueSceneSetup.cs`, `NpcInteractable.cs` Unity MCP `validate_script standard`: 오류 0, 경고 0.
+  - `DialogueManager.cs` Unity MCP `validate_script standard`: 오류 0, 기존 GC 권장 경고 1개만 확인.
+- 주의:
+  - Console에 남는 MCP client/serializer 로그는 도구 연결/직렬화 로그이며 게임 코드 신규 에러가 아님.
+
+### 2026-05-07 (Codex - 마법사/도적 Idle 스프라이트 크기 보정)
+
+- 작업 시작 시 `PROJECT_STATUS.md`를 먼저 확인했다.
+- 문제:
+  - Magician/Rogue도 Warrior와 동일하게 Idle 스프라이트 원본이 Walk 스프라이트보다 커서 Idle 상태에서 캐릭터가 비정상적으로 크게 보임.
+- `Assets/Scripts/Editor/WarriorPlayerVisualSetup.cs` 수정:
+  - Magician `idleVisualScaleMultiplier`: `1.0` -> `0.85`.
+  - Rogue `idleVisualScaleMultiplier`: `1.0` -> `0.74`.
+  - `Apply Magician`/`Apply Rogue` 메뉴 실행 시 `PlayerController.idleVisualScaleMultiplier`와 `PlayerVisual.localScale`이 해당 값으로 저장되도록 유지.
+- 적용/검증:
+  - Unity MCP `validate_script standard`: 오류 0, 기존 권장 경고 1개(null check 권장)만 확인.
+  - `Setup All Class Visuals` 메뉴 재실행.
+  - `Apply Magician` 실행 후 `idleVisualScaleMultiplier=0.85` 확인.
+  - `Apply Rogue` 실행 후 현재 `AdventureScene`을 Rogue 상태로 되돌리고 `idleVisualScaleMultiplier=0.74`, `PlayerVisual.localScale=0.74` 확인.
+  - `AdventureScene` 저장 완료.
+- 주의:
+  - Console에 남는 MCP serializer/client handler 로그는 도구 연결/직렬화 로그이며 게임 코드 신규 에러가 아님.
+
+### 2026-05-07 (Codex - 마법사/도적 플레이어 비주얼 생성)
+
+- 작업 시작 시 `PROJECT_STATUS.md`를 먼저 확인했다.
+- 새 캐릭터 스프라이트 확인:
+  - `Assets/Assets/Sprites/Character/Magician/Idle`, `Walk`
+  - `Assets/Assets/Sprites/Character/Rogue/Idle`, `Walk`
+- `Assets/Scripts/Editor/WarriorPlayerVisualSetup.cs`를 다직업 플레이어 비주얼 생성 도구로 확장.
+  - 기존 메뉴 `CardAdventure > Setup Warrior Player Visual` 유지.
+  - 신규 메뉴 추가:
+    - `CardAdventure > Player Visual > Setup All Class Visuals`
+    - `CardAdventure > Player Visual > Apply Warrior`
+    - `CardAdventure > Player Visual > Apply Magician`
+    - `CardAdventure > Player Visual > Apply Rogue`
+  - `PlayerController`가 직접 재생하는 상태명과 호환되도록 모든 컨트롤러의 상태 이름은 `Player_IdleFront/Back/Side`, `Player_WalkFront/Back/Side`로 통일.
+- 생성된 에셋:
+  - `Assets/Animations/Player/Player_Magician.controller`
+  - `Assets/Animations/Player/Player_Rogue.controller`
+  - `Assets/Animations/Player/Magician/` 아래 6개 애니메이션 클립.
+  - `Assets/Animations/Player/Rogue/` 아래 6개 애니메이션 클립.
+- 스케일:
+  - Warrior는 기존처럼 idle 보정 `0.267`.
+  - Magician/Rogue는 idle/walk 원본 크기가 비슷해 idle 보정 `1.0`.
+- 검증:
+  - `WarriorPlayerVisualSetup.cs` Unity MCP `validate_script standard`: 오류 0, 권장 경고 1개(null check 권장)만 확인.
+  - `Setup All Class Visuals` 메뉴 실행 후 Magician/Rogue 컨트롤러와 애니메이션 클립 생성 확인.
+  - 컨트롤러 상태 이름이 `PlayerController` 기대 이름과 일치함을 확인.
+- 미검증:
+  - PlayMode에서 `Apply Magician`/`Apply Rogue` 후 실제 이동 애니메이션 육안 확인은 진행하지 못함.
+
 ### 2026-05-07 (Codex - 대화창 콘솔 에러 핫픽스)
 
 - 콘솔 에러 확인:

@@ -10,56 +10,133 @@ namespace CardAdventure
     public static class WarriorPlayerVisualSetup
     {
         private const string AnimationFolder = "Assets/Animations/Player";
-        private const string ControllerPath = AnimationFolder + "/Player_Warrior.controller";
         private const string ScenePath = "Assets/Scenes/AdventureScene.unity";
         private const float FrameTime = 0.25f;
 
         [MenuItem("CardAdventure/Setup Warrior Player Visual")]
         public static void Setup()
         {
+            SetupWarrior();
+        }
+
+        [MenuItem("CardAdventure/Player Visual/Setup All Class Visuals")]
+        public static void SetupAll()
+        {
+            SetupClass(GetWarriorConfig(), applyToScene: false);
+            SetupClass(GetMagicianConfig(), applyToScene: false);
+            SetupClass(GetRogueConfig(), applyToScene: false);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            Debug.Log("[WarriorPlayerVisualSetup] All class player visuals generated.");
+        }
+
+        [MenuItem("CardAdventure/Player Visual/Apply Warrior")]
+        public static void SetupWarrior()
+        {
+            SetupClass(GetWarriorConfig(), applyToScene: true);
+        }
+
+        [MenuItem("CardAdventure/Player Visual/Apply Magician")]
+        public static void SetupMagician()
+        {
+            SetupClass(GetMagicianConfig(), applyToScene: true);
+        }
+
+        [MenuItem("CardAdventure/Player Visual/Apply Rogue")]
+        public static void SetupRogue()
+        {
+            SetupClass(GetRogueConfig(), applyToScene: true);
+        }
+
+        private static void SetupClass(CharacterVisualConfig config, bool applyToScene)
+        {
             EnsureFolders();
 
             Dictionary<string, AnimationClip> clips = new Dictionary<string, AnimationClip>
             {
                 ["Player_IdleFront"] = CreateOrUpdateClip(
+                    config,
                     "Player_IdleFront",
-                    "Assets/Assets/Sprites/Character/Warrior/Idle/Warrior_IdleFront.png",
-                    "Warrior_IdleFront",
+                    $"{config.SpriteRoot}/Idle/{config.SpritePrefix}_IdleFront.png",
+                    $"{config.SpritePrefix}_IdleFront",
                     new[] { 0, 2, 4, 2 }),
                 ["Player_IdleBack"] = CreateOrUpdateClip(
+                    config,
                     "Player_IdleBack",
-                    "Assets/Assets/Sprites/Character/Warrior/Idle/Warrior_IdleBack.png",
-                    "Warrior_IdleBack",
+                    $"{config.SpriteRoot}/Idle/{config.SpritePrefix}_IdleBack.png",
+                    $"{config.SpritePrefix}_IdleBack",
                     new[] { 0, 2, 4, 2 }),
                 ["Player_IdleSide"] = CreateOrUpdateClip(
+                    config,
                     "Player_IdleSide",
-                    "Assets/Assets/Sprites/Character/Warrior/Idle/Warrior_IdleBeside.png",
-                    "Warrior_IdleBeside",
+                    $"{config.SpriteRoot}/Idle/{config.SpritePrefix}_IdleBeside.png",
+                    $"{config.SpritePrefix}_IdleBeside",
                     new[] { 0, 2, 4, 2 }),
                 ["Player_WalkFront"] = CreateOrUpdateClip(
+                    config,
                     "Player_WalkFront",
-                    "Assets/Assets/Sprites/Character/Warrior/Walk/Warrior_WalkFront.png",
-                    "Warrior_WalkFront",
+                    $"{config.SpriteRoot}/Walk/{config.SpritePrefix}_WalkFront.png",
+                    $"{config.SpritePrefix}_WalkFront",
                     new[] { 0, 2, 4, 6 }),
                 ["Player_WalkBack"] = CreateOrUpdateClip(
+                    config,
                     "Player_WalkBack",
-                    "Assets/Assets/Sprites/Character/Warrior/Walk/Warrior_WalkBack.png",
-                    "Warrior_WalkBack",
+                    $"{config.SpriteRoot}/Walk/{config.SpritePrefix}_WalkBack.png",
+                    $"{config.SpritePrefix}_WalkBack",
                     new[] { 0, 2, 4, 6 }),
                 ["Player_WalkSide"] = CreateOrUpdateClip(
+                    config,
                     "Player_WalkSide",
-                    "Assets/Assets/Sprites/Character/Warrior/Walk/Warrior_WalkBeside.png",
-                    "Warrior_WalkBeside",
+                    $"{config.SpriteRoot}/Walk/{config.SpritePrefix}_WalkBeside.png",
+                    $"{config.SpritePrefix}_WalkBeside",
                     new[] { 0, 2, 4, 6 })
             };
 
-            AnimatorController controller = CreateOrUpdateController(clips);
-            ApplyToAdventureScene(controller);
+            AnimatorController controller = CreateOrUpdateController(config, clips);
+            if (applyToScene)
+            {
+                ApplyToAdventureScene(config, controller);
+            }
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log("[WarriorPlayerVisualSetup] Warrior player visual setup complete.");
+            Debug.Log($"[WarriorPlayerVisualSetup] {config.DisplayName} player visual setup complete.");
+        }
+
+        private static CharacterVisualConfig GetWarriorConfig()
+        {
+            return new CharacterVisualConfig(
+                "Warrior",
+                "Warrior",
+                "Assets/Assets/Sprites/Character/Warrior",
+                AnimationFolder,
+                AnimationFolder + "/Player_Warrior.controller",
+                0.267f);
+        }
+
+        private static CharacterVisualConfig GetMagicianConfig()
+        {
+            return new CharacterVisualConfig(
+                "Magician",
+                "Magician",
+                "Assets/Assets/Sprites/Character/Magician",
+                AnimationFolder + "/Magician",
+                AnimationFolder + "/Player_Magician.controller",
+                0.85f);
+        }
+
+        private static CharacterVisualConfig GetRogueConfig()
+        {
+            return new CharacterVisualConfig(
+                "Rogue",
+                "Rogue",
+                "Assets/Assets/Sprites/Character/Rogue",
+                AnimationFolder + "/Rogue",
+                AnimationFolder + "/Player_Rogue.controller",
+                0.74f);
         }
 
         private static void EnsureFolders()
@@ -76,12 +153,15 @@ namespace CardAdventure
         }
 
         private static AnimationClip CreateOrUpdateClip(
+            CharacterVisualConfig config,
             string clipName,
             string spritePath,
             string spritePrefix,
             IReadOnlyList<int> frameIndexes)
         {
-            string clipPath = AnimationFolder + "/" + clipName + ".anim";
+            EnsureClassFolder(config);
+
+            string clipPath = config.ClipFolder + "/" + clipName + ".anim";
             AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
             if (clip == null)
             {
@@ -123,12 +203,22 @@ namespace CardAdventure
             return clip;
         }
 
-        private static AnimatorController CreateOrUpdateController(Dictionary<string, AnimationClip> clips)
+        private static void EnsureClassFolder(CharacterVisualConfig config)
         {
-            AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
+            if (config.ClipFolder == AnimationFolder || AssetDatabase.IsValidFolder(config.ClipFolder))
+            {
+                return;
+            }
+
+            AssetDatabase.CreateFolder(AnimationFolder, config.DisplayName);
+        }
+
+        private static AnimatorController CreateOrUpdateController(CharacterVisualConfig config, Dictionary<string, AnimationClip> clips)
+        {
+            AnimatorController controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(config.ControllerPath);
             if (controller == null)
             {
-                controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
+                controller = AnimatorController.CreateAnimatorControllerAtPath(config.ControllerPath);
             }
 
             AnimatorStateMachine stateMachine = controller.layers[0].stateMachine;
@@ -155,7 +245,7 @@ namespace CardAdventure
             return controller;
         }
 
-        private static void ApplyToAdventureScene(AnimatorController controller)
+        private static void ApplyToAdventureScene(CharacterVisualConfig config, AnimatorController controller)
         {
             EditorSceneManager.OpenScene(ScenePath);
             GameObject player = GameObject.Find("Player");
@@ -177,8 +267,8 @@ namespace CardAdventure
             SpriteRenderer spriteRenderer = visual.AddComponent<SpriteRenderer>();
             spriteRenderer.sortingOrder = 2;
             spriteRenderer.sprite = LoadSpriteByName(
-                "Assets/Assets/Sprites/Character/Warrior/Idle/Warrior_IdleFront.png",
-                "Warrior_IdleFront_0");
+                $"{config.SpriteRoot}/Idle/{config.SpritePrefix}_IdleFront.png",
+                $"{config.SpritePrefix}_IdleFront_0");
 
             Animator animator = visual.AddComponent<Animator>();
             animator.runtimeAnimatorController = controller;
@@ -189,6 +279,14 @@ namespace CardAdventure
                 throw new InvalidOperationException("PlayerController not found on Player.");
             }
 
+            CircleCollider2D playerCollider = player.GetComponent<CircleCollider2D>();
+            if (playerCollider != null)
+            {
+                playerCollider.radius = 0.225f;
+                playerCollider.offset = new Vector2(0f, -0.45f);
+                EditorUtility.SetDirty(playerCollider);
+            }
+
             SerializedObject playerControllerSo = new SerializedObject(playerController);
             playerControllerSo.FindProperty("spriteRenderer").objectReferenceValue = spriteRenderer;
             playerControllerSo.FindProperty("animator").objectReferenceValue = animator;
@@ -196,7 +294,7 @@ namespace CardAdventure
             playerControllerSo.FindProperty("useGridCellSize").boolValue = true;
             playerControllerSo.FindProperty("moveHoldThreshold").floatValue = 0.06f;
             playerControllerSo.FindProperty("walkVisualScale").vector3Value = Vector3.one;
-            playerControllerSo.FindProperty("idleVisualScaleMultiplier").floatValue = 0.267f;
+            playerControllerSo.FindProperty("idleVisualScaleMultiplier").floatValue = config.IdleVisualScaleMultiplier;
             playerControllerSo.ApplyModifiedProperties();
 
             EditorSceneManager.SaveScene(player.scene);
@@ -214,6 +312,32 @@ namespace CardAdventure
             }
 
             throw new InvalidOperationException("Sprite not found: " + spriteName);
+        }
+
+        private readonly struct CharacterVisualConfig
+        {
+            public CharacterVisualConfig(
+                string displayName,
+                string spritePrefix,
+                string spriteRoot,
+                string clipFolder,
+                string controllerPath,
+                float idleVisualScaleMultiplier)
+            {
+                DisplayName = displayName;
+                SpritePrefix = spritePrefix;
+                SpriteRoot = spriteRoot;
+                ClipFolder = clipFolder;
+                ControllerPath = controllerPath;
+                IdleVisualScaleMultiplier = idleVisualScaleMultiplier;
+            }
+
+            public string DisplayName { get; }
+            public string SpritePrefix { get; }
+            public string SpriteRoot { get; }
+            public string ClipFolder { get; }
+            public string ControllerPath { get; }
+            public float IdleVisualScaleMultiplier { get; }
         }
     }
 }

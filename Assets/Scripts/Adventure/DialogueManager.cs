@@ -88,27 +88,58 @@ namespace CardAdventure
             pendingNpc = null;
             if (activePlayer == null) return;
 
-            float minDistance = 1.2f; // 상호작용 가능 거리 (NPC의 CircleCollider 반경과 유사하게 설정)
+            Vector2 playerInteractionCenter = GetPlayerInteractionCenter();
+            float playerInteractionRadius = GetPlayerInteractionRadius();
+            float minDistance = float.MaxValue;
+
             foreach (var npc in NpcInteractable.AllNpcs)
             {
-                npc.SetHintActive(false); // 일단 숨김
+                npc.SetHintActive(false);
 
                 if (!npc.CanInteract()) continue;
 
-                float dist = Vector2.Distance(activePlayer.transform.position, npc.transform.position);
-                if (dist <= minDistance)
+                float dist = Vector2.Distance(playerInteractionCenter, npc.InteractionCenter);
+                float allowedDistance = playerInteractionRadius + npc.InteractionRadius + 0.05f;
+                if (dist <= allowedDistance && dist <= minDistance)
                 {
                     pendingNpc = npc;
                     minDistance = dist;
                 }
             }
 
-            // 가장 가까운 NPC의 힌트만 활성화
             if (pendingNpc != null)
             {
                 pendingNpc.SetHintActive(true);
             }
         }
+
+        private Vector2 GetPlayerInteractionCenter()
+        {
+            CircleCollider2D circle = activePlayer != null
+                ? activePlayer.GetComponent<CircleCollider2D>()
+                : null;
+
+            return circle != null
+                ? circle.transform.TransformPoint(circle.offset)
+                : activePlayer.transform.position;
+        }
+
+        private float GetPlayerInteractionRadius()
+        {
+            CircleCollider2D circle = activePlayer != null
+                ? activePlayer.GetComponent<CircleCollider2D>()
+                : null;
+
+            if (circle == null)
+            {
+                return 0.225f;
+            }
+
+            Vector3 scale = circle.transform.lossyScale;
+            float radius = circle.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
+            return Mathf.Max(radius, 0.5f);
+        }
+
 
         // ══════════════════════════════════════════════════════
         //  대화 시작 / 진행 / 종료

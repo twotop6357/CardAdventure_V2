@@ -35,6 +35,32 @@ namespace CardAdventure
         /// <summary>플레이어가 상호작용할 수 있는 상태인지 반환.</summary>
         public bool CanInteract() => repeatable || !hasSpoken;
 
+        public Vector2 InteractionCenter
+        {
+            get
+            {
+                CircleCollider2D triggerCircle = GetInteractionTriggerCircle();
+                return triggerCircle != null
+                    ? triggerCircle.transform.TransformPoint(triggerCircle.offset)
+                    : transform.position;
+            }
+        }
+
+        public float InteractionRadius
+        {
+            get
+            {
+                CircleCollider2D triggerCircle = GetInteractionTriggerCircle();
+                if (triggerCircle == null)
+                {
+                    return 0.6f;
+                }
+
+                Vector3 scale = triggerCircle.transform.lossyScale;
+                return triggerCircle.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
+            }
+        }
+
         // ── Unity 생명주기 ────────────────────────────────────────
 
         private void Awake()
@@ -71,12 +97,27 @@ namespace CardAdventure
             hasSpoken = true;
         }
 
+        private CircleCollider2D GetInteractionTriggerCircle()
+        {
+            CircleCollider2D[] circles = GetComponents<CircleCollider2D>();
+            for (int i = 0; i < circles.Length; i++)
+            {
+                CircleCollider2D circle = circles[i];
+                if (circle != null && circle.isTrigger)
+                {
+                    return circle;
+                }
+            }
+
+            return null;
+        }
+
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
-            // 상호작용 범위 시각화 (1.2 유닛)
+            // 상호작용 범위 시각화 (축소된 발밑 0.6 유닛)
             Gizmos.color = new Color(0.2f, 0.9f, 0.4f, 0.35f);
-            Gizmos.DrawWireSphere(transform.position, 1.2f);
+            Gizmos.DrawWireSphere(transform.position + Vector3.down * 1.35f, 0.6f);
 
             if (dialogueData != null)
             {
