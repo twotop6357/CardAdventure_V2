@@ -1,5 +1,34 @@
 # CardAdventure Project Status
 
+### 2026-05-07 (Antigravity - 전직관 NPC 애니메이션 제작 및 배치)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 목적: 
+  - `Assets/Assets/Sprites/NPCs/JobChanger_Sprite.png`를 이용해 애니메이션 제작.
+  - 가만히 서서 플레이어를 바라보도록 (가장 먼 거리의 축 기준) 애니메이션 변경 로직 구현.
+  - 기존 NPC와 동일한 규격의 콜라이더 부착.
+- 구현 내용:
+  - `Assets/Scripts/Editor/JobChangerSetup.cs` 에디터 툴을 작성하여, 스프라이트를 4방향으로 슬라이싱하고 `IdleFront`, `IdleBack`, `IdleLeft`, `IdleRight` 4개의 애니메이션 클립과 `JobChanger_Controller` 블렌드 트리를 자동 생성.
+  - `Assets/Scripts/Adventure/JobChangerNpc.cs` 스크립트를 작성하여 플레이어와의 거리를 계산, 가로/세로 중 가장 차이가 큰 축을 향하도록 `Animator` 파라미터(`DirectionX`, `DirectionY`)를 업데이트.
+  - `Assets/Prefabs/NPCs/NPC_JobChanger.prefab`을 생성하고, BoxCollider2D (0.35x0.35, offset 0,-1.35)와 CircleCollider2D (radius 0.6, trigger) 부착 완료.
+  - `AdventureScene` 씬의 `(0, 2, 0)` 위치에 생성한 NPC 인스턴스를 배치하고 씬을 저장.
+- 검증:
+  - 에디터 메뉴 `CardAdventure/Setup Job Changer` 실행 완료 및 에러 없음.
+  - `NPC_JobChanger.prefab` 내부 구조 및 컴포넌트 이상 없음.
+- 다음 작업:
+  - 실제 PlayMode에서 플레이어가 주위를 맴돌 때 NPC가 정상적으로 방향을 전환하는지 확인.
+  - NpcInteractable을 통한 전직 관련 대화/UI 연동 작업.
+### 2026-05-07 (Codex - 이동 중 시점 전환 제한)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.
+- 문제:
+  - 플레이어가 한 타일에서 다음 타일로 이동하는 도중(목적지에 도달하기 전) 다른 방향키를 누르면, 즉시 그 방향으로 이미지가 회전하는(포켓몬 스타일) 현상이 있었다. 이동 중에 다른 방향을 바라보는 것이 어색하게 느껴질 수 있었다.
+- 수정:
+  - `Assets/Scripts/Adventure/PlayerController.cs`
+    - `FixedUpdate()` 내에서 `isMoving == true`일 때 `inputDirection`에 따라 스프라이트의 바라보는 방향(`UpdateFacingDirection`)을 즉시 바꾸던 코드를 제거했다.
+- 검증:
+  - 코드 수정 완료. 이제 이동 중에 다른 방향키를 미리 누르고 있어도 목적지 타일에 완전히 도달하기 전까지는 시점이 돌아가지 않는다. (도착 시점에 해당 방향키가 눌려 있다면 그때 시점 전환 후 바로 다음 이동이 시작된다.)
+
 ### 2026-05-07 (Codex - NPC 인접 타일 접근 차단 원인 분석 및 해결)
 
 - 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.

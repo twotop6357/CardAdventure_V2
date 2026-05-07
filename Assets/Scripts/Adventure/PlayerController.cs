@@ -143,13 +143,6 @@ namespace CardAdventure
             }
             else
             {
-                // 이동 중 방향 전환: 스프라이트는 즉시 바라보는 방향을 바꾸되
-                // 실제 이동 목표는 현재 타일 도착 후 변경한다 (포켓몬 스타일).
-                if (inputDirection != Vector2.zero && inputDirection != currentMoveDirection)
-                {
-                    UpdateFacingDirection(inputDirection);
-                }
-
                 Vector2 currentPos = rb.position;
                 Vector2 newPos = Vector2.MoveTowards(currentPos, targetPosition, moveSpeed * Time.fixedDeltaTime);
                 rb.MovePosition(newPos);
