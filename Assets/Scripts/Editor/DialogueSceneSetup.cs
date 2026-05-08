@@ -302,14 +302,44 @@ namespace CardAdventure.Editor
 
         private static void EnsureNpcCollider(GameObject go)
         {
-            if (go.GetComponent<Collider2D>() != null) return;
+            Rigidbody2D rb = go.GetComponent<Rigidbody2D>();
+            if (rb == null)
+            {
+                rb = Undo.AddComponent<Rigidbody2D>(go);
+            }
 
-            CircleCollider2D col = Undo.AddComponent<CircleCollider2D>(go);
-            Vector3 scale = go.transform.lossyScale;
-            float radiusScale = Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y), 0.001f);
-            col.radius   = 0.6f / radiusScale;
-            col.offset   = new Vector2(0f, -1.35f);
-            col.isTrigger = true;
+            rb.gravityScale = 0f;
+            rb.freezeRotation = true;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+            EditorUtility.SetDirty(rb);
+
+            CircleCollider2D legacyCircle = go.GetComponent<CircleCollider2D>();
+            if (legacyCircle != null && !legacyCircle.isTrigger)
+            {
+                legacyCircle.enabled = false;
+                EditorUtility.SetDirty(legacyCircle);
+            }
+
+            BoxCollider2D box = go.GetComponent<BoxCollider2D>();
+            if (box == null)
+            {
+                box = Undo.AddComponent<BoxCollider2D>(go);
+            }
+
+            box.offset = Vector2.zero;
+            SpriteRenderer spriteRenderer = go.GetComponent<SpriteRenderer>();
+            AdventureGridUtility.ConfigureFootCollider(
+                box,
+                go.transform,
+                spriteRenderer,
+                AdventureGridUtility.GetCellSize(1f));
+            EditorUtility.SetDirty(box);
+
+            if (go.GetComponent<NpcMovement>() == null && go.GetComponent<NpcTileAlignment>() == null)
+            {
+                Undo.AddComponent<NpcTileAlignment>(go);
+            }
         }
     }
 }

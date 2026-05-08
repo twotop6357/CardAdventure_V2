@@ -3,68 +3,204 @@ using UnityEngine;
 namespace CardAdventure
 {
     /// <summary>
-    /// 전직관 NPC의 시점을 플레이어 방향으로 맞춰주는 스크립트.
-    /// 플레이어와 가장 멀리 떨어진 축(가로 또는 세로)을 기준으로 4방향 중 하나를 바라보도록 설정합니다.
+    /// 전직관 NPC의 타일 정렬, 방향 전환, 직업 선택 UI 연동을 처리하는 스크립트.
+    ///
+    /// 동작 흐름:
+    ///   1. DialogueManager가 대화를 시작할 때 FaceToward(playerPos) 호출
+    ///   2. FaceToward 내부에서 DialogueManager.OnDialogueEnded를 구독
+    ///   3. 대화가 끝나면 JobSelectionUI.Open() 호출
+    ///   4. 플레이어가 직업을 결정하면 OnJobConfirmed 콜백으로 GameDataManager 업데이트
+    ///      및 PlayerController 비주얼 갱신 요청
     /// </summary>
     [RequireComponent(typeof(Animator))]
+    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(BoxCollider2D))]
     public class JobChangerNpc : MonoBehaviour
     {
-        private Animator animator;
-        private Transform playerTransform;
+        [Header("Tile Alignment")]
+        [SerializeField] private bool snapToNearestTileOnStart = true;
+        [SerializeField] private float moveUnitSize = 1f;
+        [SerializeField] private BoxCollider2D footCollider;
+
+        [Header("Visual")]
+        [SerializeField] private bool alignVisualToReferenceHeight = true;
+        [SerializeField] private SpriteRenderer spriteRenderer;
+
+        [Header("직업 선택 UI")]
+        [Tooltip("씬에 배치된 JobChangeUIController 참조. 설정하지 않으면 씬에서 자동 탐색.")]
+        [SerializeField] private JobChangeUIController jobChangeUI;
+
+        private Animator  animator;
+        private Rigidbody2D rb;
+        private bool isWaitingForDialogueEnd = false;
 
         private void Awake()
         {
-            animator = GetComponent<Animator>();
+            animator    = GetComponent<Animator>();
+            rb          = GetComponent<Rigidbody2D>();
+            footCollider = footCollider != null ? footCollider : GetComponent<BoxCollider2D>();
+            spriteRenderer = spriteRenderer != null ? spriteRenderer : GetComponent<SpriteRenderer>();
+
+            rb.gravityScale  = 0f;
+            rb.freezeRotation = true;
+            rb.bodyType       = RigidbodyType2D.Kinematic;
+            rb.interpolation  = RigidbodyInterpolation2D.Interpolate;
+
+            AlignVisualToReferenceHeight();
+            ConfigureTileCollider();
         }
 
         private void Start()
         {
-            PlayerController player = FindFirstObjectByType<PlayerController>();
-            if (player != null)
-            {
-                playerTransform = player.transform;
-            }
+            SnapToNearestTile();
+
+            // JobChangeUIController 자동 탐색 (씬에 있는 경우)
+            if (jobChangeUI == null)
+                jobChangeUI = FindFirstObjectByType<JobChangeUIController>(FindObjectsInactive.Include);
         }
 
-        private void Update()
+        private void OnDestroy()
         {
-            if (playerTransform == null || animator == null)
-            {
-                return;
-            }
+            UnsubscribeFromDialogue();
+        }
 
-            Vector2 dir = playerTransform.position - transform.position;
-            
-            // 거리가 너무 가까우면 회전하지 않음 (선택적)
-            if (dir.sqrMagnitude < 0.01f)
-            {
-                return;
-            }
+        // ══════════════════════════════════════════════════════
+        //  공개 API
+        // ══════════════════════════════════════════════════════
 
-            // 플레이어가 가장 멀리 떨어진 축을 찾아 해당 방향을 결정
-            Vector2 faceDir = Vector2.down; // 기본값: 아래
-            
+        /// <summary>
+        /// DialogueManager가 대화를 시작할 때 호출한다.
+        /// NPC를 플레이어 방향으로 돌리고, 대화가 끝나면 직업 선택 UI를 열도록 예약한다.
+        /// </summary>
+        public void FaceToward(Vector2 targetPosition)
+        {
+            if (animator == null) return;
+
+            Vector2 dir = targetPosition - (Vector2)transform.position;
+            if (dir.sqrMagnitude < 0.01f) return;
+
+            // 가장 멀리 떨어진 축 기준 4방향 결정
+            Vector2 faceDir;
             if (Mathf.Abs(dir.x) > Mathf.Abs(dir.y))
-            {
                 faceDir = dir.x > 0 ? Vector2.right : Vector2.left;
-            }
             else
-            {
                 faceDir = dir.y > 0 ? Vector2.up : Vector2.down;
-            }
 
-            // 애니메이터의 파라미터 업데이트 (블렌드 트리에 맞게)
             animator.SetFloat("DirectionX", faceDir.x);
             animator.SetFloat("DirectionY", faceDir.y);
-            
-            // 만약 NPC의 비주얼이 스프라이트를 뒤집어야 한다면 여기서 처리할 수 있습니다.
-            // 하지만 보통 전후좌우 4방향 애니메이션이 개별적으로 있다면 FlipX가 필요 없습니다.
-            // 필요 시 아래 주석 해제.
-            // if (faceDir.x != 0) 
-            // {
-            //     SpriteRenderer sr = GetComponent<SpriteRenderer>();
-            //     if (sr != null) sr.flipX = faceDir.x < 0;
-            // }
+
+            // 대화 종료 구독 (중복 구독 방지)
+            SubscribeToDialogueEnd();
+        }
+
+        // ══════════════════════════════════════════════════════
+        //  내부: 타일 정렬 및 비주얼
+        // ══════════════════════════════════════════════════════
+
+        private void SnapToNearestTile()
+        {
+            if (!snapToNearestTileOnStart) return;
+            AdventureGridUtility.SnapOwnerFootToNearestCell(transform, rb, footCollider, moveUnitSize);
+        }
+
+        private void AlignVisualToReferenceHeight()
+        {
+            if (!alignVisualToReferenceHeight || spriteRenderer == null || spriteRenderer.sprite == null)
+                return;
+
+            float visualScale = AdventureGridUtility.GetVisualScaleForReferenceHeight(spriteRenderer.sprite);
+            transform.localScale = new Vector3(visualScale, visualScale, transform.localScale.z);
+        }
+
+        private void ConfigureTileCollider()
+        {
+            if (footCollider == null) return;
+
+            Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
+            AdventureGridUtility.ConfigureFootCollider(footCollider, transform, spriteRenderer, cellSize);
+            AdventureGridUtility.DisableSolidCircles(gameObject);
+        }
+
+        // ══════════════════════════════════════════════════════
+        //  내부: 대화 종료 → 직업 선택 UI 연동
+        // ══════════════════════════════════════════════════════
+
+        private void SubscribeToDialogueEnd()
+        {
+            if (isWaitingForDialogueEnd) return;
+            if (DialogueManager.Instance == null) return;
+
+            isWaitingForDialogueEnd = true;
+            DialogueManager.Instance.OnDialogueEnded += HandleDialogueEnded;
+        }
+
+        private void UnsubscribeFromDialogue()
+        {
+            if (!isWaitingForDialogueEnd) return;
+            isWaitingForDialogueEnd = false;
+            if (DialogueManager.Instance != null)
+                DialogueManager.Instance.OnDialogueEnded -= HandleDialogueEnded;
+        }
+
+        private void HandleDialogueEnded()
+        {
+            UnsubscribeFromDialogue();
+            OpenJobSelectionUI();
+        }
+
+        private void OpenJobSelectionUI()
+        {
+            if (jobChangeUI == null)
+            {
+                Debug.LogWarning("[JobChangerNpc] JobChangeUIController를 찾지 못했습니다. " +
+                    "씬의 JobChangeCanvas에 JobChangeUIController 컴포넌트를 추가하거나 Inspector에서 직접 할당하세요.", this);
+                return;
+            }
+
+            jobChangeUI.OnJobConfirmed -= HandleJobConfirmed;
+            jobChangeUI.OnCancelled    -= HandleJobCancelled;
+            jobChangeUI.OnJobConfirmed += HandleJobConfirmed;
+            jobChangeUI.OnCancelled    += HandleJobCancelled;
+
+            jobChangeUI.Open(0);
+        }
+
+        private void HandleJobConfirmed(JobClassInfo selectedJob)
+        {
+            jobChangeUI.OnJobConfirmed -= HandleJobConfirmed;
+            jobChangeUI.OnCancelled    -= HandleJobCancelled;
+
+            if (selectedJob == null) return;
+
+            // GameDataManager에 선택된 직업 저장
+            if (GameDataManager.Instance != null)
+            {
+                GameDataManager.Instance.SelectedJobInfo = selectedJob;
+
+                // 직업 전환 시 HP도 새 직업 기준으로 적용 (현재 HP 비율 유지)
+                int oldMax = GameDataManager.Instance.MaxHp;
+                int newMax = selectedJob.baseMaxHp;
+                if (oldMax > 0 && newMax > 0)
+                {
+                    float ratio = (float)GameDataManager.Instance.CurrentHp / oldMax;
+                    // MaxHp는 setter가 없으므로 직접 리셋이 필요하면 ResetForNewGame 참조.
+                    // 현재는 SelectedJobInfo 저장만 수행하고, 실제 HP/덱 전환은 별도 초기화 시점에 처리.
+                }
+
+                Debug.Log($"[JobChangerNpc] 직업 변경: {selectedJob.displayName} ({selectedJob.cardClass})");
+            }
+
+            // PlayerController 비주얼 갱신 (직업 변경 후 키 기준 재적용)
+            PlayerController player = FindFirstObjectByType<PlayerController>();
+            if (player != null)
+                player.RefreshVisualAlignment();
+        }
+
+        private void HandleJobCancelled()
+        {
+            jobChangeUI.OnJobConfirmed -= HandleJobConfirmed;
+            jobChangeUI.OnCancelled    -= HandleJobCancelled;
+            Debug.Log("[JobChangerNpc] 직업 변경 취소됨.");
         }
     }
 }

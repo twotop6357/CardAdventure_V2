@@ -38,6 +38,12 @@ namespace CardAdventure
         /// <summary>배틀에서 돌아올 어드벤처 씬 이름.</summary>
         public string ReturnSceneName { get; set; } = "AdventureScene";
 
+        /// <summary>현재 선택된 직업 정보. null이면 기본값(전사)으로 간주.</summary>
+        public JobClassInfo SelectedJobInfo { get; set; }
+
+        /// <summary>현재 선택된 직업의 CardClass 값. SelectedJobInfo가 null이면 Warrior 반환.</summary>
+        public CardClass SelectedJobClass => SelectedJobInfo != null ? SelectedJobInfo.cardClass : CardClass.Warrior;
+
         public string PlayerName => playerName;
 
         // ── 라이프사이클 ───────────────────────────────────────

@@ -36,7 +36,10 @@
 - 신규 ScriptableObject 필드는 기본값을 제공하고, 기존 필드 삭제/이름 변경은 피합니다.
 - 씬 전환 전 DOTween 트윈 정리를 고려합니다.
 - Claude Desktop과 병행 작업 시 같은 파일을 동시에 수정하지 않도록 작업 범위를 분리합니다.
-- 플레이어/NPC의 이동 충돌 콜라이더는 전신이 아니라 발밑 기준으로 작게 둡니다. 현재 기준: Player `CircleCollider2D radius=0.225, offset=(0,-0.45)`, NPC 실제 충돌 `BoxCollider2D size=(0.35,0.35), offset=(0,-1.35)`, NPC 상호작용 트리거 `CircleCollider2D radius=0.6, offset=(0,-1.35)`. NPC 오브젝트 스케일이 1이 아니면 `size/radius`는 월드 기준 목표 크기를 유지하도록 로컬 스케일을 보정하고, SPUM 발밑 기준 `offset=(0,-1.35)`는 로컬 오프셋으로 유지합니다.
+- 플레이어와 모든 NPC의 화면상 키는 테스트 NPC `NPC_BaramIroGun`의 SpriteRenderer 월드 높이 `1.3304521`을 기준으로 통일합니다. 새 NPC/플레이어 비주얼을 추가하거나 플레이어 직업을 변경할 때는 `AdventureGridUtility.ReferenceCharacterVisualHeight`와 `GetVisualScaleForReferenceHeight(Sprite)`를 사용해 **스프라이트 높이만** 기준값에 맞추고, 폭은 원본 비율에 맡깁니다. 런타임에서 플레이어 비주얼을 교체하면 `PlayerController.SetVisual(...)` 또는 `RefreshVisualAlignment()`를 호출해 직업 변경 후에도 키 기준을 다시 적용합니다.
+- 플레이어/NPC의 이동 충돌 콜라이더는 전신이 아니라 발밑 기준으로 둡니다. 현재 기준: Player 실제 충돌 `BoxCollider2D size=(1,1), offset=(0,-0.5)`로 발 위치가 bounds 중심이 되게 유지하며, Player의 기존 `CircleCollider2D`는 비활성입니다. NPC 실제 충돌은 월드 bounds `1x1` 기준의 `BoxCollider2D`를 사용합니다. 루트 스케일이 1이 아니면 `AdventureGridUtility.ConfigureFootCollider(...)`로 BoxCollider2D 로컬 size를 역보정해 월드 기준 목표 크기를 유지합니다.
+- NPC의 BoxCollider2D 중심은 반드시 해당 NPC `SpriteRenderer.bounds.min.y`(스프라이트 하단/발 위치)에 맞춥니다. 루트에 SpriteRenderer가 직접 붙은 NPC도 `offset=0`으로 두지 말고 `AdventureGridUtility.ConfigureFootCollider(collider, transform, spriteRenderer, cellSize)`를 사용해 각 스프라이트의 발 위치로 offset을 계산합니다.
+- 모든 NPC는 시작 시 발 콜라이더 중심을 가장 가까운 Grid 셀 중심으로 스냅해야 합니다. 움직이는 NPC는 `NpcMovement`, 움직이지 않는 대화/상점/전직 NPC는 `NpcTileAlignment` 또는 동일한 `AdventureGridUtility.SnapOwnerFootToNearestCell(...)` 흐름을 사용합니다. 새 NPC를 추가할 때는 `Rigidbody2D(Kinematic, gravityScale=0, freezeRotation=true)` + 솔리드 `BoxCollider2D` + `NpcInteractable`을 기본으로 붙이고, 충돌용 `CircleCollider2D`는 추가하지 않습니다.
 
 ## 인수인계
 

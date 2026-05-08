@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b560e5b9343fca46868a5d09130999a, type: 3}
+  m_Name: Job_Mage
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.JobClassInfo
+  displayName: "\uB9C8\uBC95\uC0AC"
+  description: "\uB9C8\uBC95\uC0AC\uB294 \uB9C8\uB098\uB97C \uB2A5\uC219\uD558\uAC8C
+    \uB2E4\uB8F9\uB2C8\uB2E4.\n\uB3C5 \uACF5\uACA9\uC73C\uB85C \uC9C0\uC18D\uC804\uC744
+    \uD3BC\uCE58\uBA70, \uB54C\uB85C\uB294 \uAC15\uB825\uD55C \uB9C8\uBC95\uC744
+    \uC0AC\uC6A9\uD569\uB2C8\uB2E4."
+  cardClass: 2
+  attackStars: 1
+  defenseStars: 2
+  magicStars: 5
+  speedStars: 5
+  previewSprite: {fileID: 938966242609846886, guid: 300817d4a781b374b82040a7e07ce431,
+    type: 3}
+  starterCards: []
+  baseMaxHp: 40
+  baseMaxEnergy: 3

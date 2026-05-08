@@ -7,6 +7,52 @@ namespace CardAdventure.Editor
 {
     public static class JobChangerSetup
     {
+        [MenuItem("CardAdventure/Fix Job Changer Animation Clips")]
+        public static void FixAnimationClips()
+        {
+            string spritePath = "Assets/Assets/Sprites/NPCs/JobChanger_Sprite.png";
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(spritePath);
+            List<Sprite> sprites = new List<Sprite>();
+            foreach (var asset in assets)
+            {
+                if (asset is Sprite s)
+                {
+                    sprites.Add(s);
+                }
+            }
+
+            if (sprites.Count == 0)
+            {
+                Debug.LogError($"[JobChangerSetup] No sprites found at {spritePath}. Is the file correctly imported as a Multiple Sprite?");
+                return;
+            }
+
+            sprites.Sort((a, b) =>
+            {
+                int aNum = GetSpriteNumber(a.name);
+                int bNum = GetSpriteNumber(b.name);
+                return aNum.CompareTo(bNum);
+            });
+
+            int framesPerDir = sprites.Count / 4;
+            if (framesPerDir <= 0)
+            {
+                Debug.LogError("[JobChangerSetup] Not enough sprites to create directional clips.");
+                return;
+            }
+
+            string animPath = "Assets/Animations/NPCs/JobChanger";
+
+            // Sheet row order: front, left, right, back.
+            ApplyClipFrames(sprites.GetRange(0, framesPerDir), animPath + "/IdleFront.anim");
+            ApplyClipFrames(sprites.GetRange(framesPerDir, framesPerDir), animPath + "/IdleLeft.anim");
+            ApplyClipFrames(sprites.GetRange(framesPerDir * 2, framesPerDir), animPath + "/IdleRight.anim");
+            ApplyClipFrames(sprites.GetRange(framesPerDir * 3, framesPerDir), animPath + "/IdleBack.anim");
+
+            AssetDatabase.SaveAssets();
+            Debug.Log("[JobChangerSetup] JobChanger animation clips fixed.");
+        }
+
         [MenuItem("CardAdventure/Setup Job Changer")]
         public static void Setup()
         {
@@ -39,14 +85,13 @@ namespace CardAdventure.Editor
 
             string animPath = "Assets/Animations/NPCs/JobChanger";
 
-            // Assuming 28 sprites: 4 directions, 7 frames each.
-            // Adjust frame ranges if actual sprites differ.
+            // Sheet row order: front, left, right, back.
             int framesPerDir = sprites.Count / 4;
             
             AnimationClip front = CreateClip(sprites.GetRange(0, Mathf.Min(framesPerDir, sprites.Count)), animPath + "/IdleFront.anim");
-            AnimationClip back = CreateClip(sprites.GetRange(Mathf.Min(framesPerDir, sprites.Count), Mathf.Min(framesPerDir, sprites.Count - framesPerDir)), animPath + "/IdleBack.anim");
-            AnimationClip left = CreateClip(sprites.GetRange(Mathf.Min(framesPerDir * 2, sprites.Count), Mathf.Min(framesPerDir, sprites.Count - framesPerDir * 2)), animPath + "/IdleLeft.anim");
-            AnimationClip right = CreateClip(sprites.GetRange(Mathf.Min(framesPerDir * 3, sprites.Count), Mathf.Min(framesPerDir, sprites.Count - framesPerDir * 3)), animPath + "/IdleRight.anim");
+            AnimationClip left = CreateClip(sprites.GetRange(Mathf.Min(framesPerDir, sprites.Count), Mathf.Min(framesPerDir, sprites.Count - framesPerDir)), animPath + "/IdleLeft.anim");
+            AnimationClip right = CreateClip(sprites.GetRange(Mathf.Min(framesPerDir * 2, sprites.Count), Mathf.Min(framesPerDir, sprites.Count - framesPerDir * 2)), animPath + "/IdleRight.anim");
+            AnimationClip back = CreateClip(sprites.GetRange(Mathf.Min(framesPerDir * 3, sprites.Count), Mathf.Min(framesPerDir, sprites.Count - framesPerDir * 3)), animPath + "/IdleBack.anim");
 
             // Create Animator Controller
             AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(animPath + "/JobChanger_Controller.controller");
@@ -72,21 +117,25 @@ namespace CardAdventure.Editor
             SpriteRenderer sr = prefab.AddComponent<SpriteRenderer>();
             sr.sprite = sprites[0];
             sr.sortingOrder = 1; // Default sorting for NPC
+            float visualScale = AdventureGridUtility.GetVisualScaleForReferenceHeight(sr.sprite);
+            prefab.transform.localScale = new Vector3(visualScale, visualScale, 1f);
 
             Animator anim = prefab.AddComponent<Animator>();
             anim.runtimeAnimatorController = controller;
 
             // Add Colliders
             BoxCollider2D box = prefab.AddComponent<BoxCollider2D>();
-            box.size = new Vector2(0.35f, 0.35f);
-            box.offset = new Vector2(0f, -1.35f);
+            box.offset = Vector2.zero;
+            AdventureGridUtility.ConfigureFootCollider(box, prefab.transform, sr, AdventureGridUtility.GetCellSize(1f));
 
-            CircleCollider2D circle = prefab.AddComponent<CircleCollider2D>();
-            circle.radius = 0.6f;
-            circle.offset = new Vector2(0f, -1.35f);
-            circle.isTrigger = true;
+            Rigidbody2D rb = prefab.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0f;
+            rb.freezeRotation = true;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
             // Add scripts
+            prefab.AddComponent<NpcTileAlignment>();
             prefab.AddComponent<JobChangerNpc>();
             prefab.AddComponent<NpcInteractable>();
 
@@ -128,7 +177,37 @@ namespace CardAdventure.Editor
         {
             AnimationClip clip = new AnimationClip();
             clip.frameRate = 8; // 8 fps is usually smooth enough for pixel idle
-            
+
+            ApplyClipFrames(clip, sprites);
+
+            AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
+            settings.loopTime = true;
+            AnimationUtility.SetAnimationClipSettings(clip, settings);
+
+            AssetDatabase.CreateAsset(clip, path);
+            return clip;
+        }
+
+        private static void ApplyClipFrames(List<Sprite> sprites, string path)
+        {
+            AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+            if (clip == null)
+            {
+                Debug.LogError($"[JobChangerSetup] AnimationClip not found: {path}");
+                return;
+            }
+
+            ApplyClipFrames(clip, sprites);
+            EditorUtility.SetDirty(clip);
+        }
+
+        private static void ApplyClipFrames(AnimationClip clip, List<Sprite> sprites)
+        {
+            if (clip == null || sprites == null || sprites.Count == 0)
+            {
+                return;
+            }
+
             EditorCurveBinding spriteBinding = new EditorCurveBinding();
             spriteBinding.type = typeof(SpriteRenderer);
             spriteBinding.path = "";
@@ -148,13 +227,6 @@ namespace CardAdventure.Editor
             spriteKeyFrames[sprites.Count].value = sprites[sprites.Count - 1]; // Hold the last frame or loop back to first depending on need, but Unity expects a keyframe at the end of loop.
 
             AnimationUtility.SetObjectReferenceCurve(clip, spriteBinding, spriteKeyFrames);
-            
-            AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
-            settings.loopTime = true;
-            AnimationUtility.SetAnimationClipSettings(clip, settings);
-
-            AssetDatabase.CreateAsset(clip, path);
-            return clip;
         }
     }
 }

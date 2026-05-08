@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b560e5b9343fca46868a5d09130999a, type: 3}
+  m_Name: Job_Warrior
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.JobClassInfo
+  displayName: "\uC804\uC0AC"
+  description: "\uC804\uC0AC\uB294 \uB192\uC740 \uBC29\uC5B4\uB825\uACFC \uC548\uC815\uC131\uC744
+    \uC790\uB791\uD569\uB2C8\uB2E4.\n\uB54C\uB860 \uACFC\uAC10\uD558\uACE0 \uAC15\uB825\uD55C
+    \uAD11\uC804\uC0AC\uAC00 \uB429\uB2C8\uB2E4."
+  cardClass: 1
+  attackStars: 3
+  defenseStars: 5
+  magicStars: 1
+  speedStars: 1
+  previewSprite: {fileID: 5751901996272854146, guid: 38f97793716ad4649a680d12045a1b75,
+    type: 3}
+  starterCards: []
+  baseMaxHp: 60
+  baseMaxEnergy: 3

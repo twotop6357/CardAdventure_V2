@@ -101,7 +101,8 @@ namespace CardAdventure
             }
 
             Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
-            AdventureGridUtility.ConfigureFootCollider(footCollider, transform, cellSize);
+            AdventureGridUtility.ConfigureFootCollider(footCollider, transform, spriteRenderer, cellSize);
+            AdventureGridUtility.DisableSolidCircles(gameObject);
         }
 
         private void AlignVisualToTile()
@@ -113,14 +114,7 @@ namespace CardAdventure
 
             Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
             Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
-            if (spriteSize.x <= 0.001f || spriteSize.y <= 0.001f)
-            {
-                return;
-            }
-
-            float targetWidth = cellSize.x * Mathf.Max(0.001f, maxVisualWidthInTiles);
-            float targetHeight = cellSize.y * Mathf.Max(0.001f, maxVisualHeightInTiles);
-            float scale = Mathf.Min(targetWidth / spriteSize.x, targetHeight / spriteSize.y);
+            float scale = AdventureGridUtility.GetVisualScaleForReferenceHeight(spriteRenderer.sprite);
 
             if (spriteRenderer.transform == transform)
             {
@@ -138,20 +132,21 @@ namespace CardAdventure
 
         private void Start()
         {
-            homePosition   = SnapToUnit(transform.position);
-            targetPosition = homePosition;
-            transform.position = homePosition;
-            rb.position    = homePosition;
+            Vector2 snappedFootPosition = SnapToUnit(GetFootCenter(transform.position));
+            homePosition = snappedFootPosition;
+            targetPosition = GetRootPositionForFootCenter(snappedFootPosition);
+            transform.position = targetPosition;
+            rb.position = targetPosition;
 
             // 초기 위치 타일 예약
-            GridOccupancy.TryReserve(homePosition, moveUnitSize);
+            GridOccupancy.TryReserve(snappedFootPosition, moveUnitSize);
 
             StartCoroutine(WanderLoop());
         }
 
         private void OnDestroy()
         {
-            GridOccupancy.Release(targetPosition, moveUnitSize);
+            GridOccupancy.Release(GetFootCenter(targetPosition), moveUnitSize);
         }
 
         private void FixedUpdate()
@@ -212,10 +207,11 @@ namespace CardAdventure
 
             foreach (Vector2 dir in dirs)
             {
-                Vector2 candidate = targetPosition + AdventureGridUtility.GetCardinalStep(dir, moveUnitSize);
+                Vector2 currentFootCenter = GetFootCenter(targetPosition);
+                Vector2 candidateFootCenter = currentFootCenter + AdventureGridUtility.GetCardinalStep(dir, moveUnitSize);
 
                 // 홈 반경 초과 → 건너뜀
-                if (Vector2.Distance(candidate, homePosition) > wanderRadius + 0.01f)
+                if (Vector2.Distance(candidateFootCenter, homePosition) > wanderRadius + 0.01f)
                     continue;
 
                 // 1단계: 물리 콜라이더 검사 (벽, 솔리드 오브젝트)
@@ -225,7 +221,7 @@ namespace CardAdventure
                 var colliders = GetComponents<Collider2D>();
                 foreach(var col in colliders) col.enabled = false;
                 
-                Collider2D hit = Physics2D.OverlapBox(candidate, checkSize, 0f, obstacleLayer);
+                Collider2D hit = Physics2D.OverlapBox(candidateFootCenter, checkSize, 0f, obstacleLayer);
                 
                 foreach(var col in colliders) col.enabled = true;
 
@@ -233,13 +229,13 @@ namespace CardAdventure
                     continue;
 
                 // 2단계: 타일 예약 검사 (동시 이동 충돌 방지)
-                if (!GridOccupancy.TryReserve(candidate, moveUnitSize))
+                if (!GridOccupancy.TryReserve(candidateFootCenter, moveUnitSize))
                     continue;
 
-                GridOccupancy.Release(targetPosition, moveUnitSize);
+                GridOccupancy.Release(currentFootCenter, moveUnitSize);
 
                 // 이동 확정
-                targetPosition = candidate;
+                targetPosition = GetRootPositionForFootCenter(candidateFootCenter);
                 isMoving       = true;
                 UpdateFacing(dir);
                 return;
@@ -263,6 +259,16 @@ namespace CardAdventure
         private Vector2 SnapToUnit(Vector2 pos)
         {
             return AdventureGridUtility.SnapToCellCenter(pos, moveUnitSize);
+        }
+
+        private Vector2 GetFootCenter(Vector2 rootPosition)
+        {
+            return AdventureGridUtility.GetFootCenter(rootPosition, transform, footCollider);
+        }
+
+        private Vector2 GetRootPositionForFootCenter(Vector2 footCenter)
+        {
+            return AdventureGridUtility.GetRootPositionForFootCenter(footCenter, transform, footCollider);
         }
 
         /// <summary>Fisher-Yates 셔플로 새 배열 반환</summary>

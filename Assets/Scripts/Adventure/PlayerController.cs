@@ -98,21 +98,21 @@ namespace CardAdventure
 
         private void Start()
         {
-            Vector3 pos = transform.position;
-            targetPosition = SnapToMoveUnit(pos);
+            Vector2 snappedFootPosition = SnapToMoveUnit(GetFootCenter(transform.position));
+            targetPosition = GetRootPositionForFootCenter(snappedFootPosition);
             transform.position = targetPosition;
             rb.position = targetPosition;
             AlignVisualToTile();
 
             // 초기 위치 타일 예약
-            GridOccupancy.TryReserve(targetPosition, moveUnitSize);
+            GridOccupancy.TryReserve(snappedFootPosition, moveUnitSize);
 
             PlayDirectionalAnimation(false);
         }
 
         private void OnDestroy()
         {
-            GridOccupancy.Release(targetPosition, moveUnitSize);
+            GridOccupancy.Release(GetFootCenter(targetPosition), moveUnitSize);
         }
 
         private void FixedUpdate()
@@ -201,6 +201,16 @@ namespace CardAdventure
             return AdventureGridUtility.SnapToCellCenter(position, moveUnitSize);
         }
 
+        private Vector2 GetFootCenter(Vector2 rootPosition)
+        {
+            return AdventureGridUtility.GetFootCenter(rootPosition, transform, footCollider);
+        }
+
+        private Vector2 GetRootPositionForFootCenter(Vector2 footCenter)
+        {
+            return AdventureGridUtility.GetRootPositionForFootCenter(footCenter, transform, footCollider);
+        }
+
         private void ConfigureFootCollider()
         {
             if (footCollider == null)
@@ -225,25 +235,33 @@ namespace CardAdventure
                 return;
             }
 
-            Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
-            Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
-            if (spriteSize.x <= 0.001f || spriteSize.y <= 0.001f)
-            {
-                return;
-            }
-
             float idleMultiplier = Mathf.Max(0.001f, idleVisualScaleMultiplier);
-            float targetWidth = cellSize.x * Mathf.Max(0.001f, maxVisualWidthInTiles);
-            float targetHeight = cellSize.y * Mathf.Max(0.001f, maxVisualHeightInTiles);
-            float idleScale = Mathf.Min(targetWidth / spriteSize.x, targetHeight / spriteSize.y);
+            float idleScale = AdventureGridUtility.GetVisualScaleForReferenceHeight(spriteRenderer.sprite);
             float walkScale = idleScale / idleMultiplier;
 
             walkVisualScale = new Vector3(walkScale, walkScale, 1f);
 
-            float finalHeight = spriteSize.y * idleScale;
+            Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
+            float finalHeight = spriteRenderer.sprite.bounds.size.y * idleScale;
             Vector3 localPos = spriteRenderer.transform.localPosition;
             localPos.y = (finalHeight - cellSize.y) * 0.5f;
             spriteRenderer.transform.localPosition = localPos;
+        }
+
+        public void RefreshVisualAlignment()
+        {
+            AlignVisualToTile();
+            ApplyVisualScale(isMoving);
+            currentAnimationState = null;
+            PlayDirectionalAnimation(isMoving);
+        }
+
+        public void SetVisual(SpriteRenderer newSpriteRenderer, Animator newAnimator, float newIdleVisualScaleMultiplier)
+        {
+            spriteRenderer = newSpriteRenderer;
+            animator = newAnimator;
+            idleVisualScaleMultiplier = Mathf.Max(0.001f, newIdleVisualScaleMultiplier);
+            RefreshVisualAlignment();
         }
 
         private void UpdateHeldDirection(Vector2 inputDirection)
@@ -268,10 +286,11 @@ namespace CardAdventure
         private bool TryStartMove(Vector2 direction)
         {
             Vector2 nextTarget = targetPosition + AdventureGridUtility.GetCardinalStep(direction, moveUnitSize);
+            Vector2 nextFootCenter = GetFootCenter(nextTarget);
             Vector2 collisionSize = AdventureGridUtility.GetCollisionProbeSize(moveUnitSize);
 
             // 1단계: 물리 콜라이더 검사 (벽, 솔리드 오브젝트)
-            Collider2D[] hits = Physics2D.OverlapBoxAll(nextTarget, collisionSize, 0f, obstacleLayer);
+            Collider2D[] hits = Physics2D.OverlapBoxAll(nextFootCenter, collisionSize, 0f, obstacleLayer);
             for (int i = 0; i < hits.Length; i++)
             {
                 Collider2D hit = hits[i];
@@ -285,13 +304,13 @@ namespace CardAdventure
             }
 
             // 2단계: 타일 예약 검사 (동시 이동 충돌 방지)
-            if (!GridOccupancy.TryReserve(nextTarget, moveUnitSize))
+            if (!GridOccupancy.TryReserve(nextFootCenter, moveUnitSize))
             {
                 PlayDirectionalAnimation(false);
                 return false;
             }
 
-            GridOccupancy.Release(targetPosition, moveUnitSize);
+            GridOccupancy.Release(GetFootCenter(targetPosition), moveUnitSize);
             targetPosition = nextTarget;
             isMoving = true;
             currentMoveDirection = direction;
@@ -419,15 +438,16 @@ namespace CardAdventure
                 heldDirection = Vector2.zero;
                 heldDirectionTime = 0f;
 
-                // rb가 아직 초기화되지 않았거나 이미 파괴된 경우를 방어한다.
                 if (rb != null)
                 {
-                    Vector2 snapped = SnapToMoveUnit(rb.position);
-                    // 기존 예약 타일(이동 도중이었을 경우 목적지)을 해제하고 실제 위치를 재예약
-                    GridOccupancy.Release(targetPosition, moveUnitSize);
-                    GridOccupancy.TryReserve(snapped, moveUnitSize);
-                    targetPosition = snapped;
-                    rb.position    = snapped;
+                    Vector2 snappedFootPosition = SnapToMoveUnit(GetFootCenter(rb.position));
+                    Vector2 snappedRootPosition = GetRootPositionForFootCenter(snappedFootPosition);
+
+                    GridOccupancy.Release(GetFootCenter(targetPosition), moveUnitSize);
+                    GridOccupancy.TryReserve(snappedFootPosition, moveUnitSize);
+                    targetPosition = snappedRootPosition;
+                    transform.position = snappedRootPosition;
+                    rb.position = snappedRootPosition;
                 }
 
                 PlayDirectionalAnimation(false);

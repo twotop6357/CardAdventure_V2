@@ -261,7 +261,6 @@ namespace CardAdventure
 
             GameObject visual = new GameObject("PlayerVisual");
             visual.transform.SetParent(player.transform);
-            visual.transform.localPosition = new Vector3(0f, -0.25f, 0f);
             visual.transform.localScale = Vector3.one;
 
             SpriteRenderer spriteRenderer = visual.AddComponent<SpriteRenderer>();
@@ -269,6 +268,11 @@ namespace CardAdventure
             spriteRenderer.sprite = LoadSpriteByName(
                 $"{config.SpriteRoot}/Idle/{config.SpritePrefix}_IdleFront.png",
                 $"{config.SpritePrefix}_IdleFront_0");
+            float idleScale = AdventureGridUtility.GetVisualScaleForReferenceHeight(spriteRenderer.sprite);
+            float walkScale = idleScale / Mathf.Max(0.001f, config.IdleVisualScaleMultiplier);
+            visual.transform.localScale = new Vector3(idleScale, idleScale, 1f);
+            visual.transform.localPosition =
+                new Vector3(0f, (AdventureGridUtility.ReferenceCharacterVisualHeight - 1f) * 0.5f, 0f);
 
             Animator animator = visual.AddComponent<Animator>();
             animator.runtimeAnimatorController = controller;
@@ -279,13 +283,23 @@ namespace CardAdventure
                 throw new InvalidOperationException("PlayerController not found on Player.");
             }
 
-            CircleCollider2D playerCollider = player.GetComponent<CircleCollider2D>();
-            if (playerCollider != null)
+            CircleCollider2D legacyCircle = player.GetComponent<CircleCollider2D>();
+            if (legacyCircle != null)
             {
-                playerCollider.radius = 0.225f;
-                playerCollider.offset = new Vector2(0f, -0.45f);
-                EditorUtility.SetDirty(playerCollider);
+                legacyCircle.enabled = false;
+                EditorUtility.SetDirty(legacyCircle);
             }
+
+            BoxCollider2D playerCollider = player.GetComponent<BoxCollider2D>();
+            if (playerCollider == null)
+            {
+                playerCollider = player.AddComponent<BoxCollider2D>();
+            }
+
+            playerCollider.size = Vector2.one;
+            playerCollider.offset = new Vector2(0f, -0.5f);
+            playerCollider.isTrigger = false;
+            EditorUtility.SetDirty(playerCollider);
 
             SerializedObject playerControllerSo = new SerializedObject(playerController);
             playerControllerSo.FindProperty("spriteRenderer").objectReferenceValue = spriteRenderer;
@@ -293,7 +307,8 @@ namespace CardAdventure
             playerControllerSo.FindProperty("moveUnitSize").floatValue = 1f;
             playerControllerSo.FindProperty("useGridCellSize").boolValue = true;
             playerControllerSo.FindProperty("moveHoldThreshold").floatValue = 0.06f;
-            playerControllerSo.FindProperty("walkVisualScale").vector3Value = Vector3.one;
+            playerControllerSo.FindProperty("walkVisualScale").vector3Value =
+                new Vector3(walkScale, walkScale, 1f);
             playerControllerSo.FindProperty("idleVisualScaleMultiplier").floatValue = config.IdleVisualScaleMultiplier;
             playerControllerSo.ApplyModifiedProperties();
 

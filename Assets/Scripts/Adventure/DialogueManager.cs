@@ -74,7 +74,7 @@ namespace CardAdventure
             {
                 UpdatePendingNpc();
 
-                if (spaceDown && pendingNpc != null)
+                if (spaceDown && pendingNpc != null && !JobChangeUIController.IsAnyOpen)
                 {
                     BeginDialogue(pendingNpc);
                 }
@@ -113,7 +113,7 @@ namespace CardAdventure
                 }
             }
 
-            if (pendingNpc != null)
+            if (pendingNpc != null && !JobChangeUIController.IsAnyOpen)
             {
                 pendingNpc.SetHintActive(true);
             }
@@ -196,7 +196,10 @@ namespace CardAdventure
             activePlayer?.SetInputEnabled(false);
 
             if (activePlayer != null)
+            {
                 FacePlayerTowardNpc(npc);
+                FaceNpcTowardPlayer(npc);
+            }
 
             dialogueView.Show(data.speakerName, data.lines[0]);
         }
@@ -271,6 +274,17 @@ namespace CardAdventure
         // ══════════════════════════════════════════════════════
         //  외부 주입 (씬 빌더 등에서 사용)
         // ══════════════════════════════════════════════════════
+
+        private void FaceNpcTowardPlayer(NpcInteractable npc)
+        {
+            if (activePlayer == null || npc == null) return;
+
+            JobChangerNpc jobChanger = npc.GetComponent<JobChangerNpc>();
+            if (jobChanger != null)
+            {
+                jobChanger.FaceToward(activePlayer.transform.position);
+            }
+        }
 
         private bool EnsureDialogueView()
         {

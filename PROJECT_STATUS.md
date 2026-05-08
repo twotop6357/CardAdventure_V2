@@ -1,5 +1,359 @@
 # CardAdventure Project Status
 
+### 2026-05-08 (Claude Desktop — 직업 선택 UI Button 연동)
+
+- 작업 시작 전 이전 세션 컨텍스트 확인 완료.
+- 작업 내용: 유저가 씬에 직접 만든 Button 기반 UI(`JobChangeCanvas`)에 직업 데이터/로직 연동.
+- 변경 파일:
+  - `Assets/Scripts/UI/JobChangeUIController.cs` (신규)
+    - Button 기반 직업 선택 UI 컨트롤러.
+    - `List<Button> jobButtons` (3개), `Image characterPreviewImage`, `TextMeshProUGUI jobDescriptionText`, `Button yesButton/noButton`, `RectTransform panelRoot`.
+    - 버튼 클릭 시 선택 강조(황색), 미리보기 갱신, 설명 갱신.
+    - DOTween 팝업/닫힘 애니메이션 (`panelRoot` 기준).
+    - `OnJobConfirmed(JobClassInfo)` / `OnCancelled` 이벤트.
+    - `Start()`에서 자동 비활성화, `Open()`에서 `isOpen=true` 먼저 설정 후 `SetActive(true)`.
+  - `Assets/Scripts/Adventure/JobChangerNpc.cs` (수정)
+    - `JobSelectionUI` → `JobChangeUIController` 참조로 전면 교체.
+    - `Start()`에서 `FindFirstObjectByType<JobChangeUIController>()` 자동 탐색.
+  - `Assets/Scripts/Editor/JobSelectionSetup.cs` (수정)
+    - `asset.speedStars` → `asset.difficulty` 컴파일 오류 수정.
+  - `Assets/Scripts/Editor/JobChangeUIWire.cs` (신규, 임시 에디터 도구)
+    - `CardAdventure/Wire Job Change UI` 메뉴: `JobChangeCanvas`에 컨트롤러 부착 + 모든 필드 자동 연결.
+- 씬 연결 결과 (AdventureScene 저장 완료):
+  - `JobChangeCanvas`에 `JobChangeUIController` 컴포넌트 부착.
+  - jobs[0]=Job_Warrior, jobs[1]=Job_Mage, jobs[2]=Job_Rogue.
+  - jobButtons[0..2]=JobButton_1/2/3, characterPreviewImage=JobImage, jobDescriptionText=JobDescriptionText, yesButton=YesButton, noButton=NoButton, panelRoot=BackGround.
+- 검증:
+  - 씬 YAML에서 모든 레퍼런스(jobs GUID 3개, buttons 3개, image, text, yesBtn, noBtn, panelRoot) 확인 완료.
+  - 컴파일 오류 0개 (경고만 존재).
+- 미검증:
+  - PlayMode에서 NPC 대화 후 직업 선택 UI 팝업 → 직업 선택 → GameDataManager 업데이트 흐름 수동 확인 필요.
+  - 각 직업 미리보기 스프라이트(SPUM Idle 프레임)를 `JobClassInfo.previewSprite`에 수동 할당 필요.
+- 다음 작업:
+  - PlayMode 전체 흐름 검증.
+  - `Job_Warrior/Mage/Rogue.asset`의 `previewSprite` 필드에 SPUM 스프라이트 할당.
+  - `JobChangeUIWire.cs`는 더 이상 필요 없으면 삭제 가능.
+- 주의:
+  - `JobChangerNpc`가 `NPC_JobChanger` 프리팹 인스턴스로 씬에 배치되어 있으며, `jobChangeUI` 필드는 런타임 자동 탐색으로 연결됨.
+  - 씬에 `JobChangeCanvas`가 active 상태로 배치되어도 `Start()`에서 자동으로 비활성화됨.
+
+### 2026-05-08 (Claude Desktop — 직업 선택 UI 구현)
+
+- 작업 시작 전 `PROJECT_STATUS.md` 및 `CLAUDE.md` 확인 완료.
+- 요구사항: 전송된 이미지(JRPG 픽셀 RPG 스타일 4직업 선택 화면) 기준의 직업 변경 UI 구현.
+- 구현 내용:
+  - `Assets/Scripts/Data/JobClassInfo.cs` (신규)
+    - 직업 표시명, 설명, CardClass, 공격/방어/마법/속도 별점(1~5), 미리보기 스프라이트, 스타터 덱, baseMaxHp/Energy를 담는 ScriptableObject.
+  - `Assets/Scripts/Data/CardData.cs`
+    - `CardClass` enum에 `Archer` 추가 (궁수 직업 지원용, 스타터 덱은 추후 구현 예정).
+  - `Assets/Scripts/Core/GameDataManager.cs`
+    - `SelectedJobInfo(JobClassInfo)`, `SelectedJobClass(CardClass)` 프로퍼티 추가.
+  - `Assets/Scripts/UI/JobSelectionUI.cs` (신규)
+    - 직업 목록 ↑↓ 탐색, ■□ 능력치 바, 캐릭터 미리보기 Image, 결정/취소 버튼 커서 ▶, DOTween 팝업 애니메이션.
+    - `OnJobConfirmed(JobClassInfo)` / `OnCancelled` 이벤트 제공.
+  - `Assets/Scripts/Editor/JobSelectionSetup.cs` (신규)
+    - `CardAdventure/Setup Job Selection UI` 메뉴: 이미지 스타일 픽셀 RPG UI 계층 구조 자동 생성 및 JobSelectionUI 참조 연결.
+    - `CardAdventure/Create Default Job Assets` 메뉴: 전사/마법사/궁수/도적 4종 JobClassInfo 에셋 자동 생성.
+  - `Assets/Scripts/Adventure/JobChangerNpc.cs`
+    - 대화 종료 시 `DialogueManager.OnDialogueEnded` 구독 → `JobSelectionUI.Open()` 자동 호출.
+    - `HandleJobConfirmed`: `GameDataManager.SelectedJobInfo` 업데이트 + `PlayerController.RefreshVisualAlignment()` 호출.
+  - `Assets/Prefabs/UI/JobSelection.prefab` (신규)
+    - `CardAdventure/Setup Job Selection UI` 실행으로 생성 확인.
+  - `Assets/ScriptableObjects/Jobs/Job_Warrior.asset` 외 3종 (신규)
+    - `CardAdventure/Create Default Job Assets` 실행으로 4개 에셋 생성 확인.
+- 검증:
+  - 모든 신규/수정 스크립트 `validate_script standard`: 오류 0. (JobSelectionUI.cs 경고 1개 — 기존 Update 관련 권장사항)
+  - Unity 리컴파일 후 Console 신규 코드 오류 없음.
+  - `Assets/Prefabs/UI/JobSelection.prefab` 생성 확인.
+  - `Assets/ScriptableObjects/Jobs/` 하위 4개 에셋 생성 확인.
+- 미검증:
+  - PlayMode에서 전직관 NPC 대화 후 UI가 실제로 팝업되는지 수동 확인 필요.
+  - 직업 선택 UI에 JobClassInfo 에셋 할당 후 커서/별점/미리보기/설명 표시 정상 여부 확인 필요.
+  - `UI_JobChange.png`를 미리보기 또는 패널 배경으로 활용하려면 Sprite 임포트 설정 후 수동 할당 필요.
+- 다음 작업:
+  - JobSelection 프리팹의 `JobSelectionUI.jobs` 리스트에 4개 에셋(Job_Warrior ~ Job_Rogue) 할당.
+  - AdventureScene의 `JobSelectionCanvas`(또는 직업선택 프리팹 인스턴스)와 `NPC_JobChanger`의 `jobSelectionUI` 필드 연결.
+  - 각 직업 미리보기 스프라이트(SPUM 캐릭터 Idle 프레임)를 `JobClassInfo.previewSprite`에 할당.
+  - PlayMode 전체 흐름 검증.
+- 주의:
+  - `CardClass.Archer`를 추가했으므로 기존 카드 에셋 직렬화는 영향 없으나, 아처 전용 카드 추가 시 이 enum 값 사용.
+  - JobSelection 프리팹을 씬에 배치할 때 Canvas sortingOrder(100)가 다른 UI보다 위에 오도록 확인.
+
+### 2026-05-08 (Codex - NPC 콜라이더 중심을 스프라이트 발 위치로 보정)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 확인했다.
+- 문제:
+  - NPC의 BoxCollider2D 월드 크기는 1x1로 맞춰져 있었지만, `offset`이 0에 가까워 콜라이더 중심이 각 스프라이트의 발이 아니라 스프라이트 중심에 놓이는 문제가 있었다.
+  - 특히 루트 GameObject에 SpriteRenderer가 직접 붙은 테스트 NPC/전직관 NPC에서 발 위치와 타일 중심이 어긋났다.
+- 수정:
+  - `Assets/Scripts/Adventure/AdventureGridUtility.cs`
+    - `ConfigureFootCollider(BoxCollider2D, Transform, SpriteRenderer, Vector2)` 오버로드 추가.
+    - `SpriteRenderer.bounds.min.y`를 발 위치로 보고 BoxCollider2D `offset`을 owner local 좌표로 역산하도록 변경.
+  - `Assets/Scripts/Adventure/NpcMovement.cs`
+    - 움직이는 NPC 콜라이더 구성 시 SpriteRenderer 기반 발 위치 offset 계산을 사용하도록 변경.
+  - `Assets/Scripts/Adventure/NpcTileAlignment.cs`
+    - 정지형 NPC 콜라이더 구성 시 SpriteRenderer 기반 발 위치 offset 계산을 사용하도록 변경.
+  - `Assets/Scripts/Adventure/JobChangerNpc.cs`
+    - 전직관 콜라이더 구성도 SpriteRenderer 기반 발 위치 offset 계산을 사용하도록 변경.
+  - `Assets/Scripts/Editor/DialogueSceneSetup.cs`, `Assets/Scripts/Editor/JobChangerSetup.cs`
+    - 새 NPC/전직관 프리팹 생성 시에도 SpriteRenderer 발 위치 기준 offset 계산을 사용하도록 변경.
+  - `Assets/Scenes/AdventureScene.unity`
+    - `NPC_BaramIroGun` BoxCollider2D `offset=(0,-1.7961122)`, 루트 위치 `(0.5,3.165226,0)`로 보정해 콜라이더 중심과 스프라이트 하단이 `(0.5,2.5)`에 오도록 저장.
+    - `NPC_JobChanger` BoxCollider2D `offset=(0,-0.415)`, 루트 위치 `(-11.5,1.165226,0)`로 보정해 콜라이더 중심과 스프라이트 하단이 `(-11.5,0.5)`에 오도록 저장.
+  - `Assets/Prefabs/NPCs/NPC_JobChanger.prefab`
+    - 전직관 프리팹 BoxCollider2D offset을 `(0,-0.415)`로 저장.
+  - `AGENTS.md`, `CLAUDE.md`
+    - NPC BoxCollider2D 중심은 `SpriteRenderer.bounds.min.y`(스프라이트 하단/발 위치)에 맞춰야 한다는 지침 추가.
+- 검증:
+  - Unity MCP 컴포넌트 확인:
+    - `NPC_BaramIroGun`: SpriteRenderer center y `3.165226`, height `1.3304521`, 하단 y `2.5`; BoxCollider2D bounds center y `2.5`, size `1x1`.
+    - `NPC_JobChanger`: SpriteRenderer center y `1.165226`, height `1.3304518`, 하단 y `0.5`; BoxCollider2D bounds center y `0.5000001`, size `1x1`.
+  - Unity MCP `validate_script standard`:
+    - `AdventureGridUtility.cs`, `NpcTileAlignment.cs`: 오류 0, 경고 0.
+    - `NpcMovement.cs`: 오류 0, 기존 Update 문자열 GC 권장 경고 1개만 확인.
+  - Unity refresh/compile 요청 후 Console 신규 게임 코드 오류 없음. MCP client 종료 로그만 확인.
+  - `AdventureScene` 저장 완료.
+- 미검증:
+  - PlayMode에서 이동 NPC가 시작 시 루트 위치를 새 발 offset 기준으로 재스냅한 뒤 배회/충돌이 체감상 자연스러운지는 아직 수동 확인하지 못했다.
+
+### 2026-05-08 (Codex - 전체 NPC 발 기준 스냅/콜라이더 규칙 공통화)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 확인했다.
+- 요구사항:
+  - 전직관 외 다른 모든 NPC도 발 콜라이더 중심을 가장 가까운 타일맵 셀 중심으로 스냅한다.
+  - 플레이어 직업이 변경되어도 스프라이트 키 기준과 발 기준 스냅/충돌 기준이 유지되게 한다.
+  - 앞으로 추가될 NPC도 같은 규칙으로 콜라이더를 구성하도록 지침과 생성 흐름을 보강한다.
+- 수정:
+  - `Assets/Scripts/Adventure/AdventureGridUtility.cs`
+    - `GetFootCenter`, `GetRootPositionForFootCenter`, `SnapOwnerFootToNearestCell` 등 발 중심 기준 공통 헬퍼 추가.
+    - `ConfigureFootCollider`가 루트 스케일을 고려해 BoxCollider2D 월드 bounds를 목표 크기(기본 1x1)로 역보정하도록 변경.
+    - 충돌용 `CircleCollider2D`를 비활성화하는 `DisableSolidCircles` 구현.
+  - `Assets/Scripts/Adventure/NpcMovement.cs`
+    - 테스트 NPC처럼 움직이는 NPC의 시작 스냅, 이동 충돌 검사, `GridOccupancy` 예약/해제를 모두 발 중심 기준으로 변경.
+  - `Assets/Scripts/Adventure/NpcTileAlignment.cs`
+    - 움직이지 않는 대화/상점/전직 NPC용 표준 정렬 컴포넌트 추가.
+    - `Rigidbody2D(Kinematic)` + `BoxCollider2D` 구성, 기준 키 스케일, 시작 시 발 중심 셀 스냅을 담당.
+  - `Assets/Scripts/Adventure/JobChangerNpc.cs`
+    - 전직관도 기준 키 스케일, BoxCollider2D 구성, 발 중심 스냅을 공통 유틸리티 흐름으로 수행하도록 보강.
+  - `Assets/Scripts/Adventure/PlayerController.cs`
+    - 플레이어 발 중심 계산을 공통 유틸리티로 교체.
+    - `RefreshVisualAlignment()`와 `SetVisual(...)`을 추가해 런타임 직업/비주얼 교체 후에도 기준 키와 애니메이션 스케일을 다시 적용할 수 있게 했다.
+  - `Assets/Scripts/Editor/DialogueSceneSetup.cs`
+    - `CardAdventure/Create NPC (Interactable)`가 새 NPC에 `Rigidbody2D`, 솔리드 `BoxCollider2D`, `NpcTileAlignment`, `NpcInteractable`을 기본으로 붙이도록 변경.
+    - 충돌용 기존 CircleCollider2D는 비활성화하도록 변경.
+  - `Assets/Scripts/Editor/AdventureSceneBuilder.cs`, `Assets/Scripts/Editor/WarriorPlayerVisualSetup.cs`
+    - 플레이어 생성/직업 비주얼 적용 시 BoxCollider2D 발 중심 기준과 테스트 NPC 기준 키 스케일을 적용하도록 갱신.
+  - `Assets/Scripts/Editor/JobChangerSetup.cs`
+    - 전직관 프리팹 생성 시 `NpcTileAlignment`를 추가하고 공통 BoxCollider2D 역보정 흐름을 사용하도록 변경.
+  - `Assets/Scenes/AdventureScene.unity`, `Assets/Prefabs/NPCs/NPC_JobChanger.prefab`
+    - `NPC_JobChanger`에 `NpcTileAlignment`를 추가.
+    - 전직관 위치를 `(-11.5, 0.5, 0)` 타일 중심으로 저장.
+    - 전직관 스케일을 균일 `(1.602954, 1.602954, 1)`로 변경해 높이만 기준값에 맞추고, BoxCollider2D 로컬 size를 `(0.623847,0.623847)`로 보정해 월드 bounds 1x1 유지.
+  - `AGENTS.md`, `CLAUDE.md`
+    - 새 NPC 추가 시 `Rigidbody2D(Kinematic)` + 솔리드 `BoxCollider2D` + `NpcTileAlignment`/`NpcMovement` + `NpcInteractable` 규칙을 명시.
+    - 플레이어 직업 변경 시 `PlayerController.SetVisual(...)` 또는 `RefreshVisualAlignment()`를 호출하라는 지침 추가.
+- 검증:
+  - Unity MCP `validate_script standard`:
+    - `NpcTileAlignment.cs`, `AdventureGridUtility.cs`, `JobChangerNpc.cs`, `DialogueSceneSetup.cs`, `AdventureSceneBuilder.cs`, `WarriorPlayerVisualSetup.cs`, `JobChangerSetup.cs`: 오류 0, 경고 0.
+    - `NpcMovement.cs`, `PlayerController.cs`: 오류 0, 기존 Update 문자열 GC 권장 경고 1개씩만 확인.
+  - Unity refresh/compile 요청 후 Console 신규 게임 코드 오류 없음. MCP/Animator 직렬화 관련 경고/오류만 확인.
+  - Unity MCP 컴포넌트 확인:
+    - `NPC_JobChanger` SpriteRenderer bounds height `1.3304518`, BoxCollider2D bounds size `0.999998 x 0.999998`, center `(-11.5,0.5)`.
+    - `NPC_JobChanger`에 `NpcTileAlignment` 1개만 남도록 중복 제거.
+  - `AdventureScene` 저장 완료.
+- 미검증:
+  - PlayMode에서 모든 NPC의 시작 스냅, 이동 NPC의 충돌/점유 예약, 플레이어 직업 변경 직후 키 재정렬 체감은 아직 수동 확인하지 못했다.
+
+### 2026-05-08 (Codex - 플레이어 발 기준 타일 중심 스냅)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 확인했다.
+- 요구사항:
+  - 플레이어도 테스트 NPC/전직관 NPC처럼 가장 가까운 칸의 타일맵 중심으로 순간이동하게 만든다.
+- 수정:
+  - `Assets/Scripts/Adventure/PlayerController.cs`
+    - 시작 위치 스냅 기준을 Player 루트가 아니라 발 중심(`BoxCollider2D.offset`)으로 변경.
+    - 이동 충돌 검사(`Physics2D.OverlapBoxAll`)와 `GridOccupancy` 예약/해제 기준을 발 중심으로 변경.
+    - 대화 등으로 입력이 잠길 때도 현재 발 중심을 가장 가까운 셀 중심으로 스냅한 뒤 루트 위치를 역산하도록 변경.
+  - `Assets/Scenes/AdventureScene.unity`
+    - Player 루트 위치를 `(0.5, 1.0, 0)`으로 저장해 `BoxCollider2D.bounds.center`가 `(0.5, 0.5)` 타일 중심에 오도록 정렬.
+- 검증:
+  - Unity MCP 컴포넌트 확인 결과 Player `BoxCollider2D.offset=(0,-0.5)`, `bounds.center=(0.5,0.5)`, `bounds.size=(1,1)`.
+  - `PlayerController.cs` Unity MCP `validate_script standard` 오류 0, 기존 Update 문자열 GC 권장 경고 1개만 확인.
+  - Unity refresh/compile 후 Console 신규 게임 코드 오류 없음.
+  - `AdventureScene` 저장 완료.
+- 미검증:
+  - PlayMode에서 실제 이동 중 벽/NPC 충돌과 대화 중 스냅 체감은 아직 수동 확인하지 못했다.
+
+### 2026-05-08 (Codex - Player BoxCollider 발 중심 정렬)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 확인했다.
+- 수정:
+  - `Assets/Scenes/AdventureScene.unity`
+    - Player `BoxCollider2D.offset`을 `(0, 0)`에서 `(0, -0.5)`로 변경.
+    - Player `BoxCollider2D.size`는 기존 `(1,1)` 유지.
+    - PlayerVisual 하단/발 위치가 월드 `y=0.0`이고 Player 루트가 `y=0.5`라, offset `-0.5`로 BoxCollider bounds 중심을 발 위치에 맞췄다.
+  - `AGENTS.md`
+    - Player 실제 충돌 기준을 `BoxCollider2D size=(1,1), offset=(0,-0.5)`로 갱신.
+  - `CLAUDE.md`
+    - 같은 발밑 충돌 기준을 추가해 병행 에이전트도 동일 기준을 따르도록 갱신.
+- 검증:
+  - Unity MCP 컴포넌트 확인 결과 Player `BoxCollider2D.offset=(0,-0.5)`.
+  - Player `BoxCollider2D.bounds.center=(0.5,0.0)`, `bounds.size=(1,1)` 확인.
+  - `AdventureScene` 저장 완료.
+- 미검증:
+  - PlayMode에서 이동 충돌/대화 거리 판정이 발 중심 기준으로 기대대로 동작하는지는 아직 수동 확인하지 못했다.
+
+### 2026-05-08 (Codex - 플레이어/NPC 스프라이트 키 테스트 NPC 기준 통일)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 확인했다.
+- 요구사항:
+  - 스프라이트별 신장 차이 때문에 NPC와 플레이어가 서 있는 위치가 어긋나 보이는 문제를 줄이기 위해 플레이어와 NPC의 화면상 키만 테스트 NPC와 동일하게 맞춘다.
+  - 앞으로 추가될 NPC도 같은 키 보정을 반드시 적용하도록 지침을 남긴다.
+- 기준:
+  - 테스트 NPC `NPC_BaramIroGun`의 SpriteRenderer 월드 bounds 높이 `1.3304521`을 기준 키로 사용.
+- 수정:
+  - `Assets/Scripts/Adventure/AdventureGridUtility.cs`
+    - `ReferenceCharacterVisualHeight = 1.3304521f` 추가.
+    - `GetVisualScaleForReferenceHeight(Sprite)` 추가.
+  - `Assets/Scripts/Adventure/PlayerController.cs`
+    - 비주얼 정렬 시 폭/최대 타일 높이 기준이 아니라 기준 키에 맞춰 스프라이트 높이만 스케일하도록 변경.
+    - 플레이어 idle/walk 스케일 계산은 기존 `idleVisualScaleMultiplier` 구조를 유지하되 최종 idle 높이가 기준 키가 되도록 계산.
+  - `Assets/Scripts/Adventure/NpcMovement.cs`
+    - NPC 비주얼 정렬 시 기준 키에 맞춰 스프라이트 높이만 스케일하도록 변경.
+  - `Assets/Scripts/Editor/JobChangerSetup.cs`
+    - 전직관 프리팹 생성 시 `AdventureGridUtility.GetVisualScaleForReferenceHeight`를 사용하도록 변경.
+    - 루트 스케일 변경으로 콜라이더가 커지지 않도록 BoxCollider2D 로컬 size를 역보정하고, CircleCollider2D 대신 Rigidbody2D + BoxCollider2D 기준으로 생성하도록 보강.
+  - `Assets/Scenes/AdventureScene.unity`
+    - 현재 PlayerVisual 높이를 테스트 NPC 기준으로 즉시 보정.
+    - PlayerController의 `walkVisualScale`을 `(1.116713, 1.116713, 1)`, `idleVisualScaleMultiplier`를 `0.74`로 저장.
+  - `AGENTS.md`
+    - 새 NPC/플레이어 비주얼 추가 시 `ReferenceCharacterVisualHeight`와 `GetVisualScaleForReferenceHeight(Sprite)`로 스프라이트 높이만 테스트 NPC 기준에 맞추라는 지침 추가.
+  - `CLAUDE.md`
+    - Claude Desktop 및 병행 에이전트도 같은 기준을 따르도록 탑다운 캐릭터 키 기준 지침 추가.
+- 검증:
+  - Unity MCP 컴포넌트 확인:
+    - PlayerVisual SpriteRenderer bounds height `1.3304519`.
+    - `NPC_BaramIroGun` SpriteRenderer bounds height `1.3304521`.
+    - `NPC_JobChanger` SpriteRenderer bounds height `1.3304518`.
+    - 전직관/테스트 NPC/플레이어의 충돌 BoxCollider2D 월드 bounds는 기존 1x1 기준 유지.
+  - `AdventureGridUtility.cs`, `JobChangerSetup.cs`: Unity MCP `validate_script standard` 오류 0, 경고 0.
+  - `PlayerController.cs`, `NpcMovement.cs`: 오류 0, 기존 Update GC 권장 경고만 확인.
+  - Unity refresh/compile 후 Console 신규 게임 코드 오류 없음.
+  - `AdventureScene` 저장 완료.
+- 미검증:
+  - PlayMode에서 idle/walk 애니메이션 전환 중 플레이어 키가 계속 테스트 NPC 기준으로 유지되는지 수동 확인은 아직 하지 못했다.
+
+### 2026-05-08 (Codex - 전직관 NPC 방향 애니메이션 클립 매핑 수정)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 확인했다.
+- 문제:
+  - 전직관 NPC가 대화 시작 시 플레이어 방향을 바라보도록 `DirectionX`, `DirectionY`를 갱신해도 실제 재생 방향이 맞지 않았다.
+  - 원본 `Assets/Assets/Sprites/NPCs/JobChanger_Sprite.png` 확인 결과 스프라이트 시트 행 순서는 `앞 / 왼쪽 / 오른쪽 / 뒤`였다.
+  - 기존 `JobChangerSetup`은 행 순서를 `앞 / 뒤 / 왼쪽 / 오른쪽`으로 가정해 `IdleBack`, `IdleLeft`, `IdleRight` 클립 프레임이 잘못 배치되어 있었다.
+- 수정:
+  - `Assets/Animations/NPCs/JobChanger/IdleLeft.anim`
+    - 원본 시트 2번째 행(왼쪽 방향) 프레임을 참조하도록 수정.
+  - `Assets/Animations/NPCs/JobChanger/IdleRight.anim`
+    - 원본 시트 3번째 행(오른쪽 방향) 프레임을 참조하도록 수정.
+  - `Assets/Animations/NPCs/JobChanger/IdleBack.anim`
+    - 원본 시트 4번째 행(뒤 방향) 프레임을 참조하도록 수정.
+  - `Assets/Scripts/Editor/JobChangerSetup.cs`
+    - `Setup Job Changer`의 기본 클립 생성 순서를 `front, left, right, back`으로 수정해 재실행 시 같은 문제가 재발하지 않게 했다.
+    - `Fix Job Changer Animation Clips` 메뉴를 추가해 프리팹을 덮어쓰지 않고 애니메이션 클립 프레임만 재정렬할 수 있게 했다.
+- 검증:
+  - `CardAdventure/Fix Job Changer Animation Clips` 메뉴 실행 완료.
+  - Console에 `[JobChangerSetup] JobChanger animation clips fixed.` 로그 확인.
+  - `JobChangerSetup.cs` Unity MCP `validate_script standard`: 오류 0, 경고 0.
+  - Unity refresh/compile 후 Editor idle 확인.
+  - Console 신규 게임 코드 오류 없음.
+- 미검증:
+  - PlayMode에서 전직관 앞/뒤/좌/우에서 Space 입력 시 실제 방향 애니메이션이 모두 올바르게 보이는지는 아직 수동 확인하지 못했다.
+
+### 2026-05-08 (Codex - 전직관 NPC 대화 시점 방향 전환으로 변경)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 확인했다.
+- 요구사항:
+  - 전직관 NPC가 플레이어 위치를 계속 추적하며 자동으로 회전하지 않도록 변경.
+  - 플레이어가 대화 상호작용을 시도하면 그 순간 플레이어 방향으로 회전하고 알맞은 방향 애니메이션을 재생.
+- 수정:
+  - `Assets/Scripts/Adventure/JobChangerNpc.cs`
+    - 매 프레임 플레이어를 찾고 바라보던 `Update()` 자동 회전 흐름 제거.
+    - `FaceToward(Vector2 targetPosition)` 공개 메서드 추가.
+    - `FaceToward` 호출 시에만 `DirectionX`, `DirectionY` Animator 파라미터를 갱신하도록 변경.
+    - 기존 타일 중앙 스냅 로직은 유지.
+  - `Assets/Scripts/Adventure/DialogueManager.cs`
+    - `BeginDialogue()`에서 플레이어 이동을 잠근 직후, 대상 NPC가 `JobChangerNpc`를 가지고 있으면 `FaceToward(activePlayer.transform.position)`를 호출하도록 연결.
+    - 기존 플레이어가 NPC 방향을 바라보는 처리도 유지.
+- 검증:
+  - `JobChangerNpc.cs` Unity MCP `validate_script standard`: 오류 0, 경고 0.
+  - `DialogueManager.cs` Unity MCP `validate_script standard`: 오류 0, 기존 Update GC 권장 경고 1개만 확인.
+  - Unity refresh/compile 후 Editor idle 확인.
+  - Console 신규 게임 코드 오류 없음.
+- 미검증:
+  - PlayMode에서 전직관 앞/뒤/좌/우에서 Space 입력 시 각 방향 애니메이션이 정확히 전환되는지는 아직 수동 확인하지 못했다.
+
+### 2026-05-08 (Codex - 전직관 NPC 시작 위치 타일 중앙 스냅 추가)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 확인했다.
+- 수정:
+  - `Assets/Scripts/Adventure/JobChangerNpc.cs`
+    - `snapToNearestTileOnStart` 옵션을 추가하고 기본값을 `true`로 설정.
+    - `moveUnitSize` 기본값 `1f` 추가.
+    - `Start()` 시 `AdventureGridUtility.SnapToCellCenter(transform.position, moveUnitSize)`를 호출해 전직관 NPC를 현재 위치에서 가장 가까운 Grid 셀 중심으로 강제 이동하도록 했다.
+    - Transform 위치와 `Rigidbody2D.position`을 함께 갱신해 플레이어/테스트 NPC와 같은 방식으로 타일 중앙에 정렬되도록 했다.
+    - 전직관 스크립트에 `RequireComponent(typeof(Rigidbody2D))`를 추가해 새 전직관 오브젝트 생성 시 Rigidbody 누락을 방지했다.
+- 검증:
+  - Unity MCP `validate_script standard`: 오류 0개, 경고 1개.
+    - 경고는 `Start()`에서 Rigidbody 위치를 동기화하는 패턴에 대한 일반 권장사항이며, 기존 `PlayerController`/`NpcMovement`의 시작 위치 보정 방식과 같은 목적이다.
+  - Unity refresh/compile 후 Editor 상태 idle, Console 신규 게임 코드 오류 없음.
+  - Unity MCP 컴포넌트 확인 결과 `NPC_JobChanger`의 `JobChangerNpc`에 `snapToNearestTileOnStart=true`, `moveUnitSize=1` 직렬화 확인.
+- 미검증:
+  - PlayMode에서 전직관이 실제 시작 시점에 현재 위치 기준 가장 가까운 타일 중심으로 이동하는지는 아직 수동 확인하지 못했다.
+- 주의:
+  - 현재 씬의 `NPC_JobChanger` 배치 위치가 타일 중심이 아니면 PlayMode 시작 시 자동으로 가까운 셀 중심으로 이동한다. 이미 다른 NPC가 같은 셀에 있으면 겹칠 수 있으므로 최종 배치 위치는 PlayMode 검증 전에 확인해야 한다.
+
+### 2026-05-08 (Codex - 전직관 NPC 시각 크기 테스트 NPC 기준 동기화)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 확인했다.
+- 수정:
+  - `Assets/Scenes/AdventureScene.unity`
+    - `NPC_JobChanger` Transform scale을 `(1.88679, 1.602954, 1)`로 변경해 테스트 NPC `NPC_BaramIroGun`의 SpriteRenderer bounds와 같은 약 `1.0 x 1.33` 월드 크기로 맞췄다.
+    - 루트 스케일 변경으로 충돌 범위가 커지지 않도록 `BoxCollider2D.size`를 `(0.5299999, 0.623847)`로 역보정했다.
+  - `Assets/Prefabs/NPCs/NPC_JobChanger.prefab`
+    - 씬 인스턴스와 동일한 scale 및 `BoxCollider2D.size` 역보정을 적용했다.
+- 검증:
+  - Unity MCP 컴포넌트 확인 결과 `NPC_JobChanger` SpriteRenderer bounds size가 `(0.9999987, 1.3304518)`로 테스트 NPC의 기존 bounds `(약 1.0, 1.33045)`와 일치.
+  - `BoxCollider2D` bounds size는 `(0.9999986, 0.9999981)`로 기존 1칸 충돌 기준 유지.
+  - `NpcInteractable.InteractionRadius`도 약 `0.5`로 유지.
+  - `AdventureScene` 저장 완료.
+- 주의:
+  - 크기 일치를 위해 전직관 루트 스케일은 X/Y가 서로 다르다. 원본 스프라이트 비율을 완전히 보존해야 한다면 높이 기준 균일 스케일로 재조정할 수 있다.
+- 미검증:
+  - PlayMode에서 실제 화면상 테스트 NPC와 나란히 볼 때의 체감 크기와 충돌 느낌은 아직 수동 확인하지 못했다.
+
+### 2026-05-08 (Codex - 전직관 NPC 충돌 처리 테스트 NPC 기준 동기화)
+
+- 작업 시작 전 `PROJECT_STATUS.md`를 확인했다.
+- 현재 진행 파악:
+  - Phase 1 전사 덱 기반 카드 배틀 기본 루프와 `BattleTest` 검증 환경이 구축되어 있다.
+  - Phase 2용 `AdventureScene`에는 플레이어 이동, 전투 진입, 테스트 NPC 대화/배회, 대화 UI 기반이 연결되어 있다.
+  - 최근 NPC 충돌 정책은 테스트 NPC `NPC_BaramIroGun` 기준으로 `Rigidbody2D + BoxCollider2D`만 사용하고, `CircleCollider2D` 대화 트리거는 제거한 상태다.
+  - 전직관 NPC는 애니메이션/방향 전환 스크립트와 프리팹/씬 배치가 완료되었으나, 이전 생성 기준의 `CircleCollider2D`가 남아 있고 `Rigidbody2D`가 없어 테스트 NPC와 충돌 구성이 달랐다.
+- 수정:
+  - `Assets/Scenes/AdventureScene.unity`: `NPC_JobChanger`에서 `CircleCollider2D` 제거, 테스트 NPC와 같은 `Rigidbody2D.bodyType=2` 적용, `BoxCollider2D`를 `size=(1,1)`, `offset=(0,0)`, `isTrigger=false`로 설정.
+  - `Assets/Prefabs/NPCs/NPC_JobChanger.prefab`: 씬 인스턴스와 동일하게 `CircleCollider2D` 제거, `Rigidbody2D` 추가, `BoxCollider2D` 1칸 충돌 기준 적용.
+- 검증:
+  - Unity MCP로 `NPC_JobChanger` 씬 인스턴스 컴포넌트 확인: `CircleCollider2D` 없음, `Rigidbody2D` 있음, `BoxCollider2D` bounds size `1x1`, center `(0,2)`.
+  - `NpcInteractable.InteractionCenter=(0,2)`, `InteractionRadius=0.5`로 Box bounds 기반 계산 확인.
+  - `NPC_JobChanger.prefab` 루트 컴포넌트 목록도 `CircleCollider2D` 없이 `Rigidbody2D` 포함 상태로 확인.
+  - `AdventureScene` 저장 완료.
+  - Console에는 신규 게임 코드 오류 없음. MCP 직렬화/Animator 조회 관련 경고만 확인.
+- 미검증:
+  - PlayMode에서 플레이어가 전직관 주변을 이동할 때 실제 충돌/대화 후보 판정이 체감상 테스트 NPC와 동일한지는 아직 수동 확인하지 못했다.
+- 다음 작업:
+  - `NPC_JobChanger`에 전직 관련 `DialogueData` 또는 전직 UI 진입 로직 연결.
+  - PlayMode에서 테스트 NPC와 전직관 NPC 주변 이동, 충돌 차단, Space 상호작용 후보 판정을 함께 육안 검증.
+
 ### 2026-05-07 (Antigravity - 전직관 NPC 애니메이션 제작 및 배치)
 
 - 작업 시작 전 `PROJECT_STATUS.md`를 다시 확인했다.

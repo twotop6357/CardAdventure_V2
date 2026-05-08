@@ -60,7 +60,8 @@ namespace CardAdventure
         Universal,  // 모든 직업 사용 가능
         Warrior,
         Mage,
-        Rogue
+        Rogue,
+        Archer      // 궁수 — 직업 선택 UI v1 기준으로 추가. 스타터 덱은 추후 구현 예정.
     }
 
     /// <summary>

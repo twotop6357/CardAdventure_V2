@@ -82,9 +82,9 @@ namespace CardAdventure
             playerRb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
             playerRb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
-            CircleCollider2D playerCol = playerGo.AddComponent<CircleCollider2D>();
-            playerCol.radius = 0.225f;
-            playerCol.offset = new Vector2(0f, -0.45f);
+            BoxCollider2D playerCol = playerGo.AddComponent<BoxCollider2D>();
+            playerCol.size = Vector2.one;
+            playerCol.offset = new Vector2(0f, -0.5f);
 
             PlayerController pc = playerGo.AddComponent<PlayerController>();
 
@@ -163,12 +163,15 @@ namespace CardAdventure
         {
             GameObject visualGo = new GameObject("PlayerVisual");
             visualGo.transform.SetParent(parent);
-            visualGo.transform.localPosition = new Vector3(0f, -0.25f, 0f);
+            visualGo.transform.localPosition =
+                new Vector3(0f, (AdventureGridUtility.ReferenceCharacterVisualHeight - 1f) * 0.5f, 0f);
             visualGo.transform.localScale = Vector3.one;
 
             SpriteRenderer spriteRenderer = visualGo.AddComponent<SpriteRenderer>();
             spriteRenderer.sortingOrder = 2;
             spriteRenderer.sprite = LoadSpriteByName(PlayerIdleSpritePath, "Warrior_IdleFront_0");
+            float idleScale = AdventureGridUtility.GetVisualScaleForReferenceHeight(spriteRenderer.sprite);
+            visualGo.transform.localScale = new Vector3(idleScale, idleScale, 1f);
 
             Animator animator = visualGo.AddComponent<Animator>();
             animator.runtimeAnimatorController =
@@ -180,8 +183,10 @@ namespace CardAdventure
             pcSo.FindProperty("moveUnitSize").floatValue = 1f;
             pcSo.FindProperty("useGridCellSize").boolValue = true;
             pcSo.FindProperty("moveHoldThreshold").floatValue = 0.06f;
-            pcSo.FindProperty("walkVisualScale").vector3Value = Vector3.one;
-            pcSo.FindProperty("idleVisualScaleMultiplier").floatValue = 0.267f;
+            float idleMultiplier = 0.267f;
+            pcSo.FindProperty("walkVisualScale").vector3Value =
+                new Vector3(idleScale / idleMultiplier, idleScale / idleMultiplier, 1f);
+            pcSo.FindProperty("idleVisualScaleMultiplier").floatValue = idleMultiplier;
             pcSo.ApplyModifiedProperties();
         }
 
