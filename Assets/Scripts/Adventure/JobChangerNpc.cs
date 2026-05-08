@@ -29,6 +29,8 @@ namespace CardAdventure
         [Header("직업 선택 UI")]
         [Tooltip("씬에 배치된 JobChangeUIController 참조. 설정하지 않으면 씬에서 자동 탐색.")]
         [SerializeField] private JobChangeUIController jobChangeUI;
+        [Tooltip("직업 변경 확정 직후 출력할 후속 대화.")]
+        [SerializeField] private DialogueData afterJobChangeDialogue;
 
         private Animator  animator;
         private Rigidbody2D rb;
@@ -193,7 +195,12 @@ namespace CardAdventure
             // PlayerController 비주얼 갱신 (직업 변경 후 키 기준 재적용)
             PlayerController player = FindFirstObjectByType<PlayerController>();
             if (player != null)
-                player.RefreshVisualAlignment();
+                player.ApplyJobVisual(selectedJob);
+
+            if (afterJobChangeDialogue != null && DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.BeginDialogue(afterJobChangeDialogue);
+            }
         }
 
         private void HandleJobCancelled()

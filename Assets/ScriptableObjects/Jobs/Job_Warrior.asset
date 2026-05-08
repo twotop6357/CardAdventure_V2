@@ -20,9 +20,14 @@ MonoBehaviour:
   attackStars: 3
   defenseStars: 5
   magicStars: 1
-  speedStars: 1
+  difficulty: 1
   previewSprite: {fileID: 5751901996272854146, guid: 38f97793716ad4649a680d12045a1b75,
     type: 3}
+  playerIdleSprite: {fileID: 8460494789632895570, guid: f2f0fc4012d874d42bd7af8deece98d0,
+    type: 3}
+  playerAnimatorController: {fileID: 9100000, guid: b1e638d31d6889b4690e908e1e126452,
+    type: 2}
+  playerIdleVisualScaleMultiplier: 0.267
   starterCards: []
   baseMaxHp: 60
   baseMaxEnergy: 3

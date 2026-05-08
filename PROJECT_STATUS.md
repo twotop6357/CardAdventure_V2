@@ -1,5 +1,286 @@
 # CardAdventure Project Status
 
+---
+
+### 2026-05-08 (Codex — 직업 변경 확정 후 후속 대화 출력)
+
+#### 이번 세션 작업 요약
+직업 변경 UI에서 직업을 선택하고 확정한 뒤 `Assets/ScriptableObjects/Dialogues/NPC_AfterJobChange_Dialogue.asset` 대화가 이어서 출력되도록 연결했다.
+
+#### 변경 파일
+
+**`Assets/Scripts/Adventure/DialogueManager.cs`** (수정)
+- `public void BeginDialogue(DialogueData data)` API 추가.
+- NPC 상호작용 없이 특정 `DialogueData`만 바로 출력할 수 있도록 내부 `BeginDialogue(DialogueData, NpcInteractable, bool)` 흐름으로 분리.
+- 후속 대화에서는 전직관 `FaceToward()`를 다시 호출하지 않아 대화 종료 후 직업 UI가 재오픈되는 루프를 피하도록 했다.
+
+**`Assets/Scripts/Adventure/JobChangerNpc.cs`** (수정)
+- `afterJobChangeDialogue` 직렬화 필드 추가.
+- 직업 확정 후 `PlayerController.ApplyJobVisual(selectedJob)`까지 처리한 뒤 `DialogueManager.Instance.BeginDialogue(afterJobChangeDialogue)` 호출.
+
+**`Assets/ScriptableObjects/Dialogues/NPC_AfterJobChange_Dialogue.asset`** (수정)
+- 화자 `전직관`과 후속 대사 2줄 추가.
+
+**`Assets/Scenes/AdventureScene.unity`**, **`Assets/Prefabs/NPCs/NPC_JobChanger.prefab`** (수정)
+- `NPC_JobChanger.JobChangerNpc.afterJobChangeDialogue`에 `NPC_AfterJobChange_Dialogue.asset` 연결.
+
+#### 검증
+- Unity MCP `validate_script standard`:
+  - `DialogueManager.cs`: 오류 0, 기존 Update 문자열 GC 권장 경고 1개.
+  - `JobChangerNpc.cs`: 오류 0, 경고 0.
+- Unity refresh/compile 후 신규 컴파일 오류 없음.
+- Unity MCP 컴포넌트 확인 결과 `NPC_JobChanger.JobChangerNpc.afterJobChangeDialogue`가 `Assets/ScriptableObjects/Dialogues/NPC_AfterJobChange_Dialogue.asset`로 연결됨.
+- `AdventureScene` 저장 완료.
+
+#### 미검증
+- PlayMode에서 전직관 대화 종료 → 직업 선택 UI 확정 → 후속 대화 출력 → 후속 대화 종료 후 직업 UI가 다시 열리지 않는 전체 흐름은 아직 수동 확인하지 못했다.
+
+---
+
+### 2026-05-08 (Codex — 직업 변경 UI에서 현재 직업 제외)
+
+#### 이번 세션 작업 요약
+직업 변경 UI를 열 때 현재 플레이어 직업은 선택 목록에 표시되지 않도록 수정했다.
+
+#### 변경 파일
+
+**`Assets/Scripts/UI/JobChangeUIController.cs`** (수정)
+- Inspector 원본 `jobs` 목록은 유지하고, UI 표시용 런타임 목록 `displayedJobs`를 추가.
+- `Open()` 시 `RebuildDisplayedJobs()`를 호출해 현재 직업을 제외한 목록을 구성.
+- 현재 직업 판정:
+  - `GameDataManager.Instance.SelectedJobInfo`와 같은 에셋이면 제외.
+  - 또는 `GameDataManager.Instance.SelectedJobClass`와 같은 `CardClass`이면 제외.
+  - `SelectedJobInfo == null`인 초기 상태는 기본 전사(`CardClass.Warrior`)로 간주해 전사를 제외.
+- 직업 버튼 라벨/활성화, 키보드 순환, 마우스 클릭, 미리보기, 설명, 스탯, 확정 로직이 모두 `displayedJobs`를 기준으로 동작하도록 변경.
+- 현재 직업 제외 후 남는 직업 수보다 버튼이 많으면 남는 버튼은 `SetActive(false)`로 숨김.
+
+#### 검증
+- Unity MCP `validate_script standard`: `JobChangeUIController.cs` 오류 0, 기존 Update 문자열 GC 권장 경고 1개.
+- Unity refresh/compile 후 신규 컴파일 오류 없음.
+- Console에는 기존 미사용 필드/obsolete API 경고와 MCP client 종료 로그만 확인.
+
+#### 미검증
+- PlayMode에서 현재 전사일 때 직업 변경 UI에 마법사/도적만 표시되는지, 마법사/도적으로 변경 후 다시 열었을 때 현재 직업이 제외되는지는 아직 수동 확인하지 못했다.
+
+---
+
+### 2026-05-08 (Codex — 직업 변경 후 플레이어 표시 키 전직관 기준 고정)
+
+#### 이번 세션 작업 요약
+직업 변경 UI에서 직업을 확정한 뒤 플레이어 스프라이트/애니메이터는 바뀌지만 직업별 표시 크기가 달라지는 문제를 수정했다. 이제 플레이어는 현재 애니메이터가 표시 중인 스프라이트 프레임의 실제 bounds 높이를 매 프레임 읽어 `AdventureGridUtility.ReferenceCharacterVisualHeight` 기준, 즉 현재 씬의 전직관 NPC와 같은 높이로 정규화한다.
+
+#### 변경 파일
+
+**`Assets/Scripts/Adventure/PlayerController.cs`** (수정)
+- `LateUpdate()`에서 `NormalizeVisualToReferenceHeight()`를 호출하도록 추가.
+- `NormalizeVisualToReferenceHeight()` 추가:
+  - 현재 `spriteRenderer.sprite`의 실제 높이를 기준으로 `AdventureGridUtility.GetVisualScaleForReferenceHeight(sprite)` 계산.
+  - PlayerVisual localScale을 해당 scale로 직접 설정.
+  - PlayerVisual localPosition.y도 기준 높이와 타일 크기에 맞게 재계산해 발 위치를 유지.
+- 기존 `ApplyVisualScale(bool moving)`가 idle/walk 배율에 의존하지 않고 `NormalizeVisualToReferenceHeight()`를 사용하도록 변경.
+- `AlignVisualToTile()`과 `OnValidate()`도 같은 정규화 루틴을 사용하도록 변경.
+
+#### 의도
+- 전사/마법사/도적의 idle/walk 시트 원본 프레임 크기가 달라도, 애니메이션 프레임이 바뀐 직후 다시 전직관 NPC 기준 높이로 맞춘다.
+- 직업 에셋에 들어간 `playerIdleVisualScaleMultiplier` 값에 표시 키가 흔들리지 않도록 런타임 정규화가 우선하도록 했다.
+
+#### 검증
+- Unity MCP `validate_script standard`:
+  - `PlayerController.cs`: 오류 0, 기존 Update 문자열 GC 권장 경고 1개.
+  - `JobClassInfo.cs`: 오류 0, 경고 0.
+- Unity refresh/compile 후 신규 컴파일 오류 없음.
+- Console에는 기존 미사용 필드 경고(`maxVisualWidthInTiles`, `maxVisualHeightInTiles`)와 MCP client 종료 로그만 확인.
+
+#### 미검증
+- PlayMode에서 전사/마법사/도적 각각 확정 후 idle/walk/front/back/side 모든 프레임이 전직관 NPC와 같은 표시 높이로 유지되는지는 아직 수동 확인하지 못했다.
+
+---
+
+### 2026-05-08 (Codex — 직업 확정 시 플레이어 스프라이트/애니메이터 교체)
+
+#### 이번 세션 작업 요약
+직업 변경 UI에서 직업을 선택하고 확정하면 `GameDataManager.SelectedJobInfo`만 바뀌던 상태에서, 플레이어의 어드벤처 씬 스프라이트와 AnimatorController도 선택 직업에 맞게 즉시 교체되도록 연결했다.
+
+#### 변경 파일
+
+**`Assets/Scripts/Data/JobClassInfo.cs`** (수정)
+- 직업별 플레이어 런타임 비주얼 필드 추가:
+  - `playerIdleSprite`
+  - `playerAnimatorController`
+  - `playerIdleVisualScaleMultiplier`
+
+**`Assets/Scripts/Adventure/PlayerController.cs`** (수정)
+- `ApplyJobVisual(JobClassInfo jobInfo)` 추가.
+- 선택 직업의 `playerIdleSprite`를 PlayerVisual SpriteRenderer에 적용.
+- 선택 직업의 `playerAnimatorController`를 Animator에 적용.
+- `playerIdleVisualScaleMultiplier`를 적용한 뒤 기존 `RefreshVisualAlignment()`를 호출해 테스트 NPC 기준 키 보정도 다시 수행.
+
+**`Assets/Scripts/Adventure/JobChangerNpc.cs`** (수정)
+- 직업 확정 콜백에서 기존 `player.RefreshVisualAlignment()` 대신 `player.ApplyJobVisual(selectedJob)` 호출.
+
+**`Assets/ScriptableObjects/Jobs/Job_Warrior.asset`** (수정)
+- 플레이어 IdleFront 스프라이트, `Player_Warrior.controller`, idle 보정 배율 `0.267` 연결.
+- 남아 있던 `speedStars` 필드를 `difficulty`로 정리.
+
+**`Assets/ScriptableObjects/Jobs/Job_Mage.asset`** (수정)
+- 플레이어 IdleFront 스프라이트, `Player_Magician.controller`, idle 보정 배율 `0.85` 연결.
+- 남아 있던 `speedStars` 필드를 `difficulty`로 정리.
+
+**`Assets/ScriptableObjects/Jobs/Job_Rogue.asset`** (수정)
+- 플레이어 IdleFront 스프라이트, `Player_Rogue.controller`, idle 보정 배율 `0.74` 연결.
+- 남아 있던 `speedStars` 필드를 `difficulty`로 정리.
+
+#### 검증
+- Unity MCP `validate_script standard`:
+  - `JobClassInfo.cs`: 오류 0, 경고 0.
+  - `JobChangerNpc.cs`: 오류 0, 경고 0.
+  - `PlayerController.cs`: 오류 0, 기존 Update 문자열 GC 권장 경고 1개.
+- Unity refresh/compile 후 신규 컴파일 오류 없음.
+- Console에는 기존 미사용 필드/obsolete API 경고와 MCP client 종료 로그만 확인.
+
+#### 미검증
+- PlayMode에서 전직관 대화 종료 → 직업 변경 UI 확정 → 플레이어 스프라이트/애니메이터가 즉시 전환되고 이동 애니메이션까지 해당 직업으로 재생되는 전체 흐름은 아직 수동 확인하지 못했다.
+
+#### 다음 작업
+- PlayMode에서 전사/마법사/도적 각각 확정 후 idle/walk/front/back/side 애니메이션이 정상 재생되는지 확인.
+- `PlayerController.maxVisualWidthInTiles`, `maxVisualHeightInTiles`, `NpcMovement`의 동일 필드는 현재 미사용 경고가 있으므로 유지 여부 결정.
+
+---
+
+### 2026-05-08 (Antigravity — 직업 선택 UI 화살표 인디케이터 개선)
+
+#### 이번 세션 작업 요약
+직업 선택 UI의 화살표 인디케이터(`JobArrowIndicator`)를 3단계에 걸쳐 개선했다.
+
+#### 변경 파일
+
+**`Assets/Scripts/UI/JobChangeUIController.cs`** (수정)
+
+1. **능력치 표시 스탯 UI 연동** (이전 세션에서 완료)
+   - `JobStatsText` TMP를 통해 `JobClassInfo.attackStars`, `defenseStars`, `magicStars`, `difficulty`를 ■□ 별점으로 표시.
+   - `RefreshStats()` 메서드 추가.
+
+2. **화살표 인디케이터 — DOTween 애니메이션 적용**
+   - `indicatorMoveDuration` 필드 추가 (기본 0.12초, Inspector 조절 가능).
+   - `k_ArrowTweenId = "JobArrowIndicator"` 상수로 트윈 ID 관리.
+   - `CalcIndicatorLocalPos(RectTransform)`: 버튼 월드 중심 → 인디케이터 부모 로컬 좌표 변환 후 버튼 왼쪽 위치 계산 (1단계/2단계 공용).
+   - `MoveIndicatorTo(Vector3)`: 처음 표시 시 즉시 배치, 이후 `DOLocalMove + Ease.OutCubic`으로 부드럽게 이동.
+   - `RefreshJobButtonHighlights()`: 1단계에서만 동작, `isInButtonPhase = true`면 스킵.
+   - `RefreshButtonPhaseHighlights()`: 2단계에서만 동작, `confirmFocused` 값으로 `yesButton`/`noButton` 중 화살표 이동.
+   - `EnterButtonPhase()`: `RefreshDisplay()` 전체 호출로 진입 시 인디케이터가 결정 버튼으로 즉시 이동.
+   - `OnDestroy()`에 `DOTween.Kill(k_ArrowTweenId)` 추가.
+
+3. **인디케이터 렌더링 최상위 보장**
+   - `JobArrowIndicator`를 `JobButtonContainer` 자식 → `JobChangeCanvas` 직속 마지막 자식으로 이동.
+   - Unity UI는 형제 순서가 뒤에 있을수록 위에 그려지므로 `SetAsLastSibling()`으로 항상 최상위 렌더링.
+   - `CalcIndicatorLocalPos`가 `InverseTransformPoint`(월드→로컬 변환) 방식이어서 부모 변경 후에도 좌표 계산 정확.
+
+**`Assets/Scripts/Editor/TempUIBuilder.cs`** (수정)
+- `BuildArrowIndicator()`: 인디케이터 부모를 `JobChangeCanvas`로 변경, `SetAsLastSibling()` 적용, 기존 어느 부모에 있던 인디케이터도 모두 검색·제거 후 재생성.
+- `BringIndicatorToTop()` 메뉴 추가 (`CardAdventure/Temp/Bring Indicator To Top`): 기존 인디케이터를 `JobChangeCanvas` 직속 마지막 자식으로 이동하는 유틸.
+
+#### 씬 연결 상태 (AdventureScene, 저장 완료)
+- `JobArrowIndicator`가 `JobChangeCanvas` 직속 마지막 자식으로 배치됨.
+- `JobChangeUIController.jobArrowIndicator` 필드에 연결 완료.
+
+#### 동작 흐름
+```
+[1단계] W/S 키 → 직업 버튼 사이 DOTween 슬라이드
+          ↓ Space
+[2단계] 화살표가 결정(Yes) 버튼 왼쪽으로 DOTween 이동
+        W/↑ → 결정  |  S/↓ → 취소 (각각 DOTween 이동)
+          ↓ Space → 실행 / Esc → 취소
+```
+
+#### 검증
+- `JobChangeUIController.cs` 컴파일 오류 0개.
+- `TempUIBuilder.cs` 컴파일 오류 0개.
+- `BringIndicatorToTop` 메뉴 실행 콘솔 로그: `[TempUIBuilder] JobArrowIndicator를 JobChangeCanvas 직속으로 이동.` / `최상위 형제로 이동 완료.` 확인.
+- `AdventureScene` 저장 완료.
+
+#### 미검증 (수동 확인 필요)
+- PlayMode에서 직업 선택 UI 열기 → W/S로 직업 전환 시 화살표 슬라이드.
+- Space로 2단계 진입 시 화살표가 결정 버튼 왼쪽으로 이동.
+- W/S로 결정/취소 버튼 전환 시 화살표 이동.
+- 인디케이터가 BackGround·버튼 패널 위에 항상 표시되는지.
+
+#### 다음 작업
+- PlayMode 전체 흐름 수동 검증.
+- `indicatorMoveDuration`, 화살표 여백(`-6f`) 값 체감 튜닝.
+- 1단계 초기 표시 시 화살표 비활성 → 활성 페이드인 효과 추가 (선택사항).
+
+---
+
+### 2026-05-08 (Claude Desktop — 직업 선택 UI 기능 완성)
+
+#### 이번 세션 작업 요약
+유저가 씬에 직접 제작한 Button 기반 `JobChangeCanvas` UI에 직업 데이터·로직을 연동하고,
+키보드 2단계 내비게이션, 플레이어 이동 차단, NPC 상호작용 차단까지 완성했다.
+
+#### 변경 파일
+
+**`Assets/Scripts/UI/JobChangeUIController.cs`** (신규 + 다수 수정)
+- Button 기반 직업 선택 UI 컨트롤러. `JobChangeCanvas`에 부착.
+- 직업 데이터: `List<JobClassInfo> jobs` (전사/마법사/도적)
+- UI 레퍼런스: `List<Button> jobButtons` (3개), `Image characterPreviewImage`, `TextMeshProUGUI jobDescriptionText`, `Button yesButton/noButton`, `RectTransform panelRoot`
+- DOTween 팝업 등장/닫힘 애니메이션 (`panelRoot` 스케일)
+- `OnJobConfirmed(JobClassInfo)` / `OnCancelled` 이벤트
+- `Start()`에서 자동 비활성화, `Open()`에서 `isOpen=true` 먼저 설정 후 `SetActive(true)` (순서 버그 방지)
+- **키보드 2단계 내비게이션**:
+  - 1단계(직업 목록): W/↑ 위로, S/↓ 아래로(순환), Space → 2단계 전환, Esc/X 취소
+  - 2단계(버튼 선택): W/↑ 결정 포커스, S/↓ 취소 포커스, Space 실행, Esc/X 취소
+  - 각 단계에서 해당 버튼 황색 강조(`selectedColor`)
+  - 마우스 클릭도 병행 지원 (직업 클릭 시 1단계로 복귀)
+- **플레이어 이동 차단**: `Open()` 시 `PlayerController.enabled = false`, `Close()`/`OnDestroy()` 시 복구
+- **전역 플래그**: `public static bool IsAnyOpen` — `Open()`에서 `true`, `Close()`/`OnDestroy()`에서 `false`
+- 설명 텍스트: 직업 이름 없이 `info.description`만 표시
+
+**`Assets/Scripts/Adventure/JobChangerNpc.cs`** (수정)
+- `JobSelectionUI` 참조 → `JobChangeUIController`로 전면 교체
+- `Start()`에서 `FindFirstObjectByType<JobChangeUIController>()` 자동 탐색
+- `OpenJobSelectionUI()`, `HandleJobConfirmed()`, `HandleJobCancelled()` 이벤트 구독 대상 교체
+
+**`Assets/Scripts/Adventure/DialogueManager.cs`** (수정)
+- NPC 대화 시작 조건에 `&& !JobChangeUIController.IsAnyOpen` 추가 → UI 열린 동안 Space로 대화 불가
+- NPC 상호작용 힌트 표시 조건에 동일 체크 추가 → UI 열린 동안 힌트 아이콘 숨김
+
+**`Assets/Scripts/Editor/JobSelectionSetup.cs`** (수정)
+- `asset.speedStars = preset.spd` → `asset.difficulty = preset.spd` 컴파일 오류 수정
+
+**`Assets/Scripts/Editor/JobChangeUIWire.cs`** (신규, 임시 에디터 도구)
+- `CardAdventure/Wire Job Change UI` 메뉴 아이템
+- `JobChangeCanvas`에 `JobChangeUIController` 컴포넌트 부착 + 모든 SerializedProperty 필드 자동 연결 후 씬 저장
+
+#### 씬 연결 상태 (AdventureScene, 저장 완료)
+- `JobChangeCanvas`에 `JobChangeUIController` 컴포넌트 부착
+- `jobs`: [0] Job_Warrior, [1] Job_Mage, [2] Job_Rogue (GUID 검증 완료)
+- `jobButtons`: [0] JobButton_1, [1] JobButton_2, [2] JobButton_3
+- `characterPreviewImage`: JobImage
+- `jobDescriptionText`: JobDescriptionText
+- `yesButton`: YesButton, `noButton`: NoButton
+- `panelRoot`: BackGround (RectTransform)
+- `NPC_JobChanger`(프리팹 인스턴스)의 `jobChangeUI` 필드는 런타임 `FindFirstObjectByType`으로 자동 연결
+
+#### 검증
+- 씬 YAML에서 모든 레퍼런스 GUID/fileID 직접 확인 완료
+- 컴파일 오류 0개 (기존 경고만 존재)
+
+#### 미검증 (수동 확인 필요)
+- PlayMode에서 NPC 대화 종료 → 직업 선택 UI 팝업 → 선택 → `GameDataManager.SelectedJobInfo` 업데이트 전체 흐름
+- `Job_Warrior/Mage/Rogue.asset`의 `previewSprite` 필드에 SPUM Idle 스프라이트 미할당 (캐릭터 미리보기 비어 있음)
+
+#### 다음 작업
+- PlayMode 전체 흐름 수동 검증
+- `JobClassInfo` 에셋 3종의 `previewSprite`에 SPUM 스프라이트 할당
+- `JobChangeUIWire.cs` 불필요 시 삭제
+
+#### 주의
+- `JobChangeCanvas`가 씬에서 active 상태로 배치되어 있어도 `Start()`에서 자동 비활성화됨
+- `PlayerController.enabled = false`로 이동 차단하므로, `PlayerController`가 카메라 추적 등 이동 외 기능도 담당한다면 분리 고려 필요
+- `JobChangeUIWire.cs`는 `execute_menu_item` MCP 타임아웃으로 인해 응답이 없어도 실제 코드는 정상 실행됨 (Unity 콘솔 로그로 확인)
+
+---
+
 ### 2026-05-08 (Claude Desktop — 직업 선택 UI Button 연동)
 
 - 작업 시작 전 이전 세션 컨텍스트 확인 완료.

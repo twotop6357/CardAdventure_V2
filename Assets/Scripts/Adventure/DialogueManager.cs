@@ -177,9 +177,20 @@ namespace CardAdventure
         {
             if (npc == null) return;
             DialogueData data = npc.DialogueData;
+            BeginDialogue(data, npc, true);
+        }
+
+        public void BeginDialogue(DialogueData data)
+        {
+            BeginDialogue(data, null, false);
+        }
+
+        private void BeginDialogue(DialogueData data, NpcInteractable npc, bool faceNpc)
+        {
             if (data == null || data.lines == null || data.lines.Length == 0)
             {
-                Debug.LogWarning($"[DialogueManager] '{npc.gameObject.name}'에 DialogueData가 없거나 대사가 비어 있습니다.", npc);
+                string targetName = npc != null ? npc.gameObject.name : "DialogueData";
+                Debug.LogWarning($"[DialogueManager] '{targetName}'에 DialogueData가 없거나 대사가 비어 있습니다.", npc);
                 return;
             }
 
@@ -195,7 +206,7 @@ namespace CardAdventure
 
             activePlayer?.SetInputEnabled(false);
 
-            if (activePlayer != null)
+            if (faceNpc && activePlayer != null && npc != null)
             {
                 FacePlayerTowardNpc(npc);
                 FaceNpcTowardPlayer(npc);

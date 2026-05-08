@@ -41,9 +41,20 @@ namespace CardAdventure
         [Header("캐릭터 미리보기")]
         [SerializeField] private Image characterPreviewImage;
 
-        // ── 직업 설명 ──────────────────────────────────────────────
-        [Header("직업 설명 텍스트")]
+        // ── 직업 설명 및 스탯 ──────────────────────────────────────
+        [Header("직업 설명 및 스탯 텍스트")]
         [SerializeField] private TextMeshProUGUI jobDescriptionText;
+        [SerializeField] private TextMeshProUGUI jobStatsText;
+
+        // ── 선택 화살표 인디케이터 ────────────────────────────────
+        [Header("선택 인디케이터")]
+        [SerializeField] private RectTransform jobArrowIndicator;
+
+        [Header("인디케이터 이동 속도")]
+        [SerializeField] private float indicatorMoveDuration = 0.12f;
+
+        // DOTween 트윈 ID
+        private const string k_ArrowTweenId = "JobArrowIndicator";
 
         // ── 결정 / 취소 버튼 ──────────────────────────────────────
         [Header("결정 / 취소 버튼")]
@@ -54,12 +65,10 @@ namespace CardAdventure
         [Header("팝업 애니메이션 루트 (없으면 스킵)")]
         [SerializeField] private RectTransform panelRoot;
 
-        // ── 선택 강조 색상 ────────────────────────────────────────
-        [Header("선택 강조 색상")]
-        [SerializeField] private Color selectedColor = new Color(1f, 0.92f, 0.5f, 1f);
-        [SerializeField] private Color normalColor   = Color.white;
+
 
         // ── 런타임 상태 ────────────────────────────────────────────
+        private readonly List<JobClassInfo> displayedJobs = new List<JobClassInfo>();
         private int              selectedJobIndex = 0;
         private bool             isOpen           = false;
         private bool             isInButtonPhase  = false;   // false = 직업 목록, true = 버튼 선택
@@ -104,6 +113,7 @@ namespace CardAdventure
         private void OnDestroy()
         {
             if (panelRoot != null) DOTween.Kill(panelRoot);
+            DOTween.Kill(k_ArrowTweenId);
             IsAnyOpen = false;
             SetPlayerMovement(true);
         }
@@ -184,7 +194,8 @@ namespace CardAdventure
         {
             isInButtonPhase = true;
             confirmFocused  = true;
-            RefreshButtonPhaseHighlights();
+            // 인디케이터를 결정 버튼으로 이동하고 나머지 UI도 갱신
+            RefreshDisplay();
         }
 
         // ══════════════════════════════════════════════════════════
@@ -193,9 +204,11 @@ namespace CardAdventure
 
         public void Open(int initialIndex = 0)
         {
-            if (jobs == null || jobs.Count == 0)
+            RebuildDisplayedJobs();
+
+            if (displayedJobs.Count == 0)
             {
-                Debug.LogWarning("[JobChangeUIController] jobs 목록이 비어 있습니다.", this);
+                Debug.LogWarning("[JobChangeUIController] 현재 직업을 제외한 변경 가능한 직업이 없습니다.", this);
                 return;
             }
 
@@ -204,7 +217,7 @@ namespace CardAdventure
             isInButtonPhase = false;
             confirmFocused  = true;
             gameObject.SetActive(true);
-            selectedJobIndex = Mathf.Clamp(initialIndex, 0, jobs.Count - 1);
+            selectedJobIndex = Mathf.Clamp(initialIndex, 0, displayedJobs.Count - 1);
 
             SetPlayerMovement(false);
 
@@ -241,6 +254,40 @@ namespace CardAdventure
         public void SetJobs(List<JobClassInfo> jobInfoList)
         {
             jobs = jobInfoList ?? new List<JobClassInfo>();
+            RebuildDisplayedJobs();
+        }
+
+        private void RebuildDisplayedJobs()
+        {
+            displayedJobs.Clear();
+
+            if (jobs == null)
+            {
+                return;
+            }
+
+            JobClassInfo currentJob = GameDataManager.Instance != null
+                ? GameDataManager.Instance.SelectedJobInfo
+                : null;
+            CardClass currentClass = GameDataManager.Instance != null
+                ? GameDataManager.Instance.SelectedJobClass
+                : CardClass.Warrior;
+
+            for (int i = 0; i < jobs.Count; i++)
+            {
+                JobClassInfo job = jobs[i];
+                if (job == null)
+                {
+                    continue;
+                }
+
+                if (job == currentJob || job.cardClass == currentClass)
+                {
+                    continue;
+                }
+
+                displayedJobs.Add(job);
+            }
         }
 
         // ══════════════════════════════════════════════════════════
@@ -262,15 +309,15 @@ namespace CardAdventure
         /// <summary>키보드로 직업 목록 이동 (순환)</summary>
         private void MoveJobSelection(int direction)
         {
-            if (jobs == null || jobs.Count == 0) return;
-            selectedJobIndex = (selectedJobIndex + direction + jobs.Count) % jobs.Count;
+            if (displayedJobs.Count == 0) return;
+            selectedJobIndex = (selectedJobIndex + direction + displayedJobs.Count) % displayedJobs.Count;
             RefreshDisplay();
         }
 
         /// <summary>마우스 클릭으로 직업 선택 — 1단계로 복귀</summary>
         private void SelectJobByMouse(int index)
         {
-            if (index < 0 || index >= jobs.Count) return;
+            if (index < 0 || index >= displayedJobs.Count) return;
             selectedJobIndex = index;
             isInButtonPhase  = false;
             RefreshDisplay();
@@ -282,12 +329,16 @@ namespace CardAdventure
 
         private void InitJobButtonLabels()
         {
-            for (int i = 0; i < jobButtons.Count && i < jobs.Count; i++)
+            for (int i = 0; i < jobButtons.Count; i++)
             {
                 if (jobButtons[i] == null) continue;
+                bool hasJob = i < displayedJobs.Count && displayedJobs[i] != null;
+                jobButtons[i].gameObject.SetActive(hasJob);
+                if (!hasJob) continue;
+
                 TextMeshProUGUI label = jobButtons[i].GetComponentInChildren<TextMeshProUGUI>();
-                if (label != null && jobs[i] != null)
-                    label.text = jobs[i].displayName;
+                if (label != null)
+                    label.text = displayedJobs[i].displayName;
             }
         }
 
@@ -297,43 +348,95 @@ namespace CardAdventure
             RefreshButtonPhaseHighlights();
             RefreshPreview();
             RefreshDescription();
+            RefreshStats();
         }
 
-        /// <summary>직업 버튼 강조 (1단계 선택 표시)</summary>
+        /// <summary>직업 버튼 선택 표시 — 화살표 인디케이터를 선택 버튼 왼쪽으로 DOTween 이동</summary>
         private void RefreshJobButtonHighlights()
         {
-            for (int i = 0; i < jobButtons.Count; i++)
-            {
-                if (jobButtons[i] == null) continue;
-                Image img = jobButtons[i].GetComponent<Image>();
-                if (img != null)
-                    img.color = (i == selectedJobIndex) ? selectedColor : normalColor;
-            }
+            if (jobArrowIndicator == null) return;
+            // 2단계(버튼 선택)에서는 이 메서드가 인디케이터를 건드리지 않음
+            if (isInButtonPhase) return;
+            if (displayedJobs.Count == 0) return;
+            if (jobButtons == null || selectedJobIndex >= jobButtons.Count) return;
+
+            var selectedBtn = jobButtons[selectedJobIndex];
+            if (selectedBtn == null) return;
+
+            var btnRt = selectedBtn.GetComponent<RectTransform>();
+            if (btnRt == null) return;
+
+            Vector3 target = CalcIndicatorLocalPos(btnRt);
+            MoveIndicatorTo(target);
         }
 
-        /// <summary>결정/취소 버튼 강조 (2단계 포커스 표시)</summary>
+        /// <summary>결정/취소 버튼 포커스 — 화살표 인디케이터를 해당 버튼 왼쪽으로 DOTween 이동</summary>
         private void RefreshButtonPhaseHighlights()
         {
-            if (yesButton != null)
+            if (jobArrowIndicator == null) return;
+            if (!isInButtonPhase) return;
+
+            Button targetBtn = confirmFocused ? yesButton : noButton;
+            if (targetBtn == null) return;
+
+            var btnRt = targetBtn.GetComponent<RectTransform>();
+            if (btnRt == null) return;
+
+            Vector3 target = CalcIndicatorLocalPos(btnRt);
+            MoveIndicatorTo(target);
+        }
+
+        /// <summary>
+        /// RectTransform(btnRt)의 월드 중심을 jobArrowIndicator의 부모 로컬 공간으로 변환하여
+        /// 버튼 왼쪽에 화살표를 배치할 목표 localPosition을 반환한다.
+        /// </summary>
+        private Vector3 CalcIndicatorLocalPos(RectTransform btnRt)
+        {
+            var parentRt = jobArrowIndicator.parent as RectTransform;
+            if (parentRt == null) return Vector3.zero;
+
+            // 버튼 월드 중심 → 인디케이터 부모 로컬 좌표
+            Vector3 worldCenter = btnRt.TransformPoint(btnRt.rect.center);
+            Vector3 localCenter = parentRt.InverseTransformPoint(worldCenter);
+
+            float arrowHalfW = jobArrowIndicator.sizeDelta.x * 0.5f;
+            float btnHalfW   = btnRt.rect.width * 0.5f;
+
+            return new Vector3(
+                localCenter.x - btnHalfW - arrowHalfW - 6f,
+                localCenter.y,
+                0f
+            );
+        }
+
+        /// <summary>인디케이터를 DOTween으로 목표 위치까지 이동 (처음 표시 시 즉시 배치)</summary>
+        private void MoveIndicatorTo(Vector3 targetLocalPos)
+        {
+            if (jobArrowIndicator == null) return;
+
+            DOTween.Kill(k_ArrowTweenId);
+
+            if (!jobArrowIndicator.gameObject.activeSelf)
             {
-                Image img = yesButton.GetComponent<Image>();
-                if (img != null)
-                    img.color = (isInButtonPhase && confirmFocused)  ? selectedColor : normalColor;
+                // 처음 표시할 때는 즉시 배치
+                jobArrowIndicator.localPosition = targetLocalPos;
+                jobArrowIndicator.gameObject.SetActive(true);
+                return;
             }
-            if (noButton != null)
-            {
-                Image img = noButton.GetComponent<Image>();
-                if (img != null)
-                    img.color = (isInButtonPhase && !confirmFocused) ? selectedColor : normalColor;
-            }
+
+            jobArrowIndicator
+                .DOLocalMove(targetLocalPos, indicatorMoveDuration)
+                .SetEase(Ease.OutCubic)
+                .SetId(k_ArrowTweenId)
+                .SetUpdate(true);
         }
 
         private void RefreshPreview()
         {
             if (characterPreviewImage == null) return;
-            if (jobs == null || selectedJobIndex >= jobs.Count) return;
+            if (selectedJobIndex >= displayedJobs.Count) return;
 
-            JobClassInfo info = jobs[selectedJobIndex];
+            JobClassInfo info = displayedJobs[selectedJobIndex];
             if (info == null) return;
 
             characterPreviewImage.sprite  = info.previewSprite;
@@ -343,12 +446,33 @@ namespace CardAdventure
         private void RefreshDescription()
         {
             if (jobDescriptionText == null) return;
-            if (jobs == null || selectedJobIndex >= jobs.Count) return;
+            if (selectedJobIndex >= displayedJobs.Count) return;
 
-            JobClassInfo info = jobs[selectedJobIndex];
+            JobClassInfo info = displayedJobs[selectedJobIndex];
             if (info == null) return;
 
             jobDescriptionText.text = info.description;
+        }
+
+        private void RefreshStats()
+        {
+            if (jobStatsText == null) return;
+            if (selectedJobIndex >= displayedJobs.Count) return;
+
+            JobClassInfo info = displayedJobs[selectedJobIndex];
+            if (info == null) return;
+
+            jobStatsText.text = 
+                $"공격력 {GetStarString(info.attackStars)}\n" +
+                $"방어력 {GetStarString(info.defenseStars)}\n" +
+                $"마법력 {GetStarString(info.magicStars)}\n" +
+                $"난이도 {GetStarString(info.difficulty)}";
+        }
+
+        private string GetStarString(int stars)
+        {
+            stars = Mathf.Clamp(stars, 1, 5);
+            return new string('■', stars) + new string('□', 5 - stars);
         }
 
         // ══════════════════════════════════════════════════════════
@@ -357,8 +481,8 @@ namespace CardAdventure
 
         private void ExecuteConfirm()
         {
-            if (jobs == null || selectedJobIndex >= jobs.Count) return;
-            JobClassInfo selected = jobs[selectedJobIndex];
+            if (selectedJobIndex >= displayedJobs.Count) return;
+            JobClassInfo selected = displayedJobs[selectedJobIndex];
             Close();
             OnJobConfirmed?.Invoke(selected);
         }

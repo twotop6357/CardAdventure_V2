@@ -183,6 +183,9 @@ MonoBehaviour:
   footCollider: {fileID: 0}
   alignVisualToReferenceHeight: 1
   spriteRenderer: {fileID: 0}
+  jobChangeUI: {fileID: 0}
+  afterJobChangeDialogue: {fileID: 11400000, guid: 123b38c60dcf0504e910293d800ac602,
+    type: 2}
 --- !u!114 &6525521961636326153
 MonoBehaviour:
   m_ObjectHideFlags: 0

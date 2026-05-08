@@ -170,6 +170,11 @@ namespace CardAdventure
             }
         }
 
+        private void LateUpdate()
+        {
+            NormalizeVisualToReferenceHeight();
+        }
+
         private void ResolveMoveUnitSize()
         {
             if (!useGridCellSize)
@@ -230,22 +235,7 @@ namespace CardAdventure
 
         private void AlignVisualToTile()
         {
-            if (!alignVisualToTile || spriteRenderer == null || spriteRenderer.sprite == null)
-            {
-                return;
-            }
-
-            float idleMultiplier = Mathf.Max(0.001f, idleVisualScaleMultiplier);
-            float idleScale = AdventureGridUtility.GetVisualScaleForReferenceHeight(spriteRenderer.sprite);
-            float walkScale = idleScale / idleMultiplier;
-
-            walkVisualScale = new Vector3(walkScale, walkScale, 1f);
-
-            Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
-            float finalHeight = spriteRenderer.sprite.bounds.size.y * idleScale;
-            Vector3 localPos = spriteRenderer.transform.localPosition;
-            localPos.y = (finalHeight - cellSize.y) * 0.5f;
-            spriteRenderer.transform.localPosition = localPos;
+            NormalizeVisualToReferenceHeight();
         }
 
         public void RefreshVisualAlignment()
@@ -261,6 +251,38 @@ namespace CardAdventure
             spriteRenderer = newSpriteRenderer;
             animator = newAnimator;
             idleVisualScaleMultiplier = Mathf.Max(0.001f, newIdleVisualScaleMultiplier);
+            RefreshVisualAlignment();
+        }
+
+        public void ApplyJobVisual(JobClassInfo jobInfo)
+        {
+            if (jobInfo == null)
+            {
+                return;
+            }
+
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            }
+
+            if (animator == null)
+            {
+                animator = GetComponentInChildren<Animator>();
+            }
+
+            Sprite nextSprite = jobInfo.playerIdleSprite != null ? jobInfo.playerIdleSprite : jobInfo.previewSprite;
+            if (spriteRenderer != null && nextSprite != null)
+            {
+                spriteRenderer.sprite = nextSprite;
+            }
+
+            if (animator != null && jobInfo.playerAnimatorController != null)
+            {
+                animator.runtimeAnimatorController = jobInfo.playerAnimatorController;
+            }
+
+            idleVisualScaleMultiplier = Mathf.Max(0.001f, jobInfo.playerIdleVisualScaleMultiplier);
             RefreshVisualAlignment();
         }
 
@@ -396,13 +418,25 @@ namespace CardAdventure
 
         private void ApplyVisualScale(bool moving)
         {
-            if (spriteRenderer == null)
+            NormalizeVisualToReferenceHeight();
+        }
+
+        private void NormalizeVisualToReferenceHeight()
+        {
+            if (!alignVisualToTile || spriteRenderer == null || spriteRenderer.sprite == null)
             {
                 return;
             }
 
-            float scaleMultiplier = moving ? 1f : idleVisualScaleMultiplier;
-            spriteRenderer.transform.localScale = walkVisualScale * scaleMultiplier;
+            float scale = AdventureGridUtility.GetVisualScaleForReferenceHeight(spriteRenderer.sprite);
+            spriteRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+            walkVisualScale = spriteRenderer.transform.localScale;
+
+            Vector2 cellSize = AdventureGridUtility.GetCellSize(moveUnitSize);
+            float finalHeight = spriteRenderer.sprite.bounds.size.y * scale;
+            Vector3 localPos = spriteRenderer.transform.localPosition;
+            localPos.y = (finalHeight - cellSize.y) * 0.5f;
+            spriteRenderer.transform.localPosition = localPos;
         }
 
         private void ResolveInputAction()
@@ -461,8 +495,7 @@ namespace CardAdventure
         {
             if (spriteRenderer != null && !Application.isPlaying)
             {
-                Vector3 scale = walkVisualScale == Vector3.zero ? Vector3.one : walkVisualScale;
-                spriteRenderer.transform.localScale = scale * idleVisualScaleMultiplier;
+                NormalizeVisualToReferenceHeight();
             }
 
             if (footCollider != null && !Application.isPlaying)

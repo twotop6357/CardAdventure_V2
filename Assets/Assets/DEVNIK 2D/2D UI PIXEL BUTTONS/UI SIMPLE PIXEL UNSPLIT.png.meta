@@ -8,7 +8,10 @@ AssetOrigin:
   assetPath: Assets/DEVNIK 2D/2D UI PIXEL BUTTONS/UI SIMPLE PIXEL UNSPLIT.png
   uploadId: 780706
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: -5430016491326110659
+    second: JobArrow
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -780,6 +783,28 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: JobArrow
+      rect:
+        serializedVersion: 2
+        x: 455
+        y: 744
+        width: 140
+        height: 110
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6cfbcadfdda7eef40bdaf2797591cd9c
+      internalID: -5430016491326110659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -809,6 +834,7 @@ TextureImporter:
       EXIT_BAR: -630868318
       EXIT_BUTTON: -949757489
       EXIT_BUTTON_1: 1878393918
+      JobArrow: -5430016491326110659
       LEVEL_BAR: -1150674614
       PAUSE_BUTTON: -708245964
       PAUSE_BUTTON1: -713559888

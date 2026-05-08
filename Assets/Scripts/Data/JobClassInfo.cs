@@ -40,6 +40,15 @@ namespace CardAdventure
         [Tooltip("직업 선택 UI에서 보여줄 캐릭터 미리보기 스프라이트. SPUM 생성 캐릭터의 Idle 프레임을 사용하는 것을 권장.")]
         public Sprite previewSprite;
 
+        [Tooltip("어드벤처 씬에서 플레이어로 사용할 IdleFront 첫 프레임 스프라이트.")]
+        public Sprite playerIdleSprite;
+
+        [Tooltip("어드벤처 씬에서 플레이어 비주얼에 적용할 Animator Controller.")]
+        public RuntimeAnimatorController playerAnimatorController;
+
+        [Tooltip("Idle 애니메이션 스프라이트를 기준 키에 맞추기 위한 배율. 직업별 플레이어 애니메이션 시트 크기 차이를 보정한다.")]
+        public float playerIdleVisualScaleMultiplier = 1f;
+
         [Header("게임 데이터")]
         [Tooltip("이 직업을 선택했을 때 시작 덱에 들어갈 카드 목록")]
         public List<CardData> starterCards = new List<CardData>();
