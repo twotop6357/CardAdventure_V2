@@ -28,6 +28,14 @@ MonoBehaviour:
   playerAnimatorController: {fileID: 9100000, guid: b1e638d31d6889b4690e908e1e126452,
     type: 2}
   playerIdleVisualScaleMultiplier: 0.267
-  starterCards: []
+  starterCards:
+  - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
+  - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
+  - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
+  - {fileID: 11400000, guid: 98ba4d22a9d25314fafe6e95fddaef96, type: 2}
+  - {fileID: 11400000, guid: 98ba4d22a9d25314fafe6e95fddaef96, type: 2}
+  - {fileID: 11400000, guid: bc6b91fe15dcaa9478ad9813c95f081c, type: 2}
+  - {fileID: 11400000, guid: 96e1e70686000cd4581eb959cc710cac, type: 2}
+  - {fileID: 11400000, guid: ca5833677ca868c40bfb5fdb9af73f5a, type: 2}
   baseMaxHp: 60
   baseMaxEnergy: 3

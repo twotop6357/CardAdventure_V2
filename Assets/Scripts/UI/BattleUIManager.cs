@@ -161,6 +161,11 @@ namespace CardAdventure
             if (resultPanel != null) resultPanel.SetActive(false);
             if (endTurnButton != null) endTurnButton.gameObject.SetActive(true);
 
+            // 직업 데이터에서 플레이어 스프라이트를 HUD에 코드-side 주입
+            // (BattleManager.ActiveJob: GameDataManager 없으면 defaultJob(전사) 사용)
+            if (playerHud != null && manager.ActiveJob != null)
+                playerHud.SetPlayerSprite(manager.ActiveJob.previewSprite);
+
             enemyView?.ResetForBattle(manager.Enemy);
             RefreshHudAndButtons(manager);
             RefreshHand(manager);   // 첫 5장 드로우

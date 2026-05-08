@@ -92,25 +92,25 @@ namespace CardAdventure
 
             if (cardNameText == null)
             {
-                Transform t = transform.Find("CardName");
+                Transform t = transform.Find("CardName") ?? transform.Find("NameText");
                 if (t != null) cardNameText = t.GetComponent<TextMeshProUGUI>();
             }
 
             if (descriptionText == null)
             {
-                Transform t = transform.Find("CardDescription");
+                Transform t = transform.Find("CardDescription") ?? transform.Find("DescText");
                 if (t != null) descriptionText = t.GetComponent<TextMeshProUGUI>();
             }
 
             if (cardArtImage == null)
             {
-                Transform t = transform.Find("CardImage");
+                Transform t = transform.Find("CardArtImage") ?? transform.Find("CardImage") ?? transform.Find("CardIcon");
                 if (t != null) cardArtImage = t.GetComponent<Image>();
             }
 
             if (energyCostText == null)
             {
-                Transform t = transform.Find("ManaCostText");
+                Transform t = transform.Find("ManaCostText") ?? transform.Find("CostText");
                 if (t != null) energyCostText = t.GetComponent<TextMeshProUGUI>();
             }
 

@@ -31,8 +31,15 @@ namespace CardAdventure
         [SerializeField] private TextMeshProUGUI turnText;
 
         [Header("피격 연출")]
-        [SerializeField] private Graphic damageFlash;      // 화면 가장자리 붉은 이미지 등
-        [SerializeField] private float   flashDuration = 0.3f;
+        [SerializeField] private float shakeDuration  = 0.3f;
+        [SerializeField] private float shakeStrength  = 18f;
+        [SerializeField] private int   shakeVibrato   = 20;
+        [SerializeField] private float flashDuration  = 0.15f;
+        [Tooltip("playerImage 없을 때 폴백으로 사용할 전체 화면 오버레이 Image")]
+        [SerializeField] private Graphic damageFlash;
+
+        // 코드-side 주입 (BattleUIManager가 직업 데이터를 통해 설정)
+        private Image playerImage;
 
         // ── 공개 메서드 ────────────────────────────────────────────
 
@@ -75,13 +82,73 @@ namespace CardAdventure
             RefreshStatusIcons(c);
         }
 
-        /// <summary>피격 플래시 연출 (플레이어가 데미지를 받을 때 호출).</summary>
+        /// <summary>
+        /// 직업 데이터에서 가져온 플레이어 스프라이트를 PlayerAvatar Image에 적용한다.
+        /// BattleUIManager가 전투 시작 시 코드-side로 호출한다.
+        /// </summary>
+        public void SetPlayerSprite(Sprite sprite)
+        {
+            // 이미 playerImage 참조가 있으면 스프라이트만 교체
+            if (playerImage != null)
+            {
+                playerImage.sprite  = sprite;
+                playerImage.enabled = sprite != null;
+                return;
+            }
+
+            // 씬에 있는 "PlayerAvatar" GameObject를 찾아 Image 컴포넌트를 캐싱
+            GameObject avatarGo = GameObject.Find("PlayerAvatar");
+            if (avatarGo != null)
+                playerImage = avatarGo.GetComponent<Image>();
+
+            if (playerImage != null)
+            {
+                playerImage.sprite  = sprite;
+                playerImage.enabled = sprite != null;
+            }
+            else
+            {
+                Debug.LogWarning("[BattleHudView] 'PlayerAvatar' Image를 찾을 수 없습니다. " +
+                                 "씬에 'PlayerAvatar' 이름의 Image 오브젝트가 있는지 확인하세요.");
+            }
+        }
+
+        /// <summary>피격 연출 (플레이어가 데미지를 받을 때 호출).</summary>
         public void PlayDamageFlash()
         {
-            if (damageFlash == null) return;
-            DOTween.Kill(damageFlash);
-            damageFlash.color = new Color(1f, 0f, 0f, 0.4f);
-            damageFlash.DOFade(0f, flashDuration).SetEase(Ease.OutQuad);
+            if (playerImage != null)
+            {
+                // 플레이어 이미지가 지정된 경우: 적 피격과 동일하게 흔들림 + 붉은 플래시 → 흰색 복귀
+                DOTween.Kill(playerImage.rectTransform);
+                DOTween.Kill(playerImage);
+
+                playerImage.rectTransform
+                    .DOShakePosition(shakeDuration, shakeStrength, shakeVibrato, 90f, false, true)
+                    .SetEase(Ease.OutQuad);
+
+                DOTween.Sequence()
+                    .Append(playerImage.DOColor(Color.red,   flashDuration))
+                    .Append(playerImage.DOColor(Color.white, flashDuration));
+            }
+            else
+            {
+                // 폴백: HUD 패널 자체를 흔들기 (전체 화면 플래시 대신)
+                RectTransform rt = transform as RectTransform;
+                if (rt != null)
+                {
+                    DOTween.Kill(rt);
+                    rt.DOShakePosition(shakeDuration, shakeStrength * 0.6f, shakeVibrato, 90f, false, true)
+                      .SetEase(Ease.OutQuad);
+                }
+
+                // 전체 화면 오버레이가 있으면 작은 범위 페이드만 적용
+                if (damageFlash != null)
+                {
+                    DOTween.Kill(damageFlash);
+                    damageFlash.color = new Color(1f, 0f, 0f, 0.25f);
+                    damageFlash.DOFade(0f, flashDuration * 2f).SetEase(Ease.OutQuad);
+                }
+            }
         }
 
         // ── 내부 ───────────────────────────────────────────────────

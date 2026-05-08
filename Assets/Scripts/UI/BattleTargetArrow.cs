@@ -56,17 +56,26 @@ namespace CardAdventure
         /// <summary>화살표를 보이게 하고 시작점을 설정한다.</summary>
         public void Show(Vector3 startWorldPos)
         {
-            gameObject.SetActive(true);
+            // isActive를 먼저 설정해야 한다.
+            // TargetArrow가 Inspector에서 비활성으로 시작하면 SetActive(true) 시점에
+            // Awake()가 처음 실행되는데, Awake() 내부의 SetActive(false) 호출을
+            // isActive 플래그로 차단해야 첫 클릭에도 화살표가 표시된다.
             isActive = true;
             pulseTimer = 0f;
+            gameObject.SetActive(true);
 
-            // 월드 좌표 → 스크린 좌표 변환
-            Camera cam = uiCamera != null ? uiCamera : Camera.main;
-            startScreenPos = cam != null
-                ? (Vector2)cam.WorldToScreenPoint(startWorldPos)
-                : new Vector2(Screen.width * 0.5f, Screen.height * 0.3f);
+            if (canvas == null)
+                canvas = GetComponentInParent<Canvas>();
+
+            Camera cam = null;
+            if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+                cam = uiCamera != null ? uiCamera : canvas.worldCamera != null ? canvas.worldCamera : Camera.main;
+
+            startScreenPos = RectTransformUtility.WorldToScreenPoint(cam, startWorldPos);
 
             SetSegmentVisibility(true);
+            UpdateCurve(startScreenPos, Input.mousePosition);
+            UpdatePulse();
         }
 
         /// <summary>화살표를 숨긴다.</summary>
@@ -80,9 +89,15 @@ namespace CardAdventure
 
         private void Awake()
         {
+            if (canvas == null)
+                canvas = GetComponentInParent<Canvas>();
             // Canvas가 없으면 부모에서 검색
             if (canvas == null) canvas = GetComponentInParent<Canvas>();
-            gameObject.SetActive(false);
+
+            // Show()가 이미 isActive=true로 설정한 경우(Inspector 비활성 오브젝트의 첫 활성화)
+            // SetActive(false)를 호출하면 화살표가 즉시 숨겨지므로 건너뛴다.
+            if (!isActive)
+                gameObject.SetActive(false);
         }
 
         private void Update()

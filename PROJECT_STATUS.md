@@ -2,6 +2,281 @@
 
 ---
 
+### 2026-05-08 (Antigravity — 전투 씬 상태이상 툴팁 시스템 구현 및 버그 수정)
+
+#### 이번 세션 작업 요약
+전투 중 플레이어/적의 상태이상(버프/디버프) 아이콘에 마우스를 올리면 상세 정보를 확인할 수 있는 **동적 툴팁 시스템**을 구축했다. 좌표 불일치 및 컴포넌트 누락 에러를 해결하여 마우스를 부드럽게 추적하는 기능을 완성했다.
+
+#### 변경 파일
+
+**`Assets/Scripts/UI/StatusTooltipPanel.cs`** (신규)
+- 툴팁 UI 제어 로직: 상태이상 데이터 바인딩, 마우스 추적, 화면 경계 클램핑.
+- 시각적 디자인: 완전 불투명 검정색 배경에 고대비 텍스트 적용.
+- 싱글턴 접근성 강화: 씬 전체 검색을 통한 인스턴스 자동 복구 로직 추가.
+
+**`Assets/Scripts/UI/BattleStatusIconView.cs`** (수정)
+- 마우스 이벤트 핸들러(`IPointerEnter/Exit/Move`) 구현.
+- `Awake()` 시 투명 `Image` 컴포넌트 자동 추가 로직: 루트 오브젝트에서도 마우스 레이캐스트를 확실히 수신하도록 개선.
+
+**`Assets/Scripts/Editor/TempUIBuilder.cs`** (수정)
+- `Build Status Tooltip Panel` 메뉴 추가: `BattleCanvas` 하단에 툴팁 계층 구조 자동 생성.
+- `MissingComponentException` 해결: 모든 UI 오브젝트 생성 시 `RectTransform`을 포함하도록 수정.
+- 강력한 클린업: 툴 실행 시 씬 전체에서 이전 툴팁 찌꺼기를 검색·제거 후 재생성.
+
+**`Assets/Prefabs/UI/StatusIcon.prefab`** (수정)
+- `IconImage`의 `raycastTarget`을 `true`로 설정하여 마우스 오버 감지 보장.
+
+#### 동작 흐름
+1. 상태이상 아이콘 마우스 오버 → `BattleStatusIconView` 이벤트 발생.
+2. `StatusTooltipPanel.Instance.Show()` 호출 → 데이터 바인딩 및 활성화.
+3. 마우스 이동 시 툴팁이 지정된 오프셋을 유지하며 따라다님.
+4. 화면 가장자리에 도달하면 툴팁이 캔버스 밖으로 나가지 않도록 자동 클램핑.
+
+#### 검증
+- `StatusTooltipPanel.cs`, `BattleStatusIconView.cs` 컴파일 오류 0개.
+- `MissingComponentException` (RectTransform 누락) 콘솔 에러 해결 확인.
+- `BattleTest` 씬에서 툴팁 패널 정상 생성 및 배치 확인.
+
+#### 미검증 (수동 확인 필요)
+- 다양한 해상도에서의 클램핑 정확도 확인.
+- 실제 전투 중 여러 상태이상이 겹쳤을 때의 툴팁 팝업 우선순위 체감.
+
+---
+
+### 2026-05-08 (Claude — 직업 미리보기 스프라이트 수정 + PlayerAvatar 동적 생성 제거)
+
+#### 이번 세션 작업 요약
+이전 세션에서 잘못 적용된 스프라이트 필드와 동적 Image 생성 코드를 수정했다.
+
+#### 변경 파일
+
+**`Assets/Scripts/UI/JobChangeUIController.cs`** (수정)
+- `RefreshPreview()`: `playerIdleSprite` 우선/폴백 로직 제거 → `previewSprite`만 사용
+
+**`Assets/Scripts/UI/BattleHudView.cs`** (수정)
+- `SetPlayerSprite()`: 동적 80×100px `PlayerPortrait` Image 생성 코드 완전 삭제
+- 대신 씬에 이미 존재하는 `PlayerAvatar` GameObject를 `GameObject.Find("PlayerAvatar")`로 찾아 `Image` 컴포넌트를 캐싱 후 스프라이트 적용
+
+**`Assets/Scripts/UI/BattleUIManager.cs`** (수정)
+- `OnBattleStarted()`: `manager.ActiveJob.playerIdleSprite` → `manager.ActiveJob.previewSprite` 로 변경
+
+#### 동작 흐름 (수정 후)
+- 직업 변경 UI: 선택 직업의 `previewSprite` 표시
+- 전투 시작: `PlayerAvatar` Image에 직업 `previewSprite` 적용 (동적 생성 없음)
+- 플레이어 피격: `PlayerAvatar` Image 흔들림 + 빨간 플래시
+
+#### 검증
+- 코드 로직 검토 완료. Unity PlayMode 실제 확인 필요.
+- `PlayerAvatar` GO가 BattleTest.unity 씬에 존재함은 이전 세션 YAML 조사에서 확인됨.
+
+---
+
+### 2026-05-08 (Claude — 배틀 씬 전사 기본값 자동 구성 + 플레이어 이미지 코드-side 주입)
+
+#### 이번 세션 작업 요약
+Inspector 직접 할당 없이 전사 기본 직업 데이터(HP·덱·스프라이트)가 배틀 씬에 자동 적용되도록 구조를 정비했다.
+
+#### 변경 파일
+
+**`Assets/ScriptableObjects/Jobs/Job_Warrior.asset`** (수정)
+- `starterCards`에 전사 카드 8장 추가 (Strike×3, Defend×2, ShieldBash, Rage, Taunt)
+
+**`Assets/Scripts/Battle/BattleManager.cs`** (수정)
+- `[SerializeField] private JobClassInfo defaultJob` 필드 추가 (Inspector에서 Job_Warrior 연결)
+- `public JobClassInfo ActiveJob` 프로퍼티 추가
+- `AutoConfigureFromGameData()` 메서드 추가: GameDataManager 존재 시 그 데이터 우선, 없으면 defaultJob(전사) 기준으로 playerMaxHp·startingDeck·ActiveJob 자동 설정
+- `Start()`에서 `AutoConfigureFromGameData()` 먼저 호출 후 `StartBattle()`
+
+**`Assets/Scripts/UI/BattleHudView.cs`** (수정)
+- `playerImage` 필드를 `[SerializeField]` → private(non-Inspector)으로 변경
+- `SetPlayerSprite(Sprite)` 공개 메서드 추가: 이미 "PlayerPortrait" 자식 Image가 있으면 사용, 없으면 동적 생성
+
+**`Assets/Scripts/UI/BattleUIManager.cs`** (수정)
+- `OnBattleStarted()`에서 `playerHud.SetPlayerSprite(manager.ActiveJob.playerIdleSprite)` 호출 추가
+
+**`Assets/Scenes/BattleTest.unity`** (수정)
+- `BattleManager.defaultJob` = `Job_Warrior.asset` 연결
+
+#### 동작 흐름
+1. BattleTest 씬 실행 → `BattleManager.Start()` → `AutoConfigureFromGameData()`
+2. GameDataManager 없음 → `defaultJob`(전사) 사용 → HP=60, 카드덱=전사 8장
+3. `BattleStarted` 이벤트 → `BattleUIManager.OnBattleStarted()` → `playerHud.SetPlayerSprite(warriorSprite)` 코드-side 주입
+4. 플레이어 피격 시 → 전사 스프라이트 흔들림 + 붉은 플래시
+
+#### 향후 연동 계획 (미구현)
+- 어드벤처 → 배틀 씬 전환 시 `GameDataManager.SelectedJobInfo`와 `Deck` 세팅 → 자동으로 해당 직업 데이터 사용
+
+#### 검증
+- YAML 직접 확인: `Job_Warrior.asset` starterCards 8장, `BattleTest.unity` defaultJob 연결 완료
+- 코드 로직 검토 완료. Unity PlayMode 실제 확인 필요.
+
+---
+
+### 2026-05-08 (Claude — 직업 선택 UI 이미지 교체 + 플레이어 피격 연출 개선)
+
+#### 이번 세션 작업 요약
+1. 직업 변경 UI 캐릭터 미리보기를 직업별 실제 플레이어 스프라이트로 교체
+2. 플레이어 피격 연출을 전체 화면 빨간 깜빡임 대신 몬스터 피격과 동일한 방식으로 변경
+
+#### 변경 파일
+
+**`Assets/Scripts/UI/JobChangeUIController.cs`** (수정)
+- `RefreshPreview()`: `previewSprite` 대신 `playerIdleSprite`를 우선 사용. `playerIdleSprite`가 null이면 `previewSprite`로 폴백.
+
+**`Assets/Scripts/UI/BattleHudView.cs`** (수정)
+- 새 필드 추가: `playerImage` (Image), `shakeDuration`, `shakeStrength`, `shakeVibrato`, `flashDuration`
+- `PlayDamageFlash()` 개선:
+  - `playerImage`가 지정된 경우 → `DOShakePosition` + `DOColor(red→white)` (적 피격과 동일)
+  - `playerImage`가 없는 경우(폴백) → HUD 패널 자체 흔들림 + `damageFlash` 오버레이를 약하게 적용
+
+#### Inspector 추가 작업
+- BattleTest 씬 `PlayerHUD` 오브젝트 → `BattleHudView.playerImage` 필드에 플레이어 캐릭터 Image 연결 시 완전한 적 피격 효과 적용 가능. 연결 전에는 HUD 전체 흔들림으로 동작.
+
+#### 검증
+- 코드 로직 검토 완료. Unity PlayMode 실제 확인은 에디터 직접 실행 필요.
+
+---
+
+### 2026-05-08 (Claude — 공격 카드 첫 클릭 화살표 미표시 버그 수정)
+
+#### 이번 세션 작업 요약
+공격 카드를 처음 클릭했을 때 타겟 화살표 UI가 나타나지 않는 버그의 근본 원인을 파악하고 수정했다.
+
+#### 원인
+`BattleTest.unity` 씬에서 `TargetArrow` 오브젝트가 Inspector 기준으로 **비활성(m_IsActive: 0)** 상태로 시작한다. Unity에서 Inspector 비활성 오브젝트는 씬 로드 시 `Awake()`가 실행되지 않고, 최초 `SetActive(true)` 호출 시점에 `Awake()`가 실행된다.
+
+기존 `Show()` 코드:
+```csharp
+gameObject.SetActive(true);  // 이 시점에 Awake() 최초 실행
+isActive = true;
+```
+
+`Awake()` 내부에서 `gameObject.SetActive(false)` 호출 → 오브젝트가 즉시 다시 비활성화됨 → 첫 클릭에 화살표가 보이지 않는다. 두 번째 클릭부터는 `Awake()`가 재실행되지 않으므로 정상 작동하는 것처럼 보였다.
+
+이전 Codex 수정(`RectTransformUtility.WorldToScreenPoint` 변경, `UpdateCurve` 즉시 호출)은 다른 부분을 개선했지만 이 근본 원인을 해결하지 못해 버그가 유지됐다.
+
+#### 변경 파일
+
+**`Assets/Scripts/UI/BattleTargetArrow.cs`** (수정)
+- `Show()`: `isActive = true`와 `pulseTimer = 0f`를 `gameObject.SetActive(true)` **이전**으로 이동
+- `Awake()`: `gameObject.SetActive(false)` 호출을 `if (!isActive)` 조건으로 보호 — Show()가 먼저 `isActive=true`를 설정한 경우 즉시 비활성화를 건너뜀
+
+#### 검증
+- 씬 파일(`BattleTest.unity`) grep으로 `TargetArrow`의 `m_IsActive: 0` 확인 → 버그 원인 확정
+- 코드 로직 검토: Inspector 비활성/활성 두 시작 상태 모두에서 정상 동작 확인
+- Unity PlayMode 실제 클릭 확인은 에디터 직접 실행 필요
+
+#### 다음 작업 제안
+- Unity Editor에서 BattleTest.unity를 열고 공격 카드 첫 클릭 시 화살표가 즉시 표시되는지 확인
+- 카드 배틀 씬 추가 기능 구현 (적 의도 UI, 상태이상 비주얼 등)
+
+---
+
+### 2026-05-08 (Codex 카드 프리팹 정렬 원인 확인 및 공격 화살표 수정)
+
+#### 이번 세션 작업 요약
+카드 프리팹 내부 요소 위치가 어긋난 원인을 확인하고, 공격 카드를 처음 클릭했을 때 타겟 화살표 UI가 보이지 않는 문제를 수정했다.
+
+#### 원인
+- `BattleTest` 씬의 `HandArea.BattleHandView.cardViewPrefab`이 손으로 정렬한 `Assets/Prefabs/UI/Card.prefab`이 아니라 자동 생성/구형 레이아웃인 `Assets/Prefabs/UI/CardView.prefab`을 참조하고 있었다.
+- 두 프리팹은 루트 크기, 자식 오브젝트 이름, 앵커/좌표가 서로 다르다. `Card.prefab`은 200x300 기준으로 `CardName`, `CardDescription`, `CardArtImage`, `CostImage/ManaCostText`가 배치되어 있고, `CardView.prefab`은 160x220 기준으로 `NameText`, `DescText`, `CardIcon`, `CostText`가 배치되어 있어 런타임 카드 요소 위치가 의도한 프리팹과 다르게 보였다.
+- MagicCrow 전투씬 빌더와 기존 배틀씬 빌더가 구형 `CardView.prefab` 경로를 사용해, 씬을 재구성할 때 같은 문제가 반복될 수 있었다.
+
+#### 변경 파일
+
+**`Assets/Scenes/BattleTest.unity`** (수정)
+- `HandArea.BattleHandView.cardViewPrefab` 참조를 `Assets/Prefabs/UI/Card.prefab`으로 복원.
+
+**`Assets/Scripts/Editor/MagicCrowBattleSceneSetup.cs`** (수정)
+- 카드 뷰 프리팹 경로를 `Assets/Prefabs/UI/Card.prefab`으로 변경.
+
+**`Assets/Scripts/Editor/BattleSceneBuilder.cs`** (수정)
+- 카드 뷰 프리팹 경로를 `Assets/Prefabs/UI/Card.prefab`으로 변경.
+
+**`Assets/Scripts/UI/BattleCardView.cs`** (수정)
+- 의도한 `Card.prefab`의 자식 이름(`CardName`, `CardDescription`, `CardArtImage`, `ManaCostText`)을 우선 찾고, 기존 `CardView.prefab` 이름(`NameText`, `DescText`, `CardIcon`, `CostText`)도 fallback으로 인식하도록 수정.
+
+**`Assets/Scripts/UI/BattleTargetArrow.cs`** (수정)
+- 화살표 시작 좌표 계산을 `Camera.main.WorldToScreenPoint` 고정 방식에서 `RectTransformUtility.WorldToScreenPoint` 기반으로 변경.
+- Screen Space Overlay 캔버스에서는 카메라 없이 UI 좌표를 변환하도록 처리.
+- `Show()` 직후 `UpdateCurve()`와 `UpdatePulse()`를 즉시 호출해 첫 클릭 프레임에도 화살표 위치/색이 바로 갱신되도록 수정.
+
+#### 검증
+- 파일 검색으로 `BattleTest.unity`의 `cardViewPrefab`이 `Card.prefab` GUID(`0db826f77733f6d40918da0cf419705a`)와 fileID(`7143928651094735881`)를 참조하는 것을 확인.
+- 파일 검색으로 `MagicCrowBattleSceneSetup.cs`, `BattleSceneBuilder.cs`의 카드 프리팹 경로가 모두 `Assets/Prefabs/UI/Card.prefab`으로 변경된 것을 확인.
+
+#### 미검증
+- Unity MCP가 검증 단계에서 연속 타임아웃을 반환해 `validate_script`와 PlayMode 클릭 확인은 완료하지 못했다. 에디터가 응답 가능한 상태가 되면 스크립트 컴파일과 실제 공격 카드 첫 클릭 화살표 표시를 재확인해야 한다.
+
+---
+
+### 2026-05-08 (Codex 카드 스프라이트 라이브러리 복원)
+
+#### 이번 세션 작업 요약
+MagicCrow 전투 UI 재구성 과정에서 `BattleHandView.spriteLibrary`가 비어 카드가 기존 카드 배경 스프라이트 대신 단색 fallback으로 표시되던 문제를 복구했다.
+
+#### 변경 파일
+
+**`Assets/Scripts/Editor/MagicCrowBattleSceneSetup.cs`** (수정)
+- `Assets/ScriptableObjects/CardSpriteLibrary.asset` 경로 상수 추가.
+- MagicCrow 전투씬 빌더가 `CardSpriteLibrary`를 로드해 `BattleHandView.spriteLibrary`에 자동 연결하도록 수정.
+- 앞으로 `CardAdventure/Build Magic Crow Battle Scene` 메뉴를 다시 실행해도 이전에 작업한 카드 배경 스프라이트가 유지된다.
+
+**`Assets/Scenes/BattleTest.unity`** (수정)
+- 현재 씬의 `HandArea.BattleHandView.spriteLibrary`를 `CardSpriteLibrary.asset`으로 재연결.
+
+#### 검증
+- Unity MCP `validate_script standard`: `MagicCrowBattleSceneSetup.cs` 오류 0, 경고 0.
+- Unity MCP 컴포넌트 확인: `HandArea.BattleHandView.spriteLibrary`가 `Assets/ScriptableObjects/CardSpriteLibrary.asset`으로 연결됨.
+- 콘솔에는 신규 컴파일 오류 없음. 기존 obsolete 경고 및 MCP client 종료 로그만 확인됨.
+
+#### 미검증
+- PlayMode에서 실제 손패 카드가 Warrior/Mage/Rogue 등급별 배경 스프라이트로 표시되는지는 수동 확인 필요.
+
+---
+
+### 2026-05-08 (Codex 전투씬 MagicCrow 스타일 재구성)
+
+#### 이번 세션 작업 요약
+사용자가 제공한 레퍼런스 이미지 방향에 맞춰 `BattleTest` 전투 UI를 좌측 플레이어/우측 적/하단 카드 패 형태로 다시 구성하고, 어드벤처 씬의 전투 입장 트리거가 새 `MagicCrow` 적을 사용하도록 변경했다.
+
+#### 변경 파일
+
+**`Assets/Scripts/Editor/MagicCrowBattleSceneSetup.cs`** (추가)
+- `CardAdventure/Build Magic Crow Battle Scene` 메뉴 추가.
+- `CrowBattleBackground`를 전투 배경으로 사용하고, 플레이어 아바타/적 이미지/HP 바/에너지 오브/카드 패/턴 종료 버튼을 레퍼런스형 배치로 생성.
+- `BattleUIManager`, `BattleEnemyView`, `BattleHudView`, `BattleHandView`, `BattleTargetArrow` 직렬화 참조를 자동 연결.
+
+**`Assets/Scenes/BattleTest.unity`** (수정)
+- 새 MagicCrow 전투 UI 캔버스 적용.
+- `BattleManager.enemyData`와 `BattleSceneConnector.fallbackEnemy`를 `Enemy_MagicCrow.asset`으로 변경.
+
+**`Assets/ScriptableObjects/Enemies/Enemy_MagicCrow.asset`** (추가)
+- `Monster_MagicCrow` 스프라이트 연결.
+- 기본 HP 36, 공격/독/방어/취약 패턴 및 보상 카드 풀 설정.
+
+**`Assets/Scenes/AdventureScene.unity`** (수정)
+- 기존 `BattleEntrance_Slime`을 `BattleEntrance_MagicCrow`로 변경.
+- `BattleEntrance.enemyData`를 `Enemy_MagicCrow.asset`으로 변경.
+- 하위 `EnemyVisual`의 `SpriteRenderer`를 `Monster_MagicCrow`로 교체하고, 월드 표시 크기/위치를 조정.
+
+**`Assets/Scripts/Editor/BattleSceneBuilder.cs`** (수정)
+- 새 배틀 배경/매직크로우/플레이어 스프라이트 경로 상수 추가. 실제 새 전투 구성은 별도 `MagicCrowBattleSceneSetup` 도구로 수행.
+
+#### 검증
+- Unity MCP `validate_script standard`: `MagicCrowBattleSceneSetup.cs` 오류 0, 경고 0.
+- Unity refresh/compile 이후 신규 스크립트 컴파일 오류 없음.
+- `BattleTest` 씬에서 `BattleCanvas`의 `BattleUIManager` 참조 연결 확인.
+- `BattleTest` 씬의 `BattleManager.enemyData` 및 `BattleSceneConnector.fallbackEnemy`가 `Enemy_MagicCrow.asset`을 참조하는 것 확인.
+- `AdventureScene`의 `BattleEntrance_MagicCrow.enemyData`가 `Enemy_MagicCrow.asset`을 참조하는 것 확인.
+- `AdventureScene`의 `EnemyVisual.SpriteRenderer`가 `Assets/Assets/Sprites/Enemy/Monster_MagicCrow.png`를 참조하는 것 확인.
+
+#### 미검증
+- PlayMode에서 실제 전투 진입 후 UI 애니메이션/카드 사용/승패 흐름은 수동 확인 필요.
+- Unity MCP GameView 스크린샷은 카메라 렌더 경로로 캡처되어 Screen Space Overlay UI가 포함되지 않아 시각 검수용으로 사용하지 못함.
+
+---
+
 ### 2026-05-08 (Codex — 직업 변경 확정 후 후속 대화 출력)
 
 #### 이번 세션 작업 요약

@@ -14,6 +14,10 @@ namespace CardAdventure
         [SerializeField] private int playerMaxHp = 50;
         [SerializeField] private List<CardData> startingDeck = new List<CardData>();
 
+        [Header("기본 직업 (GameDataManager 없을 때 폴백 / 배틀 테스트용)")]
+        [Tooltip("어드벤처 씬에서 배틀로 넘어올 때 JobClassInfo가 없으면 이 값을 사용한다. Job_Warrior 할당 권장.")]
+        [SerializeField] private JobClassInfo defaultJob;
+
         [Header("Enemy")]
         [SerializeField] private EnemyData enemyData;
 
@@ -38,12 +42,65 @@ namespace CardAdventure
 
         public bool IsBattleActive => Phase == BattlePhase.PlayerTurn || Phase == BattlePhase.EnemyTurn;
 
+        /// <summary>
+        /// 이번 전투에서 실제로 사용 중인 직업 정보.
+        /// GameDataManager.SelectedJobInfo → 없으면 defaultJob 순으로 결정.
+        /// </summary>
+        public JobClassInfo ActiveJob { get; private set; }
+
         private void Start()
         {
+            AutoConfigureFromGameData();
+
             if (startOnAwake)
             {
                 StartBattle();
             }
+        }
+
+        /// <summary>
+        /// GameDataManager가 있으면 해당 데이터로, 없으면 defaultJob(전사 기본)으로
+        /// playerName / playerMaxHp / startingDeck / ActiveJob을 자동 설정한다.
+        /// </summary>
+        private void AutoConfigureFromGameData()
+        {
+            GameDataManager gdm = GameDataManager.Instance;
+
+            if (gdm != null)
+            {
+                // ── GameDataManager가 존재하는 경우 ───────────────────
+                JobClassInfo job = gdm.SelectedJobInfo;
+                ActiveJob  = job ?? defaultJob;
+                playerName = gdm.PlayerName;
+
+                // HP: 직업 baseMaxHp 우선, 없으면 GameDataManager.MaxHp
+                playerMaxHp = (job != null) ? job.baseMaxHp : Mathf.Max(1, gdm.MaxHp);
+
+                // 덱: GameDataManager.Deck(진행 중 덱) 우선,
+                //     비어있으면 직업 starterCards, 그것도 없으면 Inspector 값 유지
+                if (gdm.Deck != null && gdm.Deck.Count > 0)
+                {
+                    startingDeck = new List<CardData>(gdm.Deck);
+                }
+                else if (ActiveJob != null
+                         && ActiveJob.starterCards != null
+                         && ActiveJob.starterCards.Count > 0)
+                {
+                    startingDeck = new List<CardData>(ActiveJob.starterCards);
+                }
+                // else: Inspector에서 지정한 startingDeck 그대로 사용
+            }
+            else if (defaultJob != null)
+            {
+                // ── GameDataManager 없음 → defaultJob(전사 기본값) 사용 ─
+                ActiveJob   = defaultJob;
+                playerMaxHp = defaultJob.baseMaxHp;
+
+                if (defaultJob.starterCards != null && defaultJob.starterCards.Count > 0)
+                    startingDeck = new List<CardData>(defaultJob.starterCards);
+                // else: Inspector startingDeck 유지
+            }
+            // else: GameDataManager도 defaultJob도 없으면 Inspector 값 그대로
         }
 
         public void Configure(string newPlayerName, int newPlayerMaxHp, IEnumerable<CardData> newDeck, EnemyData newEnemyData)

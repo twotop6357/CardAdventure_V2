@@ -10,8 +10,11 @@ using CardAdventure;
 /// </summary>
 public static class BattleSceneBuilder
 {
-    private const string CARD_VIEW_PREFAB_PATH   = "Assets/Prefabs/UI/CardView.prefab";
+    private const string CARD_VIEW_PREFAB_PATH   = "Assets/Prefabs/UI/Card.prefab";
     private const string STATUS_ICON_PREFAB_PATH = "Assets/Prefabs/UI/StatusIcon.prefab";
+    private const string BATTLE_BACKGROUND_PATH  = "Assets/Assets/Sprites/BattleBackground/CrowBattleBackground.png";
+    private const string MAGIC_CROW_SPRITE_PATH  = "Assets/Assets/Sprites/Enemy/Monster_MagicCrow.png";
+    private const string PLAYER_IDLE_SPRITE_PATH = "Assets/Assets/Sprites/Character/Warrior/Idle/Warrior_IdleFront.png";
 
     [MenuItem("CardAdventure/Build Battle UI Scene")]
     public static void BuildBattleUIScene()
