@@ -104,6 +104,10 @@ namespace CardAdventure
         [Tooltip("SPUM 프리팹 경로 (Resources/SPUM/SPUM_Units/ 기준 상대 경로). 비어있으면 정적 스프라이트 사용.")]
         public string spumPrefabPath;
 
+        [Header("전투 인트로 연출")]
+        [Tooltip("전투 시작 전 NPC 등장 연출 데이터. null이면 기본 '몬스터가 나타났다!' 메시지를 사용한다.")]
+        public BattleIntroData introData;
+
         [Header("특수")]
         [Tooltip("엘리트 또는 보스 여부")]
         public bool isBoss;

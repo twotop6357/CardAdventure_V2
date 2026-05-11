@@ -2,6 +2,149 @@
 
 ---
 
+### 2026-05-11 (Claude — 전투 인트로 캐릭터 등장 + 카드 딜 애니메이션 추가)
+
+#### 이번 세션 작업 요약
+전투 인트로 대화 완료 후 플레이어·몬스터가 좌우에서 등장하고, 카드가 오른쪽 하단(덱 위치)에서 한 장씩 스태거 딜되는 애니메이션을 추가했다.
+
+#### 수정 파일
+
+**`Assets/Scripts/Battle/BattleIntroDirector.cs`** (수정)
+- 신규 Inspector 필드: `playerVisual: RectTransform`, `enemyVisual: RectTransform`
+- 신규 설정: `entranceDuration = 0.55f`, `entranceSlideDistance = 1600f`
+- `Awake()`: 원래 위치 캐싱 후 playerVisual을 왼쪽 밖, enemyVisual을 오른쪽 밖으로 이동
+- `FinishIntro()`: 초상화 슬라이드 아웃 → DOTween Sequence `.Join()`으로 플레이어/몬스터 동시 등장 → `BeginPlayerTurn()` 호출
+
+**`Assets/Scripts/UI/BattleHandView.cs`** (수정)
+- 신규 필드: `deckOriginMarker: RectTransform`, `cardDealStagger = 0.07f`
+- `ArrangeCards(animate:true)`: deckOriginMarker의 위치를 handContainer 로컬 좌표로 변환하여 딜 시작점으로 사용. 카드 인덱스 × cardDealStagger로 각 카드 딜레이 적용
+
+**`Assets/Scripts/Editor/BattleIntroSetup.cs`** (수정)
+- 신규 메뉴: `CardAdventure > Adjust Battle Layout`
+  - PlayerAvatar 앵커 Y: 0.48 → 0.42 (더 아래)
+  - EnemyArea 앵커 Y: 0.50 → 0.44 (더 아래)
+  - DeckOriginMarker 자동 생성 (우하단 앵커, anchoredPos -30,30)
+- `SetupBattleIntro()` 확장: playerVisual, enemyVisual → director에 연결 / deckOriginMarker → BattleHandView에 연결
+- `LinkDirectorRefs()`: playerVisual, enemyVisual 파라미터 추가
+- `EnsureDeckOriginMarker()` 신규 헬퍼: PlayerAvatar 부모 Canvas 탐색 → 없으면 BattleCanvas → 씬 첫 번째 Canvas 순으로 폴백
+
+#### Unity Editor 설정 순서 (신규)
+1. BattleTest 씬을 연다
+2. 메뉴 `CardAdventure > Adjust Battle Layout` 실행 (배치 하향 + DeckOriginMarker 생성)
+3. 메뉴 `CardAdventure > Setup Battle Intro` 실행 (인트로 UI 전체 구성 + 참조 자동 연결)
+4. BattleManager Inspector에서 `waitForIntroDirector = true` 확인
+
+#### 검증
+- 코드 참조 타입 일관성 확인
+- `playerOriginalPos`, `enemyOriginalPos` Awake에서 캐싱 → FinishIntro에서 사용 흐름 확인
+- DOTween Sequence `.Join()` 동시 실행 패턴 정상
+- deckOriginMarker null 시 `dealOriginLocal` 폴백 유지
+
+#### 다음 작업
+- Unity Editor에서 위 순서대로 실행 후 PlayMode 동작 확인
+- 카드 딜 스태거 간격(0.07s)·등장 속도(0.55s) 체감 확인 후 필요 시 Inspector 값 조정
+- 각 EnemyData에 BattleIntroData 연결
+
+---
+
+### 2026-05-11 (Claude — 전투 시작 전 NPC 등장 연출 시스템 구현)
+
+#### 이번 세션 작업 요약
+전투가 즉시 시작되던 기존 흐름을 변경하여, 전투 시작 전 적 NPC의 초상화가 화면 오른쪽에서 등장하고 대화를 진행한 뒤 사라지면 전투가 시작되는 **전투 인트로 연출 시스템**을 구현했다.
+
+#### 신규 파일
+
+**`Assets/Scripts/Data/BattleIntroData.cs`** (신규 ScriptableObject)
+- `npcPortrait: Sprite` — 화면 우측에 표시할 NPC 초상화
+- `dialogueData: DialogueData` — 전용 대화 데이터 (null이면 defaultSummonMessage 사용)
+- `speakerName`, `defaultSummonMessage` — 대화 없을 때 기본 메시지
+- `GetSpeakerName()`, `GetLines()` 헬퍼 메서드 제공
+
+**`Assets/Scripts/Battle/BattleIntroDirector.cs`** (신규 MonoBehaviour)
+- BattleManager.BattleStarted 이벤트 구독 → PlayIntroSequence 코루틴 실행
+- NPC 초상화 슬라이드 인 (DOAnchorPosX, Ease.OutCubic)
+- DialogueView를 통한 대화 표시 (어드벤처 씬 동일 컴포넌트 재사용)
+- Update()에서 Space 입력 처리 (타이핑 스킵/다음 줄/종료)
+- 완료 후 FinishIntro 코루틴: 슬라이드 아웃 → BeginPlayerTurn() 호출
+- SetIntroData(BattleIntroData) 공개 API — 런타임 주입 지원
+
+**`Assets/Scripts/Editor/BattleIntroSetup.cs`** (신규 Editor 스크립트)
+- 메뉴: CardAdventure > Setup Battle Intro
+- BattleIntroCanvas + NpcPortraitPanel 자동 생성 (우측 앵커)
+- BattleDialogueCanvas + DialoguePanel + DialogueView 자동 구성
+- BattleIntroDirector 컴포넌트 BattleManager GO에 추가 및 참조 연결
+- BattleIntroData 테스트 에셋 자동 생성 (examiner_Image.png 할당)
+
+#### 수정 파일
+
+**`Assets/Scripts/Data/EnemyData.cs`** (수정)
+- `public BattleIntroData introData` 필드 추가 (Header: "전투 인트로 연출")
+- 각 EnemyData 에셋마다 전용 인트로 데이터 지정 가능
+
+**`Assets/Scripts/Battle/BattleManager.cs`** (수정)
+- `[SerializeField] private bool waitForIntroDirector = false` 추가
+- `StartBattle()`: `waitForIntroDirector = true`이면 `BeginPlayerTurn()` 즉시 호출 안 함
+
+**`Assets/Scripts/Battle/BattleSceneConnector.cs`** (수정)
+- `ConfigureIntroDirector()` 메서드 추가: Awake 시 GameDataManager.PendingEnemy.introData → BattleIntroDirector.SetIntroData()로 자동 주입
+
+#### 연출 흐름
+1. 배틀 씬 로드 → BattleManager.StartBattle() → BattleStarted 이벤트
+2. BattleIntroDirector 수신 → NPC 초상화 우측에서 슬라이드 인
+3. DialogueView 대화창 표시 (어드벤처 씬 동일 UI)
+4. Space: 타이핑 스킵 → 다음 줄 → 마지막 줄 후 아웃트로
+5. 대화창 닫힘 → 초상화 슬라이드 아웃 → BeginPlayerTurn() → 전투 시작
+
+#### Unity Editor 설정 필요 사항
+1. BattleTest 씬을 연다
+2. 메뉴 CardAdventure > Setup Battle Intro 실행
+3. BattleManager Inspector에서 `waitForIntroDirector = true` 체크
+4. BattleManager Inspector에서 `startOnAwake = true` 확인
+5. (선택) 각 EnemyData 에셋 > introData 필드에 BattleIntroData 에셋 연결
+
+#### 검증
+- 코드 참조 및 타입 의존성 grep 확인: 이상 없음
+- BattleManager.BeginPlayerTurn() public 접근 확인
+- EnemyData.introData, BattleSceneConnector.ConfigureIntroDirector 연동 확인
+- Unity PlayMode 실제 동작은 Editor 직접 실행 필요
+
+#### 다음 작업
+- Unity Editor에서 BattleTest 씬 열고 Setup Battle Intro 메뉴 실행
+- BattleManager.waitForIntroDirector = true 설정 후 PlayMode 동작 확인
+- 각 적(Enemy_MagicCrow 등) EnemyData에 BattleIntroData 연결
+
+---
+
+### 2026-05-11 (Codex — CardAdventure 기획서 v1.1 로컬 지침 반영)
+
+#### 이번 세션 작업 요약
+Notion에 갱신된 **CardAdventure 기획서 v1.1** 내용을 로컬 에이전트 지침 파일에 반영했다. 기존 v1.0의 3챕터/노트 필기 스케치풍 기준을 1챕터 베르데 평원 완성형, 도트 픽셀 감성, 현재 카드 프리팹 아트 방향 기준으로 갱신했다.
+
+#### 변경 파일
+
+**`AGENTS.md`** (수정)
+- 기준 기획서를 `CardAdventure 기획서 v1.1 (2026.05)`로 변경.
+- 현재 범위를 1챕터 베르데 평원 완성형으로 명시.
+- 구현 우선순위를 전투 루프 안정화, 베르데 평원 완성, 저장/상점/엔딩, 폴리싱으로 갱신.
+- 전투/카드 수집/자격증 엔딩 UI 관련 신규 주의사항 추가.
+- SPUM 사용 지침을 실제 프로젝트 사용 현황에 맞춰 후보 에셋 참고 방식으로 완화.
+
+**`CLAUDE.md`** (수정)
+- 프로젝트 개요에 1챕터 베르데 평원 완성형 범위 추가.
+- CCGKit 지침을 핵심 프레임워크 강제 사용에서 자체 `CardData`, `EnemyData`, `StatusEffectData` 우선 + CCGKit 참고 방식으로 조정.
+- SPUM 지침을 현재 씬/프리팹 우선, 필요 시 후보로 검토하는 방식으로 조정.
+- 기획서 기준 개발 지침을 v1.1 기준으로 교체.
+
+#### 검증
+- `rg`로 `AGENTS.md`, `CLAUDE.md` 내 오래된 `v1.0`, 3챕터, 노트 필기/스케치, 아쿠아 마레, 카르타 시티 관련 표현을 검색.
+- 남은 3챕터/v1.0 언급은 “기존 구상은 현재 우선순위가 아님”을 설명하는 문맥임을 확인.
+
+#### 다음 작업
+- v1.1 기준에 맞춰 전투 루프 규칙(매 턴 1장 드로우, 손패 유지, 에너지 확장 가능)을 실제 `BattleManager` 흐름과 비교하고 필요한 수정 범위를 정리.
+- 루미나 마을/시험장/릴라/매직 크로우 중심의 1챕터 작업 목록을 별도 태스크로 쪼개기.
+
+---
+
 ### 2026-05-08 (Antigravity — 전투 씬 상태이상 툴팁 시스템 구현 및 버그 수정)
 
 #### 이번 세션 작업 요약

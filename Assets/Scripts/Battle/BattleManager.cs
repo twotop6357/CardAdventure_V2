@@ -23,7 +23,14 @@ namespace CardAdventure
 
         [Header("Rules")]
         [SerializeField] private bool startOnAwake;
-        [SerializeField] private int cardsDrawnPerTurn = 5;
+        [Tooltip("매 턴 시작 시 드로우할 카드 수. 기본 1장 (손패 유지 방식).")]
+        [SerializeField] private int cardsDrawnPerTurn = 1;
+
+        [Header("전투 인트로 연출")]
+        [Tooltip("true이면 StartBattle()에서 BeginPlayerTurn()을 즉시 호출하지 않는다.\n" +
+                 "BattleIntroDirector가 연출 완료 후 직접 BeginPlayerTurn()을 호출한다.\n" +
+                 "BattleIntroDirector 컴포넌트가 씬에 있을 때 반드시 true로 설정한다.")]
+        [SerializeField] private bool waitForIntroDirector = false;
 
         public event Action<BattleManager> BattleStarted;
         public event Action<BattleManager> StateChanged;
@@ -132,7 +139,13 @@ namespace CardAdventure
 
             Player.DrawStartingHand();
             BattleStarted?.Invoke(this);
-            BeginPlayerTurn();
+
+            // waitForIntroDirector = true이면 BattleIntroDirector가
+            // 연출 완료 후 BeginPlayerTurn()을 직접 호출한다.
+            if (!waitForIntroDirector)
+            {
+                BeginPlayerTurn();
+            }
         }
 
         public void BeginPlayerTurn()
@@ -219,7 +232,8 @@ namespace CardAdventure
                 return;
             }
 
-            Player.CardPiles.DiscardHand();
+            // 손패 유지 방식: 사용하지 않은 카드는 다음 턴에도 그대로 남는다.
+            // (카드를 버리지 않으므로 DiscardHand 호출 없음)
             Player.Combatant.TickStatusDurations();
             ExecuteEnemyTurn();
         }

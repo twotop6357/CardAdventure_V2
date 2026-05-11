@@ -21,6 +21,7 @@ namespace CardAdventure
         {
             battleManager = GetComponent<BattleManager>();
             ConfigureBattle();
+            ConfigureIntroDirector();
         }
 
         private void OnEnable()
@@ -40,6 +41,26 @@ namespace CardAdventure
         private void OnDestroy()
         {
             UnsubscribeEvents();
+        }
+
+        // ── 배틀 인트로 연출 설정 ─────────────────────────────
+
+        /// <summary>
+        /// GameDataManager.PendingEnemy.introData를 BattleIntroDirector에 주입한다.
+        /// 어드벤처 씬 → 배틀 씬 전환 시 적별 전용 인트로 데이터가 자동 적용된다.
+        /// </summary>
+        private void ConfigureIntroDirector()
+        {
+            BattleIntroDirector director =
+                FindFirstObjectByType<BattleIntroDirector>();
+
+            if (director == null) return;
+
+            GameDataManager gd = GameDataManager.Instance;
+            EnemyData enemy    = gd?.PendingEnemy ?? null;
+
+            if (enemy?.introData != null)
+                director.SetIntroData(enemy.introData);
         }
 
         // ── 배틀 설정 ──────────────────────────────────────────

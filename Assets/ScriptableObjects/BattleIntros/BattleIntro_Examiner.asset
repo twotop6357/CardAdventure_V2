@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aae9a930acbb3c34180246b7b8fb03f6, type: 3}
+  m_Name: BattleIntro_Examiner
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.BattleIntroData
+  npcPortrait: {fileID: 7966608011185320137, guid: 08e8b89aaeb249e43a6d45cfbab298aa,
+    type: 3}
+  dialogueData: {fileID: 0}
+  speakerName: "\uB9B4\uB77C"
+  defaultSummonMessage: "\uC5B4\uB514 \uD55C\uBC88 \uC2E4\uB825\uC744 \uBCF4\uC5EC\uC918
+    \uBD10!"
