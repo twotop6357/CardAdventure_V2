@@ -1,91 +1,91 @@
 fileFormatVersion: 2
-guid: e47f9352fc3df8a4dabe0c33cb664b71
+guid: 5cb697adaa157ae46902427537465d0a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7428471381140481154
-    second: Examiner_Sprite_0
+      213: -6871963325878223534
+    second: Warrior_Sprites_0
   - first:
-      213: 1586863438330476027
-    second: Examiner_Sprite_1
+      213: -5836901691669023775
+    second: Warrior_Sprites_1
   - first:
-      213: 4420281120322068992
-    second: Examiner_Sprite_2
+      213: 9105492508674360092
+    second: Warrior_Sprites_2
   - first:
-      213: 5198681031254739368
-    second: Examiner_Sprite_3
+      213: -1050584250887042322
+    second: Warrior_Sprites_3
   - first:
-      213: 3732603619912175279
-    second: Examiner_Sprite_4
+      213: -1490385449868485900
+    second: Warrior_Sprites_4
   - first:
-      213: 2118690946052910927
-    second: Examiner_Sprite_5
+      213: 6225378478897183959
+    second: Warrior_Sprites_5
   - first:
-      213: 1804461779991759270
-    second: Examiner_Sprite_6
+      213: -4315001343848400726
+    second: Warrior_Sprites_6
   - first:
-      213: -5660154031627424320
-    second: Examiner_Sprite_7
+      213: 8316721763546130801
+    second: Warrior_Sprites_7
   - first:
-      213: -5065411753352624889
-    second: Examiner_Sprite_8
+      213: 1269162942336074285
+    second: Warrior_Sprites_8
   - first:
-      213: -6318983540254746921
-    second: Examiner_Sprite_9
+      213: 6170913707658894318
+    second: Warrior_Sprites_9
   - first:
-      213: -8924422212155560805
-    second: Examiner_Sprite_10
+      213: -8153657835268377048
+    second: Warrior_Sprites_10
   - first:
-      213: -4120739959634752226
-    second: Examiner_Sprite_11
+      213: 3191838094888798204
+    second: Warrior_Sprites_11
   - first:
-      213: -5626274743706353128
-    second: Examiner_Sprite_12
+      213: 8064465329281526023
+    second: Warrior_Sprites_12
   - first:
-      213: 5264777925612076078
-    second: Examiner_Sprite_13
+      213: 8952697178591939381
+    second: Warrior_Sprites_13
   - first:
-      213: -7454674693508568661
-    second: Examiner_Sprite_14
+      213: 1564058438856155363
+    second: Warrior_Sprites_14
   - first:
-      213: 3277261400124766175
-    second: Examiner_Sprite_15
+      213: -3883246184383343704
+    second: Warrior_Sprites_15
   - first:
-      213: -593708326369761718
-    second: Examiner_Sprite_16
+      213: -6950679812114974758
+    second: Warrior_Sprites_16
   - first:
-      213: 3339724435327797706
-    second: Examiner_Sprite_17
+      213: -1375002579023577557
+    second: Warrior_Sprites_17
   - first:
-      213: 576311388570306063
-    second: Examiner_Sprite_18
+      213: -3554973518357134176
+    second: Warrior_Sprites_18
   - first:
-      213: -390597397962312521
-    second: Examiner_Sprite_19
+      213: 5480649270447932404
+    second: Warrior_Sprites_19
   - first:
-      213: -2330901727121695480
-    second: Examiner_Sprite_20
+      213: -4490618826950627399
+    second: Warrior_Sprites_20
   - first:
-      213: 3319888043333524457
-    second: Examiner_Sprite_21
+      213: 3662157717110464878
+    second: Warrior_Sprites_21
   - first:
-      213: 8303455677079099610
-    second: Examiner_Sprite_22
+      213: -1763431950538530662
+    second: Warrior_Sprites_22
   - first:
-      213: -6358364437702423734
-    second: Examiner_Sprite_23
+      213: -748592691154402932
+    second: Warrior_Sprites_23
   - first:
-      213: 6616203476474459799
-    second: Examiner_Sprite_24
+      213: 2199480034003497943
+    second: Warrior_Sprites_24
   - first:
-      213: 7655168530617344668
-    second: Examiner_Sprite_25
+      213: 8423722329465370406
+    second: Warrior_Sprites_25
   - first:
-      213: -3177963851838753314
-    second: Examiner_Sprite_26
+      213: -2484656145638611551
+    second: Warrior_Sprites_26
   - first:
-      213: -3328536239942788819
-    second: Examiner_Sprite_27
+      213: -5769874093700281168
+    second: Warrior_Sprites_27
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -181,13 +181,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Examiner_Sprite_0
+      name: Warrior_Sprites_0
       rect:
         serializedVersion: 2
-        x: 10
-        y: 381
-        width: 56
-        height: 89
+        x: 62
+        y: 943
+        width: 133
+        height: 215
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -196,20 +196,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e7b57f6f2a4c8e890800000000000000
-      internalID: -7428471381140481154
+      spriteID: 25d348ba3c1e1a0a0800000000000000
+      internalID: -6871963325878223534
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_1
+      name: Warrior_Sprites_1
       rect:
         serializedVersion: 2
-        x: 79
-        y: 381
-        width: 56
-        height: 89
+        x: 245
+        y: 943
+        width: 123
+        height: 215
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -218,20 +218,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bf53ebcb3eba50610800000000000000
-      internalID: 1586863438330476027
+      spriteID: 1e3f03f26d82ffea0800000000000000
+      internalID: -5836901691669023775
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_2
+      name: Warrior_Sprites_2
       rect:
         serializedVersion: 2
-        x: 150
-        y: 381
-        width: 55
-        height: 89
+        x: 427
+        y: 943
+        width: 122
+        height: 216
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -240,20 +240,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 002a920624ef75d30800000000000000
-      internalID: 4420281120322068992
+      spriteID: c13048491353d5e70800000000000000
+      internalID: 9105492508674360092
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_3
+      name: Warrior_Sprites_3
       rect:
         serializedVersion: 2
-        x: 220
-        y: 381
-        width: 55
-        height: 89
+        x: 596
+        y: 944
+        width: 127
+        height: 215
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -262,20 +262,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8a90088aadc652840800000000000000
-      internalID: 5198681031254739368
+      spriteID: eea0247a0339b61f0800000000000000
+      internalID: -1050584250887042322
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_4
+      name: Warrior_Sprites_4
       rect:
         serializedVersion: 2
-        x: 290
-        y: 381
-        width: 55
-        height: 89
+        x: 763
+        y: 943
+        width: 129
+        height: 215
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -284,20 +284,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: faec334573fdcc330800000000000000
-      internalID: 3732603619912175279
+      spriteID: 4fa9d2a6456115be0800000000000000
+      internalID: -1490385449868485900
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_5
+      name: Warrior_Sprites_5
       rect:
         serializedVersion: 2
-        x: 360
-        y: 381
-        width: 55
-        height: 89
+        x: 932
+        y: 943
+        width: 130
+        height: 215
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -306,20 +306,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f4fe15ca03a176d10800000000000000
-      internalID: 2118690946052910927
+      spriteID: 7dc370b3ebcf46650800000000000000
+      internalID: 6225378478897183959
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_6
+      name: Warrior_Sprites_6
       rect:
         serializedVersion: 2
-        x: 430
-        y: 381
-        width: 56
-        height: 89
+        x: 1093
+        y: 943
+        width: 128
+        height: 214
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -328,20 +328,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6a98d2fad6cba0910800000000000000
-      internalID: 1804461779991759270
+      spriteID: aa8359eb3290e14c0800000000000000
+      internalID: -4315001343848400726
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_7
+      name: Warrior_Sprites_7
       rect:
         serializedVersion: 2
-        x: 13
-        y: 272
-        width: 56
-        height: 82
+        x: 71
+        y: 652
+        width: 107
+        height: 209
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -350,20 +350,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0cd2ad2a5e71371b0800000000000000
-      internalID: -5660154031627424320
+      spriteID: 1796deb416eea6370800000000000000
+      internalID: 8316721763546130801
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_8
+      name: Warrior_Sprites_8
       rect:
         serializedVersion: 2
-        x: 84
-        y: 272
-        width: 53
-        height: 82
+        x: 260
+        y: 652
+        width: 103
+        height: 208
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -372,20 +372,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 705045819da04b9b0800000000000000
-      internalID: -5065411753352624889
+      spriteID: d220804c8f8fc9110800000000000000
+      internalID: 1269162942336074285
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_9
+      name: Warrior_Sprites_9
       rect:
         serializedVersion: 2
-        x: 154
-        y: 273
-        width: 53
-        height: 81
+        x: 437
+        y: 652
+        width: 103
+        height: 209
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -394,20 +394,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7d6539513f57e48a0800000000000000
-      internalID: -6318983540254746921
+      spriteID: eebd89c725d73a550800000000000000
+      internalID: 6170913707658894318
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_10
+      name: Warrior_Sprites_10
       rect:
         serializedVersion: 2
-        x: 224
-        y: 272
-        width: 55
-        height: 82
+        x: 608
+        y: 652
+        width: 101
+        height: 209
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -416,20 +416,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b9cacda1845162480800000000000000
-      internalID: -8924422212155560805
+      spriteID: 8267fb4166368de80800000000000000
+      internalID: -8153657835268377048
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_11
+      name: Warrior_Sprites_11
       rect:
         serializedVersion: 2
-        x: 294
-        y: 272
-        width: 53
-        height: 82
+        x: 778
+        y: 652
+        width: 102
+        height: 208
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -438,20 +438,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e1d863ed6d030d6c0800000000000000
-      internalID: -4120739959634752226
+      spriteID: cf7086216dfab4c20800000000000000
+      internalID: 3191838094888798204
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_12
+      name: Warrior_Sprites_12
       rect:
         serializedVersion: 2
-        x: 363
-        y: 272
-        width: 52
-        height: 82
+        x: 947
+        y: 652
+        width: 102
+        height: 209
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -460,20 +460,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 81281ac0ee47be1b0800000000000000
-      internalID: -5626274743706353128
+      spriteID: 70967475d7cbaef60800000000000000
+      internalID: 8064465329281526023
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_13
+      name: Warrior_Sprites_13
       rect:
         serializedVersion: 2
-        x: 435
-        y: 272
-        width: 53
-        height: 82
+        x: 1105
+        y: 652
+        width: 100
+        height: 208
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -482,20 +482,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e2cfc6d11af301940800000000000000
-      internalID: 5264777925612076078
+      spriteID: 53b4d9786ae5e3c70800000000000000
+      internalID: 8952697178591939381
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_14
+      name: Warrior_Sprites_14
       rect:
         serializedVersion: 2
-        x: 12
-        y: 159
-        width: 51
-        height: 85
+        x: 71
+        y: 370
+        width: 102
+        height: 208
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -504,20 +504,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ba9e351ecdcab8890800000000000000
-      internalID: -7454674693508568661
+      spriteID: 3e029f70dd6a4b510800000000000000
+      internalID: 1564058438856155363
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_15
+      name: Warrior_Sprites_15
       rect:
         serializedVersion: 2
-        x: 83
-        y: 160
-        width: 51
-        height: 84
+        x: 256
+        y: 370
+        width: 100
+        height: 207
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -526,20 +526,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fd7398631eb2b7d20800000000000000
-      internalID: 3277261400124766175
+      spriteID: 8a3907c6b20fb1ac0800000000000000
+      internalID: -3883246184383343704
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_16
+      name: Warrior_Sprites_16
       rect:
         serializedVersion: 2
-        x: 153
-        y: 160
-        width: 50
-        height: 84
+        x: 437
+        y: 370
+        width: 98
+        height: 208
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -548,20 +548,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a46e98a3c69b2c7f0800000000000000
-      internalID: -593708326369761718
+      spriteID: ad7786389893a8f90800000000000000
+      internalID: -6950679812114974758
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_17
+      name: Warrior_Sprites_17
       rect:
         serializedVersion: 2
-        x: 223
-        y: 159
-        width: 51
-        height: 85
+        x: 611
+        y: 370
+        width: 99
+        height: 207
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -570,20 +570,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ac9c767eda5195e20800000000000000
-      internalID: 3339724435327797706
+      spriteID: b2ebd0080720bece0800000000000000
+      internalID: -1375002579023577557
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_18
+      name: Warrior_Sprites_18
       rect:
         serializedVersion: 2
-        x: 293
-        y: 159
-        width: 51
-        height: 85
+        x: 774
+        y: 370
+        width: 99
+        height: 207
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -592,20 +592,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f06cebb87287ff700800000000000000
-      internalID: 576311388570306063
+      spriteID: 0a4076c8b623aaec0800000000000000
+      internalID: -3554973518357134176
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_19
+      name: Warrior_Sprites_19
       rect:
         serializedVersion: 2
-        x: 363
-        y: 160
-        width: 51
-        height: 83
+        x: 945
+        y: 370
+        width: 98
+        height: 207
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -614,20 +614,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7b4b34c6cb1549af0800000000000000
-      internalID: -390597397962312521
+      spriteID: 4f38d87497d2f0c40800000000000000
+      internalID: 5480649270447932404
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_20
+      name: Warrior_Sprites_20
       rect:
         serializedVersion: 2
-        x: 433
-        y: 159
-        width: 51
-        height: 85
+        x: 1102
+        y: 370
+        width: 98
+        height: 207
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -636,20 +636,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 80d11949a39f6afd0800000000000000
-      internalID: -2330901727121695480
+      spriteID: 9bf2ded18fd1ea1c0800000000000000
+      internalID: -4490618826950627399
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_21
+      name: Warrior_Sprites_21
       rect:
         serializedVersion: 2
-        x: 13
-        y: 44
-        width: 56
-        height: 93
+        x: 59
+        y: 101
+        width: 121
+        height: 205
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -658,20 +658,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9eb16fcf59c921e20800000000000000
-      internalID: 3319888043333524457
+      spriteID: e6123df6a0992d230800000000000000
+      internalID: 3662157717110464878
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_22
+      name: Warrior_Sprites_22
       rect:
         serializedVersion: 2
-        x: 83
-        y: 44
-        width: 56
-        height: 93
+        x: 245
+        y: 101
+        width: 120
+        height: 206
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -680,20 +680,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ad81088d1fccb3370800000000000000
-      internalID: 8303455677079099610
+      spriteID: a90a39aebf70787e0800000000000000
+      internalID: -1763431950538530662
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_23
+      name: Warrior_Sprites_23
       rect:
         serializedVersion: 2
-        x: 152
-        y: 44
-        width: 55
-        height: 93
+        x: 427
+        y: 100
+        width: 120
+        height: 207
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -702,20 +702,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a4b45426b3d82c7a0800000000000000
-      internalID: -6358364437702423734
+      spriteID: c81c942e9e67c95f0800000000000000
+      internalID: -748592691154402932
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_24
+      name: Warrior_Sprites_24
       rect:
         serializedVersion: 2
-        x: 223
-        y: 44
-        width: 55
-        height: 93
+        x: 598
+        y: 101
+        width: 117
+        height: 206
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -724,20 +724,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 796f6f8f10a71db50800000000000000
-      internalID: 6616203476474459799
+      spriteID: 7d3b755007f168e10800000000000000
+      internalID: 2199480034003497943
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_25
+      name: Warrior_Sprites_25
       rect:
         serializedVersion: 2
-        x: 293
-        y: 44
-        width: 55
-        height: 93
+        x: 763
+        y: 100
+        width: 119
+        height: 207
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -746,20 +746,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c922233483f9c3a60800000000000000
-      internalID: 7655168530617344668
+      spriteID: 6273f4ee3d217e470800000000000000
+      internalID: 8423722329465370406
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_26
+      name: Warrior_Sprites_26
       rect:
         serializedVersion: 2
-        x: 362
-        y: 44
-        width: 56
-        height: 93
+        x: 937
+        y: 100
+        width: 122
+        height: 207
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -768,20 +768,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ed57e1ed6ba95e3d0800000000000000
-      internalID: -3177963851838753314
+      spriteID: 1a5283a566ab48dd0800000000000000
+      internalID: -2484656145638611551
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Examiner_Sprite_27
+      name: Warrior_Sprites_27
       rect:
         serializedVersion: 2
-        x: 432
-        y: 44
-        width: 56
-        height: 93
+        x: 1092
+        y: 101
+        width: 121
+        height: 205
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -790,8 +790,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d291234dce9aec1d0800000000000000
-      internalID: -3328536239942788819
+      spriteID: 0bc0446f41a4defa0800000000000000
+      internalID: -5769874093700281168
       vertices: []
       indices: 
       edges: []
@@ -810,34 +810,34 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Examiner_Sprite_0: -7428471381140481154
-      Examiner_Sprite_1: 1586863438330476027
-      Examiner_Sprite_10: -8924422212155560805
-      Examiner_Sprite_11: -4120739959634752226
-      Examiner_Sprite_12: -5626274743706353128
-      Examiner_Sprite_13: 5264777925612076078
-      Examiner_Sprite_14: -7454674693508568661
-      Examiner_Sprite_15: 3277261400124766175
-      Examiner_Sprite_16: -593708326369761718
-      Examiner_Sprite_17: 3339724435327797706
-      Examiner_Sprite_18: 576311388570306063
-      Examiner_Sprite_19: -390597397962312521
-      Examiner_Sprite_2: 4420281120322068992
-      Examiner_Sprite_20: -2330901727121695480
-      Examiner_Sprite_21: 3319888043333524457
-      Examiner_Sprite_22: 8303455677079099610
-      Examiner_Sprite_23: -6358364437702423734
-      Examiner_Sprite_24: 6616203476474459799
-      Examiner_Sprite_25: 7655168530617344668
-      Examiner_Sprite_26: -3177963851838753314
-      Examiner_Sprite_27: -3328536239942788819
-      Examiner_Sprite_3: 5198681031254739368
-      Examiner_Sprite_4: 3732603619912175279
-      Examiner_Sprite_5: 2118690946052910927
-      Examiner_Sprite_6: 1804461779991759270
-      Examiner_Sprite_7: -5660154031627424320
-      Examiner_Sprite_8: -5065411753352624889
-      Examiner_Sprite_9: -6318983540254746921
+      Warrior_Sprites_0: -6871963325878223534
+      Warrior_Sprites_1: -5836901691669023775
+      Warrior_Sprites_10: -8153657835268377048
+      Warrior_Sprites_11: 3191838094888798204
+      Warrior_Sprites_12: 8064465329281526023
+      Warrior_Sprites_13: 8952697178591939381
+      Warrior_Sprites_14: 1564058438856155363
+      Warrior_Sprites_15: -3883246184383343704
+      Warrior_Sprites_16: -6950679812114974758
+      Warrior_Sprites_17: -1375002579023577557
+      Warrior_Sprites_18: -3554973518357134176
+      Warrior_Sprites_19: 5480649270447932404
+      Warrior_Sprites_2: 9105492508674360092
+      Warrior_Sprites_20: -4490618826950627399
+      Warrior_Sprites_21: 3662157717110464878
+      Warrior_Sprites_22: -1763431950538530662
+      Warrior_Sprites_23: -748592691154402932
+      Warrior_Sprites_24: 2199480034003497943
+      Warrior_Sprites_25: 8423722329465370406
+      Warrior_Sprites_26: -2484656145638611551
+      Warrior_Sprites_27: -5769874093700281168
+      Warrior_Sprites_3: -1050584250887042322
+      Warrior_Sprites_4: -1490385449868485900
+      Warrior_Sprites_5: 6225378478897183959
+      Warrior_Sprites_6: -4315001343848400726
+      Warrior_Sprites_7: 8316721763546130801
+      Warrior_Sprites_8: 1269162942336074285
+      Warrior_Sprites_9: 6170913707658894318
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

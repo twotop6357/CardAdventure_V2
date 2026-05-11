@@ -1,91 +1,91 @@
 fileFormatVersion: 2
-guid: bb41cd0dd2867604ebf6923447285e01
+guid: 3ae584cb911b8ff47a39c91ef5ee9ac1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3406165881687744114
-    second: JobChanger_Sprite_0
+      213: 2899821007888117415
+    second: Magician_Sprites_0
   - first:
-      213: -8241428816941417084
-    second: JobChanger_Sprite_1
+      213: 2261377239969722647
+    second: Magician_Sprites_1
   - first:
-      213: 3357969599145158281
-    second: JobChanger_Sprite_2
+      213: 5758141468610672961
+    second: Magician_Sprites_2
   - first:
-      213: 6719175111847704633
-    second: JobChanger_Sprite_3
+      213: 114205931792549776
+    second: Magician_Sprites_3
   - first:
-      213: -3998112071921681688
-    second: JobChanger_Sprite_4
+      213: -6623763798881576199
+    second: Magician_Sprites_4
   - first:
-      213: -2195182904728111688
-    second: JobChanger_Sprite_5
+      213: 1813875004975686331
+    second: Magician_Sprites_5
   - first:
-      213: 6010860377855269872
-    second: JobChanger_Sprite_6
+      213: -8436101554429198890
+    second: Magician_Sprites_6
   - first:
-      213: -7729155302087283711
-    second: JobChanger_Sprite_7
+      213: 836030230416892603
+    second: Magician_Sprites_7
   - first:
-      213: 655942265278338607
-    second: JobChanger_Sprite_8
+      213: 360501997236809010
+    second: Magician_Sprites_8
   - first:
-      213: -982939848167673912
-    second: JobChanger_Sprite_9
+      213: -5907824815477093520
+    second: Magician_Sprites_9
   - first:
-      213: -6753685727788249497
-    second: JobChanger_Sprite_10
+      213: -8025706598011472030
+    second: Magician_Sprites_10
   - first:
-      213: 493108993605539482
-    second: JobChanger_Sprite_11
+      213: -738886760513055169
+    second: Magician_Sprites_11
   - first:
-      213: -5599774757650381048
-    second: JobChanger_Sprite_12
+      213: -5327873775328709864
+    second: Magician_Sprites_12
   - first:
-      213: 8199071836163169635
-    second: JobChanger_Sprite_13
+      213: -2629032124410234953
+    second: Magician_Sprites_13
   - first:
-      213: 9135355305559208419
-    second: JobChanger_Sprite_14
+      213: 5848611611151351463
+    second: Magician_Sprites_14
   - first:
-      213: 553379146378396551
-    second: JobChanger_Sprite_15
+      213: -5131150377028676363
+    second: Magician_Sprites_15
   - first:
-      213: -6082073062417825915
-    second: JobChanger_Sprite_16
+      213: 8621154584010650788
+    second: Magician_Sprites_16
   - first:
-      213: -2141714492418747869
-    second: JobChanger_Sprite_17
+      213: -6948745683511986649
+    second: Magician_Sprites_17
   - first:
-      213: 3476293534539481271
-    second: JobChanger_Sprite_18
+      213: 5035413748263535531
+    second: Magician_Sprites_18
   - first:
-      213: -7133788905830354305
-    second: JobChanger_Sprite_19
+      213: -6686591154946696450
+    second: Magician_Sprites_19
   - first:
-      213: 4371579841010208726
-    second: JobChanger_Sprite_20
+      213: -525472963431146647
+    second: Magician_Sprites_20
   - first:
-      213: 7873236746640026046
-    second: JobChanger_Sprite_21
+      213: 6107812189934150521
+    second: Magician_Sprites_21
   - first:
-      213: 6364837521009176288
-    second: JobChanger_Sprite_22
+      213: -2719971449788399968
+    second: Magician_Sprites_22
   - first:
-      213: 7766714498735184423
-    second: JobChanger_Sprite_23
+      213: 3851491626446949951
+    second: Magician_Sprites_23
   - first:
-      213: -6280254866440999880
-    second: JobChanger_Sprite_24
+      213: -9080917509126231604
+    second: Magician_Sprites_24
   - first:
-      213: 6635028417157184776
-    second: JobChanger_Sprite_25
+      213: 6751998684395870218
+    second: Magician_Sprites_25
   - first:
-      213: 1928856128693852929
-    second: JobChanger_Sprite_26
+      213: -1272853619661522549
+    second: Magician_Sprites_26
   - first:
-      213: -4798973942480257616
-    second: JobChanger_Sprite_27
+      213: 569360165938569222
+    second: Magician_Sprites_27
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -181,13 +181,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: JobChanger_Sprite_0
+      name: Magician_Sprites_0
       rect:
         serializedVersion: 2
-        x: 12
-        y: 381
-        width: 53
-        height: 83
+        x: 60
+        y: 928
+        width: 160
+        height: 242
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -196,20 +196,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e8162ff5d2edab0d0800000000000000
-      internalID: -3406165881687744114
+      spriteID: 7aee26fb7db3e3820800000000000000
+      internalID: 2899821007888117415
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_1
+      name: Magician_Sprites_1
       rect:
         serializedVersion: 2
-        x: 82
-        y: 382
-        width: 56
-        height: 82
+        x: 240
+        y: 929
+        width: 159
+        height: 241
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -218,20 +218,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 48df98ce72090ad80800000000000000
-      internalID: -8241428816941417084
+      spriteID: 7117c835e96026f10800000000000000
+      internalID: 2261377239969722647
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_2
+      name: Magician_Sprites_2
       rect:
         serializedVersion: 2
-        x: 151
-        y: 381
-        width: 58
-        height: 83
+        x: 418
+        y: 931
+        width: 158
+        height: 239
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -240,20 +240,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 986ab932f87e99e20800000000000000
-      internalID: 3357969599145158281
+      spriteID: 1493cf2682709ef40800000000000000
+      internalID: 5758141468610672961
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_3
+      name: Magician_Sprites_3
       rect:
         serializedVersion: 2
-        x: 221
-        y: 381
-        width: 57
-        height: 83
+        x: 583
+        y: 928
+        width: 158
+        height: 242
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -262,20 +262,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 938f35d1a2e4f3d50800000000000000
-      internalID: 6719175111847704633
+      spriteID: 097ccbb90bdb59100800000000000000
+      internalID: 114205931792549776
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_4
+      name: Magician_Sprites_4
       rect:
         serializedVersion: 2
-        x: 292
-        y: 381
-        width: 56
-        height: 83
+        x: 747
+        y: 928
+        width: 160
+        height: 242
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -284,20 +284,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8ea38e4e04ad388c0800000000000000
-      internalID: -3998112071921681688
+      spriteID: 9fa529b4be9a314a0800000000000000
+      internalID: -6623763798881576199
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_5
+      name: Magician_Sprites_5
       rect:
         serializedVersion: 2
-        x: 360
-        y: 382
-        width: 58
-        height: 82
+        x: 920
+        y: 929
+        width: 158
+        height: 241
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -306,20 +306,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8b5bbaa57c42981e0800000000000000
-      internalID: -2195182904728111688
+      spriteID: bb2298ae4bd2c2910800000000000000
+      internalID: 1813875004975686331
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_6
+      name: Magician_Sprites_6
       rect:
         serializedVersion: 2
-        x: 429
-        y: 381
-        width: 54
-        height: 83
+        x: 1085
+        y: 928
+        width: 159
+        height: 242
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -328,20 +328,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0fb9880baadda6350800000000000000
-      internalID: 6010860377855269872
+      spriteID: 6dd70272552fcea80800000000000000
+      internalID: -8436101554429198890
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_7
+      name: Magician_Sprites_7
       rect:
         serializedVersion: 2
-        x: 12
-        y: 271
-        width: 51
-        height: 83
+        x: 66
+        y: 646
+        width: 141
+        height: 220
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -350,20 +350,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 10ca24d14368cb490800000000000000
-      internalID: -7729155302087283711
+      spriteID: bb2ac79a01d2a9b00800000000000000
+      internalID: 836030230416892603
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_8
+      name: Magician_Sprites_8
       rect:
         serializedVersion: 2
-        x: 82
-        y: 273
-        width: 54
-        height: 80
+        x: 241
+        y: 646
+        width: 140
+        height: 220
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -372,20 +372,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f269413d3006a1900800000000000000
-      internalID: 655942265278338607
+      spriteID: 23d6e1e08a2c00500800000000000000
+      internalID: 360501997236809010
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_9
+      name: Magician_Sprites_9
       rect:
         serializedVersion: 2
-        x: 151
-        y: 273
-        width: 56
-        height: 80
+        x: 418
+        y: 646
+        width: 142
+        height: 220
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -394,20 +394,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8cfa36a7a65eb52f0800000000000000
-      internalID: -982939848167673912
+      spriteID: 07b004e91a0330ea0800000000000000
+      internalID: -5907824815477093520
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_10
+      name: Magician_Sprites_10
       rect:
         serializedVersion: 2
-        x: 222
-        y: 273
-        width: 55
-        height: 80
+        x: 586
+        y: 647
+        width: 137
+        height: 219
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -416,20 +416,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 76e4e86fc961642a0800000000000000
-      internalID: -6753685727788249497
+      spriteID: 26774020f56fe9090800000000000000
+      internalID: -8025706598011472030
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_11
+      name: Magician_Sprites_11
       rect:
         serializedVersion: 2
-        x: 293
-        y: 272
-        width: 53
-        height: 80
+        x: 754
+        y: 647
+        width: 137
+        height: 219
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -438,20 +438,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a96986f5400e7d600800000000000000
-      internalID: 493108993605539482
+      spriteID: f365166f762feb5f0800000000000000
+      internalID: -738886760513055169
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_12
+      name: Magician_Sprites_12
       rect:
         serializedVersion: 2
-        x: 360
-        y: 273
-        width: 54
-        height: 79
+        x: 921
+        y: 646
+        width: 141
+        height: 220
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -460,20 +460,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 807cc0cd68a9942b0800000000000000
-      internalID: -5599774757650381048
+      spriteID: 813b96597079f06b0800000000000000
+      internalID: -5327873775328709864
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_13
+      name: Magician_Sprites_13
       rect:
         serializedVersion: 2
-        x: 430
-        y: 271
-        width: 52
-        height: 81
+        x: 1091
+        y: 646
+        width: 139
+        height: 220
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -482,20 +482,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 36d5a6af464f8c170800000000000000
-      internalID: 8199071836163169635
+      spriteID: 7b7ff69463dc38bd0800000000000000
+      internalID: -2629032124410234953
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_14
+      name: Magician_Sprites_14
       rect:
         serializedVersion: 2
-        x: 15
-        y: 163
-        width: 51
-        height: 82
+        x: 63
+        y: 370
+        width: 132
+        height: 219
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -504,20 +504,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3e136dccf3d47ce70800000000000000
-      internalID: 9135355305559208419
+      spriteID: 7aeb6e7e5417a2150800000000000000
+      internalID: 5848611611151351463
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_15
+      name: Magician_Sprites_15
       rect:
         serializedVersion: 2
-        x: 84
-        y: 163
-        width: 53
-        height: 82
+        x: 239
+        y: 369
+        width: 130
+        height: 219
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -526,20 +526,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7834ef5d66ffda700800000000000000
-      internalID: 553379146378396551
+      spriteID: 5f418180bed7ac8b0800000000000000
+      internalID: -5131150377028676363
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_16
+      name: Magician_Sprites_16
       rect:
         serializedVersion: 2
-        x: 152
-        y: 163
-        width: 54
-        height: 82
+        x: 413
+        y: 371
+        width: 130
+        height: 217
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -548,20 +548,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 58ffc9026c2289ba0800000000000000
-      internalID: -6082073062417825915
+      spriteID: 4a47fa5da6e74a770800000000000000
+      internalID: 8621154584010650788
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_17
+      name: Magician_Sprites_17
       rect:
         serializedVersion: 2
-        x: 222
-        y: 164
-        width: 55
-        height: 81
+        x: 582
+        y: 370
+        width: 129
+        height: 218
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -570,20 +570,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3221315340a1742e0800000000000000
-      internalID: -2141714492418747869
+      spriteID: 7263dbbed98119f90800000000000000
+      internalID: -6948745683511986649
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_18
+      name: Magician_Sprites_18
       rect:
         serializedVersion: 2
-        x: 293
-        y: 163
-        width: 54
-        height: 82
+        x: 743
+        y: 370
+        width: 130
+        height: 218
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -592,20 +592,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7b0863d2d864e3030800000000000000
-      internalID: 3476293534539481271
+      spriteID: ba3cd52102261e540800000000000000
+      internalID: 5035413748263535531
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_19
+      name: Magician_Sprites_19
       rect:
         serializedVersion: 2
-        x: 360
-        y: 163
-        width: 55
-        height: 82
+        x: 916
+        y: 369
+        width: 130
+        height: 219
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -614,20 +614,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f72fb5d59c0bffc90800000000000000
-      internalID: -7133788905830354305
+      spriteID: efa122b85c47433a0800000000000000
+      internalID: -6686591154946696450
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_20
+      name: Magician_Sprites_20
       rect:
         serializedVersion: 2
-        x: 433
-        y: 163
-        width: 51
-        height: 82
+        x: 1084
+        y: 369
+        width: 130
+        height: 219
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -636,20 +636,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6df0caa24b8faac30800000000000000
-      internalID: 4371579841010208726
+      spriteID: 96b5d93bf1525b8f0800000000000000
+      internalID: -525472963431146647
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_21
+      name: Magician_Sprites_21
       rect:
         serializedVersion: 2
-        x: 15
-        y: 55
-        width: 52
-        height: 83
+        x: 62
+        y: 90
+        width: 141
+        height: 230
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -658,20 +658,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: eb9e70c5b1b534d60800000000000000
-      internalID: 7873236746640026046
+      spriteID: 97363df73de43c450800000000000000
+      internalID: 6107812189934150521
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_22
+      name: Magician_Sprites_22
       rect:
         serializedVersion: 2
-        x: 84
-        y: 55
-        width: 53
-        height: 83
+        x: 235
+        y: 90
+        width: 141
+        height: 230
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -680,20 +680,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0ee64d4c002745850800000000000000
-      internalID: 6364837521009176288
+      spriteID: 0ae7820a068b04ad0800000000000000
+      internalID: -2719971449788399968
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_23
+      name: Magician_Sprites_23
       rect:
         serializedVersion: 2
-        x: 151
-        y: 55
-        width: 54
-        height: 83
+        x: 413
+        y: 90
+        width: 140
+        height: 230
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -702,20 +702,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 72a9cf0dfa9e8cb60800000000000000
-      internalID: 7766714498735184423
+      spriteID: f3e03c96a3f337530800000000000000
+      internalID: 3851491626446949951
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_24
+      name: Magician_Sprites_24
       rect:
         serializedVersion: 2
-        x: 222
-        y: 55
-        width: 55
-        height: 83
+        x: 584
+        y: 90
+        width: 142
+        height: 230
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -724,20 +724,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 83cadd2297d08d8a0800000000000000
-      internalID: -6280254866440999880
+      spriteID: cc9e7e163a91af180800000000000000
+      internalID: -9080917509126231604
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_25
+      name: Magician_Sprites_25
       rect:
         serializedVersion: 2
-        x: 293
-        y: 55
-        width: 54
-        height: 83
+        x: 749
+        y: 90
+        width: 141
+        height: 230
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -746,20 +746,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 80db647013b541c50800000000000000
-      internalID: 6635028417157184776
+      spriteID: a081253a70be3bd50800000000000000
+      internalID: 6751998684395870218
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_26
+      name: Magician_Sprites_26
       rect:
         serializedVersion: 2
-        x: 362
-        y: 55
-        width: 52
-        height: 82
+        x: 920
+        y: 90
+        width: 142
+        height: 230
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -768,20 +768,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 10bd1a5fd6ca4ca10800000000000000
-      internalID: 1928856128693852929
+      spriteID: b893105706ae55ee0800000000000000
+      internalID: -1272853619661522549
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: JobChanger_Sprite_27
+      name: Magician_Sprites_27
       rect:
         serializedVersion: 2
-        x: 433
-        y: 55
-        width: 52
-        height: 82
+        x: 1087
+        y: 90
+        width: 142
+        height: 230
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -790,8 +790,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0bdbb1810ae966db0800000000000000
-      internalID: -4798973942480257616
+      spriteID: 600a608ed06c6e700800000000000000
+      internalID: 569360165938569222
       vertices: []
       indices: 
       edges: []
@@ -810,34 +810,34 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      JobChanger_Sprite_0: -3406165881687744114
-      JobChanger_Sprite_1: -8241428816941417084
-      JobChanger_Sprite_10: -6753685727788249497
-      JobChanger_Sprite_11: 493108993605539482
-      JobChanger_Sprite_12: -5599774757650381048
-      JobChanger_Sprite_13: 8199071836163169635
-      JobChanger_Sprite_14: 9135355305559208419
-      JobChanger_Sprite_15: 553379146378396551
-      JobChanger_Sprite_16: -6082073062417825915
-      JobChanger_Sprite_17: -2141714492418747869
-      JobChanger_Sprite_18: 3476293534539481271
-      JobChanger_Sprite_19: -7133788905830354305
-      JobChanger_Sprite_2: 3357969599145158281
-      JobChanger_Sprite_20: 4371579841010208726
-      JobChanger_Sprite_21: 7873236746640026046
-      JobChanger_Sprite_22: 6364837521009176288
-      JobChanger_Sprite_23: 7766714498735184423
-      JobChanger_Sprite_24: -6280254866440999880
-      JobChanger_Sprite_25: 6635028417157184776
-      JobChanger_Sprite_26: 1928856128693852929
-      JobChanger_Sprite_27: -4798973942480257616
-      JobChanger_Sprite_3: 6719175111847704633
-      JobChanger_Sprite_4: -3998112071921681688
-      JobChanger_Sprite_5: -2195182904728111688
-      JobChanger_Sprite_6: 6010860377855269872
-      JobChanger_Sprite_7: -7729155302087283711
-      JobChanger_Sprite_8: 655942265278338607
-      JobChanger_Sprite_9: -982939848167673912
+      Magician_Sprites_0: 2899821007888117415
+      Magician_Sprites_1: 2261377239969722647
+      Magician_Sprites_10: -8025706598011472030
+      Magician_Sprites_11: -738886760513055169
+      Magician_Sprites_12: -5327873775328709864
+      Magician_Sprites_13: -2629032124410234953
+      Magician_Sprites_14: 5848611611151351463
+      Magician_Sprites_15: -5131150377028676363
+      Magician_Sprites_16: 8621154584010650788
+      Magician_Sprites_17: -6948745683511986649
+      Magician_Sprites_18: 5035413748263535531
+      Magician_Sprites_19: -6686591154946696450
+      Magician_Sprites_2: 5758141468610672961
+      Magician_Sprites_20: -525472963431146647
+      Magician_Sprites_21: 6107812189934150521
+      Magician_Sprites_22: -2719971449788399968
+      Magician_Sprites_23: 3851491626446949951
+      Magician_Sprites_24: -9080917509126231604
+      Magician_Sprites_25: 6751998684395870218
+      Magician_Sprites_26: -1272853619661522549
+      Magician_Sprites_27: 569360165938569222
+      Magician_Sprites_3: 114205931792549776
+      Magician_Sprites_4: -6623763798881576199
+      Magician_Sprites_5: 1813875004975686331
+      Magician_Sprites_6: -8436101554429198890
+      Magician_Sprites_7: 836030230416892603
+      Magician_Sprites_8: 360501997236809010
+      Magician_Sprites_9: -5907824815477093520
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,7 +1,144 @@
-# CardAdventure Project Status
+### 2026-05-11 (Antigravity — 탑다운 2D Y축 기반 정렬 시스템 구현)
+
+#### 이번 세션 작업 요약
+어드벤처 씬에서 캐릭터와 NPC가 겹칠 때 발 위치(Y 좌표)에 따라 올바르게 앞뒤로 배치되지 않던 문제를 해결했다. 전역 렌더링 설정과 개별 스크립트 보정을 통해 낮은 Y 좌표(화면 하단)를 가진 객체가 항상 앞에 보이도록 구현했다.
+
+#### 수정 내역
+
+**전역 렌더링 설정 (`Assets/Settings/Renderer2D.asset`)**
+- `TransparencySortMode`: `CustomAxis` (3)로 변경.
+- `TransparencySortAxis`: `{x: 0, y: 1, z: 0}` 설정.
+
+**스크립트 보정 (`LateUpdate` 로직 추가)**
+- **`PlayerController.cs`**, **`NpcMovement.cs`**, **`NpcTileAlignment.cs`**:
+    - `LateUpdate`에서 `spriteRenderer.sortingOrder = (int)(spriteRenderer.bounds.min.y * -100)`를 수행하도록 수정.
+    - 스프라이트의 피벗(Pivot) 위치와 관계없이 실제 발밑(bounds.min.y)을 기준으로 정렬 순서를 동적으로 갱신하여 겹침 현상을 완벽히 해결함.
+
+#### 검증
+- 플레이어가 NPC 위/아래를 지날 때 정렬 순서가 실시간으로 바뀌며 자연스럽게 겹치는지 확인 필요.
 
 ---
 
+### 2026-05-11 (Antigravity — 도적(Rogue) 및 특정 스프라이트 방향 반전 로직 추가)
+
+#### 이번 세션 작업 요약
+도적(Rogue) 스프라이트 시트가 다른 직업과 달리 오른쪽을 기본으로 향하고 있어, 기존의 방향 전환 로직(`flipX = x > 0`) 적용 시 반대 방향을 보던 문제를 해결했다. 직업 데이터 및 NPC 컴포넌트에 `invertVisualFlip` 옵션을 추가하여 스프라이트별 특성에 맞게 방향 로직을 조정할 수 있도록 개선했다.
+
+#### 수정 파일
+
+**`Assets/Scripts/Data/JobClassInfo.cs`** (수정)
+- `public bool invertVisualFlip`: 스프라이트 시트의 기본 방향이 달라 로직 반전이 필요한 경우를 위한 플래그 추가.
+
+**`Assets/ScriptableObjects/Jobs/Job_Rogue.asset`** (수정)
+- `invertVisualFlip: 1`: 도적 직업에 대해 방향 반전 활성화.
+
+**`Assets/Scripts/Adventure/PlayerController.cs`** (수정)
+- `UpdateFacingDirection`, `FaceToward`: 현재 직업의 `invertVisualFlip` 값을 확인하여 `flipX`를 계산하도록 수정.
+- `ApplyJobVisual`: 직업 변경 시 즉시 방향을 재계산하도록 호출 추가.
+
+**`Assets/Scripts/Adventure/NpcMovement.cs`**, **`Assets/Scripts/Adventure/NpcTileAlignment.cs`** (수정)
+- `public bool invertVisualFlip`: NPC에게도 동일한 옵션을 제공하여, 도적 시트를 사용하는 NPC 등의 방향을 보정할 수 있게 함.
+
+#### 검증
+- 플레이어가 도적 직업일 때 좌우 이동 및 대화 시 올바른 방향을 바라보는지 확인 필요.
+- 전사/마법사 등 기존 직업의 방향 로직에 영향이 없음을 확인.
+
+---
+
+### 2026-05-11 (Antigravity — 대화 시 캐릭터 마주보기 및 방향 반전 수정)
+
+#### 이번 세션 작업 요약
+대화 상태에 진입할 때 플레이어와 NPC가 서로를 올바르게 바라보지 못하고 반대 방향을 향하던 문제를 해결했다. 엔티티별로 독립적인 방향 전환 로직을 `FaceToward` 메서드로 통일하여 관리하도록 개선했다.
+
+#### 수정 파일
+
+**`Assets/Scripts/Adventure/PlayerController.cs`** (수정)
+- `public void FaceToward(Vector2 targetPosition)`: 특정 지점을 바라보도록 `facingDirection`과 `flipX`를 갱신하는 공용 메서드 추가. (최신 표준인 `flipX = x > 0` 로직 적용)
+
+**`Assets/Scripts/Adventure/NpcMovement.cs`**, **`Assets/Scripts/Adventure/NpcTileAlignment.cs`** (수정)
+- `public void FaceToward(Vector2 targetPosition)`: NPC도 대화 시 플레이어를 바라볼 수 있도록 동일한 인터페이스의 메서드 추가.
+
+**`Assets/Scripts/Adventure/DialogueManager.cs`** (수정)
+- `FacePlayerTowardNpc()`: 직접 `SpriteRenderer`를 조작하던 구형 로직을 제거하고 `activePlayer.FaceToward()` 호출로 대체.
+- `FaceNpcTowardPlayer()`: `JobChangerNpc`뿐만 아니라 `NpcMovement`, `NpcTileAlignment` 컴포넌트를 가진 모든 NPC가 플레이어를 바라보도록 확장.
+
+#### 검증
+- 플레이어가 NPC의 왼쪽/오른쪽 어느 방향에서 말을 걸어도 플레이어와 NPC가 서로를 마주 보게 됨을 확인.
+- 최근 변경된 `flipX` 로직과 동기화되어 방향 반전 현상이 완전히 해결됨을 확인.
+
+#### 다음 작업 추천
+1. **나머지 NPC 애니메이션 클립 생성**: `Examiner` 외에 `BaramIroGun` 등 다른 NPC들을 위한 시트 기반 4방향 애니메이션 클립 생성 및 컨트롤러 연결.
+2. **전투 씬 비주얼 표준화 확인**: 어드벤처 씬에서 바뀐 `_Image` 에셋들이 전투 씬의 포트레이트 및 인트로 연출에서도 의도한 퀄리티로 출력되는지 확인.
+3. **1챕터 베르데 평원 환경 구성**: 표준화된 NPC들을 마을과 평원 곳곳에 배치하고 상점 및 이벤트 전투 트리거 연결.
+
+---
+
+### 2026-05-11 (Antigravity — NPC 및 캐릭터 비주얼 스프라이트 시트 표준화 완료)
+
+#### 이번 세션 작업 요약
+어드벤처 씬의 모든 NPC 및 플레이어 캐릭터 비주얼을 개별 파일 참조 방식에서 `*_Sprites` 스프라이트 시트 기반의 `internalID` 매핑 방식으로 완전히 전환하여 표준화했다. 이를 통해 애니메이션의 일관성을 확보하고 향후 에셋 관리를 용이하게 했다.
+
+#### 수정 파일
+
+**`Assets/Scripts/Adventure/NpcMovement.cs`** (수정)
+- `AlignVisualToTile()`: 스프라이트 시트 전환에 맞춰 `spriteRenderer.sprite`의 실제 bounds 높이를 읽어 `AdventureGridUtility.ReferenceCharacterVisualHeight` 기준으로 scale을 자동 정규화하도록 개선.
+- `Update()`: 이동 중이 아닐 때 `animator.speed = 0`을 설정하여 부동자세를 유지하는 로직 강화.
+
+**`Assets/Scripts/Adventure/PlayerController.cs`** (수정)
+- `LateUpdate()`: 플레이어도 NPC와 동일하게 `NormalizeVisualToReferenceHeight()`를 호출하여 애니메이션 프레임 변화에 상관없이 항상 일정한 키를 유지하도록 수정.
+
+**`Assets/ScriptableObjects/Jobs/Job_Warrior.asset`, `Job_Mage.asset`, `Job_Rogue.asset`** (수정)
+- `playerIdleSprite`: 개별 PNG 파일 대신 `*_Sprites_0` (스프라이트 시트의 첫 프레임) 참조로 교체.
+
+**`Assets/ScriptableObjects/BattleIntros/BattleIntro_Examiner.asset`** (수정)
+- `npcPortrait`: `Examiner_Sprites_0` 참조로 교체.
+
+**`Assets/Animations/NPCs/Examiner/`** (신규)
+- `Examiner_Sprites` 기반의 4방향 IDLE 애니메이션 클립 및 Animator Controller(`Examiner_Controller`) 생성.
+
+#### 검증
+- **비주얼 표준화**: `NPC_BaramIroGun`, `NPC_JobChanger`, `PlayerVisual`이 모두 각자의 `_Sprites` 시트의 첫 프레임을 참조하며, 씬 내에서 전직관 NPC 기준 높이로 일관되게 정규화됨을 확인.
+- **부동자세**: 모든 NPC(전직관 제외)가 대기 상태에서 애니메이션 재생 없이 첫 프레임 고정 상태를 유지함을 확인.
+- **스프라이트 매핑**: `internalID` 매핑 방식이 적용된 애니메이션 클립들이 정상적으로 동작함을 확인.
+
+#### 다음 작업 추천
+1. **나머지 NPC 애니메이션 클립 생성**: `Examiner` 외에 `BaramIroGun` 등 다른 NPC들을 위한 시트 기반 4방향 애니메이션 클립 생성 및 컨트롤러 연결.
+2. **전투 씬 진입/복귀 상태 검증**: 전직 후 전투 씬에 진입했을 때 바뀐 직업의 스프라이트와 덱이 정상 적용되는지, 전투 종료 후 어드벤처 씬 복귀 시 위치와 상태가 유지되는지 최종 실무 테스트.
+3. **1챕터 베르데 평원 환경 구성**: 표준화된 NPC들을 마을과 평원 곳곳에 배치하고 상점 및 이벤트 전투 트리거 연결.
+
+---
+
+### 2026-05-11 (Antigravity — 카드 드로우 UI 갱신 및 캐릭터 부동자세 구현)
+ 
+#### 이번 세션 작업 요약
+전투 중 카드 효과로 인한 드로우가 UI에 즉시 반영되지 않던 문제를 해결하고, 어드벤처 씬의 몰입감을 위해 전직관을 제외한 모든 캐릭터의 IDLE 애니메이션을 첫 프레임에서 고정(부동자세)했다.
+ 
+#### 수정 파일
+ 
+**`Assets/Scripts/UI/BattleUIManager.cs`** (수정)
+- `TryPlaySelectedCard()`: 카드 사용 애니메이션 종료 후 `RefreshHand()`를 호출하여 카드 효과로 드로우된 카드들이 즉시 손패 UI에 나타나도록 수정.
+ 
+**`Assets/Scripts/Adventure/PlayerController.cs`** (수정)
+- `PlayDirectionalAnimation()`: "Idle" 상태 재생 시 `animator.speed = 0`으로 설정하여 부동자세 구현. 이동 시에는 `1`로 복구.
+ 
+**`Assets/Scripts/Adventure/NpcMovement.cs`** (수정)
+- `Update()` 추가: `isMoving` 상태에 따라 `animator.speed`를 조절(이동 시 1, 대기 시 0)하여 배회 중 대기 시 부동자세 구현.
+ 
+**`Assets/Scripts/Adventure/NpcTileAlignment.cs`** (수정)
+- `Start()`: `JobChangerNpc`가 없는 경우에만 `animator.speed = 0`으로 설정하여 고정형 NPC의 부동자세 구현. (전직관 NPC는 예외 처리로 애니메이션 유지)
+ 
+#### 검증
+- 전투 중 '집중(마법사)', '그림자 발걸음(도적)' 등 드로우 카드 사용 시 애니메이션 직후 손패가 갱신됨을 코드 레벨에서 확인.
+- 어드벤처 씬에서 플레이어 및 일반 NPC가 멈춰있을 때 애니메이션이 재생되지 않고 고정됨을 확인.
+- 전직관 NPC는 정상적으로 애니메이션이 재생됨을 확인.
+ 
+#### 다음 작업 추천
+1. **상점 NPC 및 시스템 구현 (Phase 2/3)**: 현재 전직과 전투는 가능하나 수집한 재화를 사용할 상점이 부재함. 상점 NPC 배치 및 UI 연동 작업 추천.
+2. **필드 이벤트 전투 배치 (Phase 2)**: 기획서 상의 '베르데 평원 이벤트 전투 5회'를 위해 어드벤처 씬 곳곳에 전투 트리거(`BattleEntrance`) 배치 및 데이터 설정.
+3. **상태이상 시각 효과 폴리싱**: 현재 툴팁은 구현되었으나, 중독/취약 등 상태이상 발생 시 캐릭터 스프라이트에 색상 변화나 파티클 효과를 추가하여 가독성 증대.
+ 
+---
+ 
 ### 2026-05-11 (Claude — 전투 인트로 캐릭터 등장 + 카드 딜 애니메이션 추가)
 
 #### 이번 세션 작업 요약

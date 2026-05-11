@@ -42,6 +42,8 @@ namespace CardAdventure
         [Header("비주얼 (선택)")]
         [Tooltip("좌우 이동 시 flipX로 방향 반전할 SpriteRenderer")]
         [SerializeField] private SpriteRenderer spriteRenderer;
+        [Tooltip("이동 방향에 따른 flipX 로직을 반전시킵니다. (스프라이트 시트 기본 방향이 다를 경우 사용)")]
+        public bool invertVisualFlip = false;
 
         // ── 런타임 상태 ────────────────────────────────────────
         private Rigidbody2D rb;
@@ -73,6 +75,16 @@ namespace CardAdventure
             ResolveMoveUnitSize();
             AlignVisualToTile();
             ConfigureTileColliders();
+        }
+
+        private void LateUpdate()
+        {
+            if (spriteRenderer != null)
+            {
+                // 발밑(bounds.min.y) 기준으로 정렬 순서 결정.
+                // Unity의 sortingOrder는 클수록 앞에 보이므로, -100을 곱해 낮은 Y값이 큰 order를 갖게 함.
+                spriteRenderer.sortingOrder = 10000 + (int)(spriteRenderer.bounds.min.y * -100);
+            }
         }
 
         private void ResolveMoveUnitSize()
@@ -250,7 +262,37 @@ namespace CardAdventure
         private void UpdateFacing(Vector2 dir)
         {
             if (spriteRenderer == null || dir.x == 0f) return;
-            spriteRenderer.flipX = dir.x < 0f;
+            
+            bool baseFlip = dir.x > 0f;
+            if (invertVisualFlip) baseFlip = !baseFlip;
+            spriteRenderer.flipX = baseFlip;
+        }
+
+        /// <summary>
+        /// 특정 월드 좌표를 바라보도록 스프라이트 방향을 설정한다.
+        /// </summary>
+        public void FaceToward(Vector2 targetPosition)
+        {
+            Vector2 dir = targetPosition - (Vector2)transform.position;
+            if (Mathf.Abs(dir.x) > 0.1f)
+            {
+                if (spriteRenderer != null)
+                {
+                    bool baseFlip = dir.x > 0f;
+                    if (invertVisualFlip) baseFlip = !baseFlip;
+                    spriteRenderer.flipX = baseFlip;
+                }
+            }
+        }
+
+        private void Update()
+        {
+            // 움직이지 않을 때(IDLE)는 첫 프레임에서 멈춤
+            Animator anim = GetComponentInChildren<Animator>();
+            if (anim != null)
+            {
+                anim.speed = isMoving ? 1f : 0f;
+            }
         }
 
         private static bool IsDialogueActive() =>

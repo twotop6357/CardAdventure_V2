@@ -1,0 +1,845 @@
+fileFormatVersion: 2
+guid: 8d5adc77ad3f2b74f93d9f8a7a1210c5
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -1476111442401541122
+    second: JobChanger_Sprites_0
+  - first:
+      213: 8933384935571288260
+    second: JobChanger_Sprites_1
+  - first:
+      213: 3319625100435079401
+    second: JobChanger_Sprites_2
+  - first:
+      213: 8575107830304853419
+    second: JobChanger_Sprites_3
+  - first:
+      213: -1013298541341895866
+    second: JobChanger_Sprites_4
+  - first:
+      213: -6317395774706777470
+    second: JobChanger_Sprites_5
+  - first:
+      213: -3483013780220070658
+    second: JobChanger_Sprites_6
+  - first:
+      213: -672129393449390218
+    second: JobChanger_Sprites_7
+  - first:
+      213: 113204035376015207
+    second: JobChanger_Sprites_8
+  - first:
+      213: 2194284471603829747
+    second: JobChanger_Sprites_9
+  - first:
+      213: 4406284402150476868
+    second: JobChanger_Sprites_10
+  - first:
+      213: -7794344652046558907
+    second: JobChanger_Sprites_11
+  - first:
+      213: -1540493274572590647
+    second: JobChanger_Sprites_12
+  - first:
+      213: -5340363271127252295
+    second: JobChanger_Sprites_13
+  - first:
+      213: -5963745955785232217
+    second: JobChanger_Sprites_14
+  - first:
+      213: 1688110514855683524
+    second: JobChanger_Sprites_15
+  - first:
+      213: -8573547810250840102
+    second: JobChanger_Sprites_16
+  - first:
+      213: 1046591254233549798
+    second: JobChanger_Sprites_17
+  - first:
+      213: -2922063005048694153
+    second: JobChanger_Sprites_18
+  - first:
+      213: 3860299719674788984
+    second: JobChanger_Sprites_19
+  - first:
+      213: 8336835747526718198
+    second: JobChanger_Sprites_20
+  - first:
+      213: 6644302859621631832
+    second: JobChanger_Sprites_21
+  - first:
+      213: -3134469461696574115
+    second: JobChanger_Sprites_22
+  - first:
+      213: 9049766191391313323
+    second: JobChanger_Sprites_23
+  - first:
+      213: -6882332807115683304
+    second: JobChanger_Sprites_24
+  - first:
+      213: -9125034020734918318
+    second: JobChanger_Sprites_25
+  - first:
+      213: -8142341658144238255
+    second: JobChanger_Sprites_26
+  - first:
+      213: -1799909812293270615
+    second: JobChanger_Sprites_27
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: JobChanger_Sprites_0
+      rect:
+        serializedVersion: 2
+        x: 59
+        y: 944
+        width: 149
+        height: 218
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef344c2c67cc38be0800000000000000
+      internalID: -1476111442401541122
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_1
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 944
+        width: 150
+        height: 218
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c07d8e8442c9fb70800000000000000
+      internalID: 8933384935571288260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_2
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 945
+        width: 147
+        height: 217
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e047e2d07da11e20800000000000000
+      internalID: 3319625100435079401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_3
+      rect:
+        serializedVersion: 2
+        x: 564
+        y: 944
+        width: 146
+        height: 218
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: badcdf78327e00770800000000000000
+      internalID: 8575107830304853419
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_4
+      rect:
+        serializedVersion: 2
+        x: 727
+        y: 945
+        width: 147
+        height: 217
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64315e7685a00f1f0800000000000000
+      internalID: -1013298541341895866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_5
+      rect:
+        serializedVersion: 2
+        x: 891
+        y: 944
+        width: 148
+        height: 218
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2828c0f830a1458a0800000000000000
+      internalID: -6317395774706777470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_6
+      rect:
+        serializedVersion: 2
+        x: 1056
+        y: 944
+        width: 147
+        height: 218
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef43132bb69d9afc0800000000000000
+      internalID: -3483013780220070658
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_7
+      rect:
+        serializedVersion: 2
+        x: 56
+        y: 642
+        width: 141
+        height: 214
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67fa954b0ed1ca6f0800000000000000
+      internalID: -672129393449390218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_8
+      rect:
+        serializedVersion: 2
+        x: 229
+        y: 644
+        width: 139
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7676abb687e229100800000000000000
+      internalID: 113204035376015207
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_9
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 645
+        width: 139
+        height: 211
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fb1a12e91aa37e10800000000000000
+      internalID: 2194284471603829747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_10
+      rect:
+        serializedVersion: 2
+        x: 564
+        y: 644
+        width: 139
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44c06897154462d30800000000000000
+      internalID: 4406284402150476868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_11
+      rect:
+        serializedVersion: 2
+        x: 729
+        y: 646
+        width: 138
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5499ccdc5dce4d390800000000000000
+      internalID: -7794344652046558907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_12
+      rect:
+        serializedVersion: 2
+        x: 893
+        y: 644
+        width: 138
+        height: 211
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c1f83657811f9ae0800000000000000
+      internalID: -1540493274572590647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_13
+      rect:
+        serializedVersion: 2
+        x: 1061
+        y: 644
+        width: 137
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b2caec36e733e5b0800000000000000
+      internalID: -5340363271127252295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_14
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 367
+        width: 137
+        height: 215
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a0bfb686a48c3da0800000000000000
+      internalID: -5963745955785232217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_15
+      rect:
+        serializedVersion: 2
+        x: 234
+        y: 367
+        width: 137
+        height: 215
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c5239bb19f5d6710800000000000000
+      internalID: 1688110514855683524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_16
+      rect:
+        serializedVersion: 2
+        x: 401
+        y: 369
+        width: 139
+        height: 214
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad7ab21f0b3a40980800000000000000
+      internalID: -8573547810250840102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_17
+      rect:
+        serializedVersion: 2
+        x: 569
+        y: 367
+        width: 137
+        height: 215
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6eb0f9d533d368e00800000000000000
+      internalID: 1046591254233549798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_18
+      rect:
+        serializedVersion: 2
+        x: 733
+        y: 366
+        width: 137
+        height: 217
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77a13ccbd2fb277d0800000000000000
+      internalID: -2922063005048694153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_19
+      rect:
+        serializedVersion: 2
+        x: 896
+        y: 367
+        width: 137
+        height: 215
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87c71cd642a829530800000000000000
+      internalID: 3860299719674788984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_20
+      rect:
+        serializedVersion: 2
+        x: 1065
+        y: 367
+        width: 137
+        height: 215
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f2bb1221f362b370800000000000000
+      internalID: 8336835747526718198
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_21
+      rect:
+        serializedVersion: 2
+        x: 61
+        y: 79
+        width: 144
+        height: 225
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8570cdf6f3e453c50800000000000000
+      internalID: 6644302859621631832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_22
+      rect:
+        serializedVersion: 2
+        x: 231
+        y: 78
+        width: 143
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5d0448b1a02084d0800000000000000
+      internalID: -3134469461696574115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_23
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 78
+        width: 143
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bad0832476a379d70800000000000000
+      internalID: 9049766191391313323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_24
+      rect:
+        serializedVersion: 2
+        x: 566
+        y: 79
+        width: 143
+        height: 225
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81a4adda6ca0d70a0800000000000000
+      internalID: -6882332807115683304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_25
+      rect:
+        serializedVersion: 2
+        x: 729
+        y: 78
+        width: 143
+        height: 227
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 251adb697ed5d5180800000000000000
+      internalID: -9125034020734918318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_26
+      rect:
+        serializedVersion: 2
+        x: 894
+        y: 83
+        width: 142
+        height: 221
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1559272e667900f80800000000000000
+      internalID: -8142341658144238255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: JobChanger_Sprites_27
+      rect:
+        serializedVersion: 2
+        x: 1061
+        y: 78
+        width: 143
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a30582ef8f6507e0800000000000000
+      internalID: -1799909812293270615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      JobChanger_Sprites_0: -1476111442401541122
+      JobChanger_Sprites_1: 8933384935571288260
+      JobChanger_Sprites_10: 4406284402150476868
+      JobChanger_Sprites_11: -7794344652046558907
+      JobChanger_Sprites_12: -1540493274572590647
+      JobChanger_Sprites_13: -5340363271127252295
+      JobChanger_Sprites_14: -5963745955785232217
+      JobChanger_Sprites_15: 1688110514855683524
+      JobChanger_Sprites_16: -8573547810250840102
+      JobChanger_Sprites_17: 1046591254233549798
+      JobChanger_Sprites_18: -2922063005048694153
+      JobChanger_Sprites_19: 3860299719674788984
+      JobChanger_Sprites_2: 3319625100435079401
+      JobChanger_Sprites_20: 8336835747526718198
+      JobChanger_Sprites_21: 6644302859621631832
+      JobChanger_Sprites_22: -3134469461696574115
+      JobChanger_Sprites_23: 9049766191391313323
+      JobChanger_Sprites_24: -6882332807115683304
+      JobChanger_Sprites_25: -9125034020734918318
+      JobChanger_Sprites_26: -8142341658144238255
+      JobChanger_Sprites_27: -1799909812293270615
+      JobChanger_Sprites_3: 8575107830304853419
+      JobChanger_Sprites_4: -1013298541341895866
+      JobChanger_Sprites_5: -6317395774706777470
+      JobChanger_Sprites_6: -3483013780220070658
+      JobChanger_Sprites_7: -672129393449390218
+      JobChanger_Sprites_8: 113204035376015207
+      JobChanger_Sprites_9: 2194284471603829747
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

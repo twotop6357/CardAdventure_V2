@@ -272,14 +272,7 @@ namespace CardAdventure
         private void FacePlayerTowardNpc(NpcInteractable npc)
         {
             if (activePlayer == null || npc == null) return;
-
-            Vector2 dir = npc.transform.position - activePlayer.transform.position;
-
-            // PlayerController에 FaceDirection 공개 메서드가 생기면 그것을 사용.
-            // 현재는 SpriteRenderer flipX만 처리한다.
-            SpriteRenderer sr = activePlayer.GetComponentInChildren<SpriteRenderer>();
-            if (sr != null && Mathf.Abs(dir.x) > 0.1f)
-                sr.flipX = dir.x < 0f;
+            activePlayer.FaceToward(npc.transform.position);
         }
 
         // ══════════════════════════════════════════════════════
@@ -290,10 +283,28 @@ namespace CardAdventure
         {
             if (activePlayer == null || npc == null) return;
 
+            // 1. 전직관 NPC
             JobChangerNpc jobChanger = npc.GetComponent<JobChangerNpc>();
             if (jobChanger != null)
             {
                 jobChanger.FaceToward(activePlayer.transform.position);
+                return;
+            }
+
+            // 2. 이동형 NPC
+            NpcMovement movement = npc.GetComponent<NpcMovement>();
+            if (movement != null)
+            {
+                movement.FaceToward(activePlayer.transform.position);
+                return;
+            }
+
+            // 3. 고정형 NPC
+            NpcTileAlignment alignment = npc.GetComponent<NpcTileAlignment>();
+            if (alignment != null)
+            {
+                alignment.FaceToward(activePlayer.transform.position);
+                return;
             }
         }
 

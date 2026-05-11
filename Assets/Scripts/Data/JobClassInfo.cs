@@ -49,6 +49,9 @@ namespace CardAdventure
         [Tooltip("Idle 애니메이션 스프라이트를 기준 키에 맞추기 위한 배율. 직업별 플레이어 애니메이션 시트 크기 차이를 보정한다.")]
         public float playerIdleVisualScaleMultiplier = 1f;
 
+        [Tooltip("이동 방향에 따른 SpriteRenderer.flipX 로직을 반전시킬지 여부. (스프라이트 시트의 기본 방향이 다를 경우 사용)")]
+        public bool invertVisualFlip = false;
+
         [Header("게임 데이터")]
         [Tooltip("이 직업을 선택했을 때 시작 덱에 들어갈 카드 목록")]
         public List<CardData> starterCards = new List<CardData>();

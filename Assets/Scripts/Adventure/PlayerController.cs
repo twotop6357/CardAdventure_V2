@@ -193,6 +193,13 @@ namespace CardAdventure
         private void LateUpdate()
         {
             NormalizeVisualToReferenceHeight();
+
+            if (spriteRenderer != null)
+            {
+                // 발밑(bounds.min.y) 기준으로 정렬 순서 결정.
+                // Unity의 sortingOrder는 클수록 앞에 보이므로, -100을 곱해 낮은 Y값이 큰 order를 갖게 함.
+                spriteRenderer.sortingOrder = 10000 + (int)(spriteRenderer.bounds.min.y * -100);
+            }
         }
 
         private void ResolveMoveUnitSize()
@@ -304,6 +311,9 @@ namespace CardAdventure
 
             idleVisualScaleMultiplier = Mathf.Max(0.001f, jobInfo.playerIdleVisualScaleMultiplier);
             RefreshVisualAlignment();
+
+            // 방향 강제 업데이트 (직업별 반전 설정이 다를 수 있으므로)
+            UpdateFacingDirection(facingDirection);
         }
 
         private void UpdateHeldDirection(Vector2 inputDirection)
@@ -400,8 +410,43 @@ namespace CardAdventure
 
             if (spriteRenderer != null && direction.x != 0f)
             {
-                spriteRenderer.flipX = direction.x < 0f;
+                bool baseFlip = direction.x > 0f;
+                // 직업 데이터에 따라 flipX 로직 반전 여부 결정
+                if (GameDataManager.Instance != null && GameDataManager.Instance.SelectedJobInfo != null)
+                {
+                    if (GameDataManager.Instance.SelectedJobInfo.invertVisualFlip)
+                        baseFlip = !baseFlip;
+                }
+                spriteRenderer.flipX = baseFlip;
             }
+        }
+
+        /// <summary>
+        /// 특정 월드 좌표를 바라보도록 스프라이트 방향을 설정한다.
+        /// </summary>
+        public void FaceToward(Vector2 targetPosition)
+        {
+            Vector2 dir = targetPosition - (Vector2)transform.position;
+            if (Mathf.Abs(dir.x) > 0.1f)
+            {
+                facingDirection = dir.x > 0 ? Vector2.right : Vector2.left;
+                if (spriteRenderer != null)
+                {
+                    bool baseFlip = dir.x > 0f;
+                    if (GameDataManager.Instance != null && GameDataManager.Instance.SelectedJobInfo != null)
+                    {
+                        if (GameDataManager.Instance.SelectedJobInfo.invertVisualFlip)
+                            baseFlip = !baseFlip;
+                    }
+                    spriteRenderer.flipX = baseFlip;
+                }
+            }
+            else if (Mathf.Abs(dir.y) > 0.1f)
+            {
+                facingDirection = dir.y > 0 ? Vector2.up : Vector2.down;
+            }
+
+            PlayDirectionalAnimation(false);
         }
 
         private void PlayDirectionalAnimation(bool moving)
@@ -434,6 +479,10 @@ namespace CardAdventure
 
             currentAnimationState = stateName;
             animator.Play(stateName);
+
+            // IDLE 애니메이션인 경우 첫 프레임에서 멈춤 (부동자세)
+            bool isIdle = stateName.Contains("Idle");
+            animator.speed = isIdle ? 0f : 1f;
         }
 
         private void ApplyVisualScale(bool moving)
