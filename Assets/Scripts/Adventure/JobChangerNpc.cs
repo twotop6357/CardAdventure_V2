@@ -174,22 +174,11 @@ namespace CardAdventure
 
             if (selectedJob == null) return;
 
-            // GameDataManager에 선택된 직업 저장
+            // GameDataManager에 선택된 직업 및 덱/HP 갱신
             if (GameDataManager.Instance != null)
             {
-                GameDataManager.Instance.SelectedJobInfo = selectedJob;
-
-                // 직업 전환 시 HP도 새 직업 기준으로 적용 (현재 HP 비율 유지)
-                int oldMax = GameDataManager.Instance.MaxHp;
-                int newMax = selectedJob.baseMaxHp;
-                if (oldMax > 0 && newMax > 0)
-                {
-                    float ratio = (float)GameDataManager.Instance.CurrentHp / oldMax;
-                    // MaxHp는 setter가 없으므로 직접 리셋이 필요하면 ResetForNewGame 참조.
-                    // 현재는 SelectedJobInfo 저장만 수행하고, 실제 HP/덱 전환은 별도 초기화 시점에 처리.
-                }
-
-                Debug.Log($"[JobChangerNpc] 직업 변경: {selectedJob.displayName} ({selectedJob.cardClass})");
+                GameDataManager.Instance.UpdateJob(selectedJob);
+                Debug.Log($"[JobChangerNpc] 직업 변경 프로세스 완료: {selectedJob.displayName}");
             }
 
             // PlayerController 비주얼 갱신 (직업 변경 후 키 기준 재적용)

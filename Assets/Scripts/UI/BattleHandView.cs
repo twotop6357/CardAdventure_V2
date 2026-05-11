@@ -34,7 +34,7 @@ namespace CardAdventure
         [Tooltip("덱 위치 마커 (없으면 dealOriginLocal 사용). 우하단에 배치한다.")]
         [SerializeField] private RectTransform deckOriginMarker;
         [Tooltip("카드 한 장당 딜 시작 딜레이 간격 (초)")]
-        [SerializeField] private float cardDealStagger = 0.07f;
+        [SerializeField] private float cardDealStagger = 0.1f;
 
         // ── 내부 ───────────────────────────────────────────────────
         // cardViews[i]와 boundRuntimeCards[i]는 항상 1:1 대응한다.

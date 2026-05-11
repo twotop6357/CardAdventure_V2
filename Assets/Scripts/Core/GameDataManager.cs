@@ -16,6 +16,7 @@ namespace CardAdventure
         [Header("플레이어 설정")]
         [SerializeField] private string playerName    = "플레이어";
         [SerializeField] private int    playerMaxHp   = 50;
+        [SerializeField] private JobClassInfo defaultJobInfo;
         [SerializeField] private List<CardData> starterDeck = new List<CardData>();
 
         // ── 런타임 데이터 ──────────────────────────────────────
@@ -40,6 +41,13 @@ namespace CardAdventure
 
         /// <summary>현재 선택된 직업 정보. null이면 기본값(전사)으로 간주.</summary>
         public JobClassInfo SelectedJobInfo { get; set; }
+
+        /// <summary>배틀 진입 전 어드벤처 씬에서의 플레이어 위치.</summary>
+        public Vector2 SavedPosition { get; set; }
+        /// <summary>배틀 진입 전 플레이어가 바라보던 방향.</summary>
+        public Vector2 SavedFacingDirection { get; set; } = Vector2.down;
+        /// <summary>위치 정보가 저장되어 있는지 여부.</summary>
+        public bool HasSavedPosition { get; set; }
 
         /// <summary>현재 선택된 직업의 CardClass 값. SelectedJobInfo가 null이면 Warrior 반환.</summary>
         public CardClass SelectedJobClass => SelectedJobInfo != null ? SelectedJobInfo.cardClass : CardClass.Warrior;
@@ -70,11 +78,28 @@ namespace CardAdventure
             CurrentHp = playerMaxHp;
             Gold      = 0;
             ChapterProgress = 0;
+            HasSavedPosition = false;
+
+            if (defaultJobInfo != null)
+            {
+                SelectedJobInfo = defaultJobInfo;
+            }
 
             Deck.Clear();
-            foreach (CardData card in starterDeck)
+            // starterDeck이 설정되어 있으면 그것을 쓰고, 아니면 직업 기본 덱을 씀
+            if (starterDeck.Count > 0)
             {
-                if (card != null) Deck.Add(card);
+                foreach (CardData card in starterDeck)
+                {
+                    if (card != null) Deck.Add(card);
+                }
+            }
+            else if (SelectedJobInfo != null && SelectedJobInfo.starterCards != null)
+            {
+                foreach (CardData card in SelectedJobInfo.starterCards)
+                {
+                    if (card != null) Deck.Add(card);
+                }
             }
         }
 
@@ -88,6 +113,16 @@ namespace CardAdventure
         {
             PendingEnemy    = enemy;
             ReturnSceneName = returnScene;
+
+            // 플레이어 현재 상태 저장
+            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+            if (player != null)
+            {
+                SavedPosition = player.transform.position;
+                SavedFacingDirection = player.FacingDirection;
+                HasSavedPosition = true;
+                Debug.Log($"[GameDataManager] 플레이어 위치 저장: {SavedPosition}");
+            }
         }
 
         /// <summary>
@@ -128,6 +163,41 @@ namespace CardAdventure
         public void ResetForNewGame()
         {
             InitDefaults();
+        }
+
+        /// <summary>
+        /// 직업을 변경하고 관련 데이터(HP, 덱)를 갱신한다.
+        /// </summary>
+        public void UpdateJob(JobClassInfo newJob)
+        {
+            if (newJob == null) return;
+
+            SelectedJobInfo = newJob;
+
+            // HP 갱신 (비율 유지)
+            int oldMax = MaxHp;
+            MaxHp = newJob.baseMaxHp;
+            if (oldMax > 0)
+            {
+                float ratio = (float)CurrentHp / oldMax;
+                CurrentHp = Mathf.RoundToInt(MaxHp * ratio);
+            }
+            else
+            {
+                CurrentHp = MaxHp;
+            }
+
+            // 덱 교체
+            Deck.Clear();
+            if (newJob.starterCards != null)
+            {
+                foreach (CardData card in newJob.starterCards)
+                {
+                    if (card != null) Deck.Add(card);
+                }
+            }
+
+            Debug.Log($"[GameDataManager] 직업 변경 완료: {newJob.displayName}, 덱 크기: {Deck.Count}");
         }
 
         /// <summary>

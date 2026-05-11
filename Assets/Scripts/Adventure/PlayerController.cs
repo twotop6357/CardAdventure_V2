@@ -40,6 +40,7 @@ namespace CardAdventure
         private InputAction moveAction;
         private Vector2 targetPosition;
         private Vector2 facingDirection = Vector2.down;
+        public Vector2 FacingDirection => facingDirection;
         private Vector2 currentMoveDirection;
         private Vector2 heldDirection;
         private float heldDirectionTime;
@@ -98,6 +99,25 @@ namespace CardAdventure
 
         private void Start()
         {
+            // GameDataManager에서 상태 복구 시도
+            if (GameDataManager.Instance != null)
+            {
+                // 1. 비주얼 복구 (직업)
+                if (GameDataManager.Instance.SelectedJobInfo != null)
+                {
+                    ApplyJobVisual(GameDataManager.Instance.SelectedJobInfo);
+                }
+
+                // 2. 위치 복구
+                if (GameDataManager.Instance.HasSavedPosition)
+                {
+                    transform.position = GameDataManager.Instance.SavedPosition;
+                    facingDirection = GameDataManager.Instance.SavedFacingDirection;
+                    // 저장된 위치 사용 후 플래그 리셋 (다음 진입 시 새로 저장하기 위함)
+                    GameDataManager.Instance.HasSavedPosition = false;
+                }
+            }
+
             Vector2 snappedFootPosition = SnapToMoveUnit(GetFootCenter(transform.position));
             targetPosition = GetRootPositionForFootCenter(snappedFootPosition);
             transform.position = targetPosition;

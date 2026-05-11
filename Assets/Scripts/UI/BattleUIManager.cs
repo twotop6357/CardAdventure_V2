@@ -219,7 +219,7 @@ namespace CardAdventure
             {
                 resultPanel.SetActive(true);
                 if (resultText != null)
-                    resultText.text = phase == BattlePhase.Won ? "✨ 승리!" : "💀 패배...";
+                    resultText.text = phase == BattlePhase.Won ? "승리!" : "패배...";
 
                 resultPanel.transform.localScale = Vector3.zero;
                 resultPanel.transform.DOScale(Vector3.one, 0.4f).SetEase(Ease.OutBack);
