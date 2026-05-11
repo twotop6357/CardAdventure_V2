@@ -3007,6 +3007,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.GameDataManager
   playerName: "\uD50C\uB808\uC774\uC5B4"
   playerMaxHp: 50
+  defaultJobInfo: {fileID: 11400000, guid: c18f75f42640bbc40b97421f28b456b4, type: 2}
   starterDeck:
   - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
   - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}

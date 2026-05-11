@@ -392,7 +392,10 @@ namespace CardAdventure
                 isCardAnimating = false;
 
                 if (battleManager.Phase == BattlePhase.PlayerTurn)
+                {
                     handView?.SetInteractable(true);
+                    RefreshHand(battleManager); // 드로우 효과 반영
+                }
             });
         }
 
