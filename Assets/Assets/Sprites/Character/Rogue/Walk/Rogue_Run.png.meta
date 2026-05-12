@@ -1,0 +1,741 @@
+fileFormatVersion: 2
+guid: 137e675abed8aa54395c1033b667a482
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -1378292131559350742
+    second: Rogue_Run_0
+  - first:
+      213: 1000986555769447184
+    second: Rogue_Run_1
+  - first:
+      213: -991632884122753618
+    second: Rogue_Run_2
+  - first:
+      213: -5619530574395611020
+    second: Rogue_Run_3
+  - first:
+      213: 4986835944086876770
+    second: Rogue_Run_4
+  - first:
+      213: 7727202197108745423
+    second: Rogue_Run_5
+  - first:
+      213: 7123194568807619876
+    second: Rogue_Run_6
+  - first:
+      213: -6512675565747311731
+    second: Rogue_Run_7
+  - first:
+      213: -4630936715377790199
+    second: Rogue_Run_8
+  - first:
+      213: 6163492085841777880
+    second: Rogue_Run_9
+  - first:
+      213: -1671124692092253746
+    second: Rogue_Run_10
+  - first:
+      213: -3800616062668254013
+    second: Rogue_Run_11
+  - first:
+      213: 82031636840961692
+    second: Rogue_Run_12
+  - first:
+      213: -4954998280314680409
+    second: Rogue_Run_13
+  - first:
+      213: -7519414632510481046
+    second: Rogue_Run_14
+  - first:
+      213: -8286033280452183931
+    second: Rogue_Run_15
+  - first:
+      213: -1343318885028860600
+    second: Rogue_Run_16
+  - first:
+      213: 218077552651541554
+    second: Rogue_Run_17
+  - first:
+      213: -1143753735466055478
+    second: Rogue_Run_18
+  - first:
+      213: 2831331447669045190
+    second: Rogue_Run_19
+  - first:
+      213: -5853862624324516584
+    second: Rogue_Run_20
+  - first:
+      213: 5131951026412778125
+    second: Rogue_Run_21
+  - first:
+      213: -5656026744747636446
+    second: Rogue_Run_22
+  - first:
+      213: -1570384959668851955
+    second: Rogue_Run_23
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Rogue_Run_0
+      rect:
+        serializedVersion: 2
+        x: 106
+        y: 770
+        width: 165
+        height: 243
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2e50bddb925fdce0800000000000000
+      internalID: -1378292131559350742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_1
+      rect:
+        serializedVersion: 2
+        x: 325
+        y: 770
+        width: 177
+        height: 243
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 013649118f734ed00800000000000000
+      internalID: 1000986555769447184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_2
+      rect:
+        serializedVersion: 2
+        x: 553
+        y: 771
+        width: 172
+        height: 242
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea5644255230d32f0800000000000000
+      internalID: -991632884122753618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_3
+      rect:
+        serializedVersion: 2
+        x: 781
+        y: 769
+        width: 174
+        height: 244
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 478e3b457ba6302b0800000000000000
+      internalID: -5619530574395611020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_4
+      rect:
+        serializedVersion: 2
+        x: 1009
+        y: 769
+        width: 165
+        height: 243
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 262b278aedcc43540800000000000000
+      internalID: 4986835944086876770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_5
+      rect:
+        serializedVersion: 2
+        x: 1237
+        y: 768
+        width: 170
+        height: 243
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc4e84235798c3b60800000000000000
+      internalID: 7727202197108745423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_6
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 529
+        width: 163
+        height: 229
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42d15c358bbaad260800000000000000
+      internalID: 7123194568807619876
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_7
+      rect:
+        serializedVersion: 2
+        x: 318
+        y: 530
+        width: 174
+        height: 227
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8be34e14145e95a0800000000000000
+      internalID: -6512675565747311731
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_8
+      rect:
+        serializedVersion: 2
+        x: 545
+        y: 540
+        width: 173
+        height: 217
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 903b796d79b9bbfb0800000000000000
+      internalID: -4630936715377790199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_9
+      rect:
+        serializedVersion: 2
+        x: 781
+        y: 529
+        width: 163
+        height: 228
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d4d780856f198550800000000000000
+      internalID: 6163492085841777880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_10
+      rect:
+        serializedVersion: 2
+        x: 996
+        y: 529
+        width: 169
+        height: 228
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec9057052f8fec8e0800000000000000
+      internalID: -1671124692092253746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_11
+      rect:
+        serializedVersion: 2
+        x: 1230
+        y: 533
+        width: 165
+        height: 224
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c4d309d3df714bc0800000000000000
+      internalID: -3800616062668254013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_12
+      rect:
+        serializedVersion: 2
+        x: 125
+        y: 296
+        width: 158
+        height: 221
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c96df3ec65f632100800000000000000
+      internalID: 82031636840961692
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_13
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 292
+        width: 175
+        height: 225
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ab0c27115f4c3bb0800000000000000
+      internalID: -4954998280314680409
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_14
+      rect:
+        serializedVersion: 2
+        x: 577
+        y: 292
+        width: 175
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6d96563b3ca5a790800000000000000
+      internalID: -7519414632510481046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_15
+      rect:
+        serializedVersion: 2
+        x: 805
+        y: 296
+        width: 165
+        height: 221
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5883599f1a8120d80800000000000000
+      internalID: -8286033280452183931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_16
+      rect:
+        serializedVersion: 2
+        x: 1032
+        y: 298
+        width: 175
+        height: 219
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84de7cd57929b5de0800000000000000
+      internalID: -1343318885028860600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_17
+      rect:
+        serializedVersion: 2
+        x: 1260
+        y: 293
+        width: 169
+        height: 224
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23c1843f064c60300800000000000000
+      internalID: 218077552651541554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_18
+      rect:
+        serializedVersion: 2
+        x: 120
+        y: 31
+        width: 140
+        height: 255
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac8050799029020f0800000000000000
+      internalID: -1143753735466055478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_19
+      rect:
+        serializedVersion: 2
+        x: 334
+        y: 31
+        width: 154
+        height: 255
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c7b4bb53f8ea4720800000000000000
+      internalID: 2831331447669045190
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_20
+      rect:
+        serializedVersion: 2
+        x: 569
+        y: 31
+        width: 147
+        height: 255
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 815833155f6e2cea0800000000000000
+      internalID: -5853862624324516584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_21
+      rect:
+        serializedVersion: 2
+        x: 790
+        y: 42
+        width: 153
+        height: 243
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d82f80ea44a583740800000000000000
+      internalID: 5131951026412778125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_22
+      rect:
+        serializedVersion: 2
+        x: 1016
+        y: 43
+        width: 153
+        height: 242
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 229453f74a1c181b0800000000000000
+      internalID: -5656026744747636446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Run_23
+      rect:
+        serializedVersion: 2
+        x: 1239
+        y: 31
+        width: 154
+        height: 255
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0b625e033fd43ae0800000000000000
+      internalID: -1570384959668851955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Rogue_Run_0: -1378292131559350742
+      Rogue_Run_1: 1000986555769447184
+      Rogue_Run_10: -1671124692092253746
+      Rogue_Run_11: -3800616062668254013
+      Rogue_Run_12: 82031636840961692
+      Rogue_Run_13: -4954998280314680409
+      Rogue_Run_14: -7519414632510481046
+      Rogue_Run_15: -8286033280452183931
+      Rogue_Run_16: -1343318885028860600
+      Rogue_Run_17: 218077552651541554
+      Rogue_Run_18: -1143753735466055478
+      Rogue_Run_19: 2831331447669045190
+      Rogue_Run_2: -991632884122753618
+      Rogue_Run_20: -5853862624324516584
+      Rogue_Run_21: 5131951026412778125
+      Rogue_Run_22: -5656026744747636446
+      Rogue_Run_23: -1570384959668851955
+      Rogue_Run_3: -5619530574395611020
+      Rogue_Run_4: 4986835944086876770
+      Rogue_Run_5: 7727202197108745423
+      Rogue_Run_6: 7123194568807619876
+      Rogue_Run_7: -6512675565747311731
+      Rogue_Run_8: -4630936715377790199
+      Rogue_Run_9: 6163492085841777880
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

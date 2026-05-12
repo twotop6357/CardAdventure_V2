@@ -1,0 +1,741 @@
+fileFormatVersion: 2
+guid: ea59289c5777c86429c1177cd787964d
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6707665762024372485
+    second: Rogue_Walk_0
+  - first:
+      213: -8938375208286572975
+    second: Rogue_Walk_1
+  - first:
+      213: 210610001041064525
+    second: Rogue_Walk_2
+  - first:
+      213: 8519577369563460097
+    second: Rogue_Walk_3
+  - first:
+      213: -5462562662936822133
+    second: Rogue_Walk_4
+  - first:
+      213: -5880566663816767904
+    second: Rogue_Walk_5
+  - first:
+      213: -7278564487623437169
+    second: Rogue_Walk_6
+  - first:
+      213: 2243750778457738848
+    second: Rogue_Walk_7
+  - first:
+      213: -3085551803966041643
+    second: Rogue_Walk_8
+  - first:
+      213: 3637121768661928415
+    second: Rogue_Walk_9
+  - first:
+      213: 5226730618223909810
+    second: Rogue_Walk_10
+  - first:
+      213: -7130552884327645459
+    second: Rogue_Walk_11
+  - first:
+      213: 7711848979461594976
+    second: Rogue_Walk_12
+  - first:
+      213: 7193814410815630740
+    second: Rogue_Walk_13
+  - first:
+      213: 5370532180066358001
+    second: Rogue_Walk_14
+  - first:
+      213: -696661305870347200
+    second: Rogue_Walk_15
+  - first:
+      213: -2373511330810072255
+    second: Rogue_Walk_16
+  - first:
+      213: 4348479069324192467
+    second: Rogue_Walk_17
+  - first:
+      213: -2588389971275062619
+    second: Rogue_Walk_18
+  - first:
+      213: 7294876355058310548
+    second: Rogue_Walk_19
+  - first:
+      213: -1412608950781298629
+    second: Rogue_Walk_20
+  - first:
+      213: -1351638167123885667
+    second: Rogue_Walk_21
+  - first:
+      213: 7089646564223564323
+    second: Rogue_Walk_22
+  - first:
+      213: 6296553955604093132
+    second: Rogue_Walk_23
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Rogue_Walk_0
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 768
+        width: 142
+        height: 245
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5093389c87a661d50800000000000000
+      internalID: 6707665762024372485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_1
+      rect:
+        serializedVersion: 2
+        x: 373
+        y: 768
+        width: 144
+        height: 245
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15eabe80b1384f380800000000000000
+      internalID: -8938375208286572975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_2
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 768
+        width: 142
+        height: 245
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d42823a1eac3ce200800000000000000
+      internalID: 210610001041064525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_3
+      rect:
+        serializedVersion: 2
+        x: 814
+        y: 768
+        width: 147
+        height: 245
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 102794d9a7e9b3670800000000000000
+      internalID: 8519577369563460097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_4
+      rect:
+        serializedVersion: 2
+        x: 1020
+        y: 768
+        width: 145
+        height: 245
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8eb65033341134b0800000000000000
+      internalID: -5462562662936822133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_5
+      rect:
+        serializedVersion: 2
+        x: 1236
+        y: 768
+        width: 149
+        height: 245
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 066923d96c7046ea0800000000000000
+      internalID: -5880566663816767904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_6
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 532
+        width: 136
+        height: 218
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f849e6879285dfa90800000000000000
+      internalID: -7278564487623437169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_7
+      rect:
+        serializedVersion: 2
+        x: 373
+        y: 533
+        width: 136
+        height: 217
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06eca72f177632f10800000000000000
+      internalID: 2243750778457738848
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_8
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 532
+        width: 132
+        height: 218
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d1d9847bfaed25d0800000000000000
+      internalID: -3085551803966041643
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_9
+      rect:
+        serializedVersion: 2
+        x: 821
+        y: 532
+        width: 134
+        height: 216
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd94fe17af6a97230800000000000000
+      internalID: 3637121768661928415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_10
+      rect:
+        serializedVersion: 2
+        x: 1028
+        y: 532
+        width: 131
+        height: 217
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bbd4eb0ec3198840800000000000000
+      internalID: 5226730618223909810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_11
+      rect:
+        serializedVersion: 2
+        x: 1244
+        y: 533
+        width: 131
+        height: 216
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dee73855eef2b0d90800000000000000
+      internalID: -7130552884327645459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_12
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 300
+        width: 125
+        height: 215
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06f5446a9cdf50b60800000000000000
+      internalID: 7711848979461594976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_13
+      rect:
+        serializedVersion: 2
+        x: 390
+        y: 300
+        width: 127
+        height: 215
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49d60c8971095d360800000000000000
+      internalID: 7193814410815630740
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_14
+      rect:
+        serializedVersion: 2
+        x: 615
+        y: 300
+        width: 125
+        height: 215
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f2d8af3096f78a40800000000000000
+      internalID: 5370532180066358001
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_15
+      rect:
+        serializedVersion: 2
+        x: 833
+        y: 300
+        width: 125
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04496debb36f456f0800000000000000
+      internalID: -696661305870347200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_16
+      rect:
+        serializedVersion: 2
+        x: 1052
+        y: 300
+        width: 125
+        height: 212
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14373b025089f0fd0800000000000000
+      internalID: -2373511330810072255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_17
+      rect:
+        serializedVersion: 2
+        x: 1260
+        y: 300
+        width: 127
+        height: 215
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3da2a40aca6e85c30800000000000000
+      internalID: 4348479069324192467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_18
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 34
+        width: 125
+        height: 251
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a267f5f801341cd0800000000000000
+      internalID: -2588389971275062619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_19
+      rect:
+        serializedVersion: 2
+        x: 390
+        y: 33
+        width: 121
+        height: 251
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49d95af156b9c3560800000000000000
+      internalID: 7294876355058310548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_20
+      rect:
+        serializedVersion: 2
+        x: 615
+        y: 35
+        width: 124
+        height: 249
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b38b422c4a7656ce0800000000000000
+      internalID: -1412608950781298629
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_21
+      rect:
+        serializedVersion: 2
+        x: 833
+        y: 34
+        width: 122
+        height: 250
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9188bf8f340e3de0800000000000000
+      internalID: -1351638167123885667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_22
+      rect:
+        serializedVersion: 2
+        x: 1050
+        y: 34
+        width: 122
+        height: 250
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32a3d93dcfb736260800000000000000
+      internalID: 7089646564223564323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rogue_Walk_23
+      rect:
+        serializedVersion: 2
+        x: 1254
+        y: 33
+        width: 127
+        height: 251
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc8dcd8467ad16750800000000000000
+      internalID: 6296553955604093132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Rogue_Walk_0: 6707665762024372485
+      Rogue_Walk_1: -8938375208286572975
+      Rogue_Walk_10: 5226730618223909810
+      Rogue_Walk_11: -7130552884327645459
+      Rogue_Walk_12: 7711848979461594976
+      Rogue_Walk_13: 7193814410815630740
+      Rogue_Walk_14: 5370532180066358001
+      Rogue_Walk_15: -696661305870347200
+      Rogue_Walk_16: -2373511330810072255
+      Rogue_Walk_17: 4348479069324192467
+      Rogue_Walk_18: -2588389971275062619
+      Rogue_Walk_19: 7294876355058310548
+      Rogue_Walk_2: 210610001041064525
+      Rogue_Walk_20: -1412608950781298629
+      Rogue_Walk_21: -1351638167123885667
+      Rogue_Walk_22: 7089646564223564323
+      Rogue_Walk_23: 6296553955604093132
+      Rogue_Walk_3: 8519577369563460097
+      Rogue_Walk_4: -5462562662936822133
+      Rogue_Walk_5: -5880566663816767904
+      Rogue_Walk_6: -7278564487623437169
+      Rogue_Walk_7: 2243750778457738848
+      Rogue_Walk_8: -3085551803966041643
+      Rogue_Walk_9: 3637121768661928415
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

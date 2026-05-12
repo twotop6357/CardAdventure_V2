@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a12be4190b5060d49afb651316894303, type: 3}
   m_Name: Enemy_MagicCrow
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.EnemyData
-  enemyName: Magic Crow
-  maxHp: 36
+  enemyName: "\uBCA8\uCE74\uB974\uC628"
+  maxHp: 100
   startingBlock: 0
   actionPattern:
   - actionType: 0
@@ -43,6 +43,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
   - {fileID: 11400000, guid: 98ba4d22a9d25314fafe6e95fddaef96, type: 2}
   - {fileID: 11400000, guid: 6f1f93868e9d4392aef4b4bd74a7ef25, type: 2}
-  enemySprite: {fileID: 823956129387571194, guid: f21be7c08640a7a4697c7452230ae0ac, type: 3}
+  enemySprite: {fileID: 823956129387571194, guid: f21be7c08640a7a4697c7452230ae0ac,
+    type: 3}
   spumPrefabPath: 
+  introData: {fileID: 0}
   isBoss: 0

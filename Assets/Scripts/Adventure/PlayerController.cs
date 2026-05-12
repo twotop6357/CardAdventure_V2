@@ -13,6 +13,8 @@ namespace CardAdventure
     {
         [Header("Movement")]
         [SerializeField] private float moveSpeed = 4f;
+        [Tooltip("Shift를 누른 채 이동 시 적용되는 속도 배율.")]
+        [SerializeField] private float sprintMultiplier = 2f;
         [Tooltip("이동을 차단할 Tilemap 목록 (예: Wall_Tilemap, Water_Tilemap). 비워두면 런타임에 자동으로 탐색합니다.")]
         [SerializeField] private Tilemap[] blockingTilemaps;
         [SerializeField] private float moveUnitSize = 1f;
@@ -37,6 +39,7 @@ namespace CardAdventure
 
         private Rigidbody2D rb;
         private bool isMoving;
+        private bool isSprinting;
         private bool inputEnabled = true;
 
         private InputAction moveAction;
@@ -49,11 +52,14 @@ namespace CardAdventure
         private string currentAnimationState;
 
         private const string IdleFront = "Player_IdleFront";
-        private const string IdleBack = "Player_IdleBack";
-        private const string IdleSide = "Player_IdleSide";
+        private const string IdleBack  = "Player_IdleBack";
+        private const string IdleSide  = "Player_IdleSide";
         private const string WalkFront = "Player_WalkFront";
-        private const string WalkBack = "Player_WalkBack";
-        private const string WalkSide = "Player_WalkSide";
+        private const string WalkBack  = "Player_WalkBack";
+        private const string WalkSide  = "Player_WalkSide";
+        private const string RunFront  = "Player_RunFront";
+        private const string RunBack   = "Player_RunBack";
+        private const string RunSide   = "Player_RunSide";
 
         private void Awake()
         {
@@ -130,7 +136,7 @@ namespace CardAdventure
             // 초기 위치 타일 예약
             GridOccupancy.TryReserve(snappedFootPosition, moveUnitSize);
 
-            PlayDirectionalAnimation(false);
+            PlayDirectionalAnimation(false, false);
         }
 
         private void OnDestroy()
@@ -138,12 +144,15 @@ namespace CardAdventure
             GridOccupancy.Release(GetFootCenter(targetPosition), moveUnitSize);
         }
 
-        private void FixedUpdate()
+private void FixedUpdate()
         {
-            if (!inputEnabled)
-            {
-                return;
-            }
+            if (!inputEnabled) return;
+
+            // Shift 입력 감지 (Left / Right Shift 모두 허용)
+            isSprinting = Keyboard.current != null &&
+                          (Keyboard.current.leftShiftKey.isPressed ||
+                           Keyboard.current.rightShiftKey.isPressed);
+            float effectiveSpeed = isSprinting ? moveSpeed * sprintMultiplier : moveSpeed;
 
             Vector2 inputDirection = ReadCardinalDirection();
             UpdateHeldDirection(inputDirection);
@@ -153,21 +162,18 @@ namespace CardAdventure
                 if (inputDirection != Vector2.zero)
                 {
                     UpdateFacingDirection(inputDirection);
-
                     if (heldDirectionTime >= moveHoldThreshold)
-                    {
                         TryStartMove(inputDirection);
-                    }
                 }
                 else
                 {
-                    PlayDirectionalAnimation(false);
+                    PlayDirectionalAnimation(false, false);
                 }
             }
             else
             {
                 Vector2 currentPos = rb.position;
-                Vector2 newPos = Vector2.MoveTowards(currentPos, targetPosition, moveSpeed * Time.fixedDeltaTime);
+                Vector2 newPos = Vector2.MoveTowards(currentPos, targetPosition, effectiveSpeed * Time.fixedDeltaTime);
                 rb.MovePosition(newPos);
 
                 if (Vector2.Distance(newPos, targetPosition) < 0.001f)
@@ -176,18 +182,15 @@ namespace CardAdventure
                     isMoving = false;
                     currentMoveDirection = Vector2.zero;
 
-                    // 타일 도착 시점의 입력 방향으로 다음 이동 즉시 시작
                     if (inputDirection != Vector2.zero)
                     {
                         UpdateFacingDirection(inputDirection);
                         if (!TryStartMove(inputDirection))
-                        {
-                            PlayDirectionalAnimation(false);
-                        }
+                            PlayDirectionalAnimation(false, false);
                     }
                     else
                     {
-                        PlayDirectionalAnimation(false);
+                        PlayDirectionalAnimation(false, false);
                     }
                 }
             }
@@ -326,7 +329,7 @@ namespace CardAdventure
             AlignVisualToTile();
             ApplyVisualScale(isMoving);
             currentAnimationState = null;
-            PlayDirectionalAnimation(isMoving);
+            PlayDirectionalAnimation(isMoving, isSprinting);
         }
 
         public void SetVisual(SpriteRenderer newSpriteRenderer, Animator newAnimator, float newIdleVisualScaleMultiplier)
@@ -407,21 +410,21 @@ namespace CardAdventure
                     continue;
                 }
 
-                PlayDirectionalAnimation(false);
+                PlayDirectionalAnimation(false, false);
                 return false;
             }
 
             // 2단계: 차단 Tilemap 타일 검사 (Wall_Tilemap, Water_Tilemap 등)
             if (HasBlockingTileAt(nextFootCenter))
             {
-                PlayDirectionalAnimation(false);
+                PlayDirectionalAnimation(false, false);
                 return false;
             }
 
             // 3단계: 타일 예약 검사 (동시 이동 충돌 방지)
             if (!GridOccupancy.TryReserve(nextFootCenter, moveUnitSize))
             {
-                PlayDirectionalAnimation(false);
+                PlayDirectionalAnimation(false, false);
                 return false;
             }
 
@@ -429,7 +432,7 @@ namespace CardAdventure
             targetPosition = nextTarget;
             isMoving = true;
             currentMoveDirection = direction;
-            PlayDirectionalAnimation(true);
+            PlayDirectionalAnimation(true, isSprinting);
             return true;
         }
 
@@ -509,43 +512,41 @@ namespace CardAdventure
                 facingDirection = dir.y > 0 ? Vector2.up : Vector2.down;
             }
 
-            PlayDirectionalAnimation(false);
+            PlayDirectionalAnimation(false, false);
         }
 
-        private void PlayDirectionalAnimation(bool moving)
+private void PlayDirectionalAnimation(bool moving, bool sprinting)
         {
-            if (animator == null)
-            {
-                return;
-            }
+            if (animator == null) return;
 
             ApplyVisualScale(moving);
 
             string stateName;
-            if (Mathf.Abs(facingDirection.x) > 0f)
+            if (!moving)
             {
-                stateName = moving ? WalkSide : IdleSide;
+                if (Mathf.Abs(facingDirection.x) > 0f) stateName = IdleSide;
+                else if (facingDirection.y > 0f)       stateName = IdleBack;
+                else                                   stateName = IdleFront;
             }
-            else if (facingDirection.y > 0f)
+            else if (sprinting)
             {
-                stateName = moving ? WalkBack : IdleBack;
+                if (Mathf.Abs(facingDirection.x) > 0f) stateName = RunSide;
+                else if (facingDirection.y > 0f)       stateName = RunBack;
+                else                                   stateName = RunFront;
             }
             else
             {
-                stateName = moving ? WalkFront : IdleFront;
+                if (Mathf.Abs(facingDirection.x) > 0f) stateName = WalkSide;
+                else if (facingDirection.y > 0f)       stateName = WalkBack;
+                else                                   stateName = WalkFront;
             }
 
-            if (currentAnimationState == stateName)
-            {
-                return;
-            }
-
+            if (currentAnimationState == stateName) return;
             currentAnimationState = stateName;
             animator.Play(stateName);
 
-            // IDLE 애니메이션인 경우 첫 프레임에서 멈춤 (부동자세)
-            bool isIdle = stateName.Contains("Idle");
-            animator.speed = isIdle ? 0f : 1f;
+            // Idle: 첫 프레임 정지 (부동자세)
+            animator.speed = stateName.Contains("Idle") ? 0f : 1f;
         }
 
         private void ApplyVisualScale(bool moving)
@@ -616,7 +617,7 @@ namespace CardAdventure
                     rb.position = snappedRootPosition;
                 }
 
-                PlayDirectionalAnimation(false);
+                PlayDirectionalAnimation(false, false);
             }
         }
 
