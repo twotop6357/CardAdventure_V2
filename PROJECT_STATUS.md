@@ -1,3 +1,148 @@
+### 2026-05-12 (Antigravity — 확장 가능한 하드 경계 카메라 시스템 구현)
+
+#### 이번 세션 작업 요약
+- **Wall 타일맵 기반 자동 경계 생성**: 이름에 "Wall"이 포함된 모든 타일맵을 전수 조사하여, 가장 외곽의 타일 좌표를 기준으로 카메라 경계(Confiner)를 자동 생성하는 에디터 툴(`Setup Camera Confiner`)을 완성함.
+- **무한 확장성**: 맵이 확장되거나 벽 타일맵이 추가되어도 메뉴 실행 한 번으로 전체 경계가 갱신되도록 로직을 고도화함.
+- **카메라 정지 로직 강화**: 맵 끝에서 카메라가 검은 여백을 보여주지 않고 칼같이 멈추도록 Damping과 SlowingDistance를 제거한 하드 정지(Hard-Stop) 설정을 적용함.
+
+#### 수정 파일
+- **`Assets/Scripts/Editor/CameraSetupHelper.cs`** (전면 개편)
+  - 다중 Wall 타일맵 지원 및 Bounding Box 기반 폴리곤 생성 로직 구현.
+
+---
+
+### 2026-05-12 (Antigravity — 카메라 'Wall' 레이어 경계 제한 및 유예장치 개선)
+
+#### 이번 세션 작업 요약
+카메라가 플레이어를 추적하되, 특정 레이어('Wall')를 가진 모든 타일맵의 경계를 벗어나지 않도록 `CameraConfinement.cs`를 개선했다. 기존 오브젝트 이름 기반 탐색에서 레이어 기반 동적 탐색으로 변경하여 유연성을 높였으며, 벽 타일 한 칸이 화면 가장자리에 보이도록 하는 '유예장치(Buffer)' 규칙을 명확히 적용했다.
+
+#### 수정 파일
+
+**`Assets/Scripts/Adventure/CameraConfinement.cs`** (수정)
+- `wallTilemap: Tilemap` 필드 → `boundaryLayer: LayerMask` 필드로 교체
+- `RebuildBounds()`: 지정된 레이어를 가진 모든 타일맵을 찾아 월드 좌표 기준 합산 경계(Combined Bounds)를 계산하도록 개선
+- `wallVisibleTiles`: 기본값 `1.0f` 유지 (벽 1칸 노출 유예장치)
+- `LateUpdate()`: 카메라 Viewport 크기를 계산하여 합산 경계 내로 `transform.position`을 클램프. 맵이 화면보다 작은 경우 중앙 고정 로직 추가
+
+#### 동작 원리
+- **레이어 기반 탐색**: 런타임에 "Wall" 레이어(7번)를 가진 모든 타일맵을 찾아 하나의 큰 경계면으로 취급함
+- **유예장치(Buffer)**: `wallVisibleTiles = 1.0` 설정 시, 카메라 가장자리가 벽 타일의 바깥쪽 끝에 닿았을 때 멈춤으로써 벽 1칸이 화면에 보이게 함
+- **이동 제한**: `CinemachineBrain`의 위치 계산 이후(`ExecutionOrder(100)`) 실행되어 최종 렌더링 위치를 강제로 보정
+
+#### 검증
+- `CameraConfinement.cs` 컴파일 오류 0개
+- `Main Camera`의 `boundaryLayer` 프로퍼티를 "Wall" 레이어로 수동 설정 완료 (Batch Execute 사용)
+- `CinemachineCamera`의 `Follow` 규칙과 충돌 없이 작동함을 코드 레벨에서 확인
+
+#### 다음 작업 추천
+1. **PlayMode 실감 테스트**: 플레이어를 맵 구석으로 이동시켜 카메라가 부드럽게 멈추는지, 벽 타일이 1칸 정도 적절히 노출되는지 확인
+2. **배경 타일맵 확장**: 베르데 평원의 전체 크기가 확정되면 "Wall" 레이어 타일맵을 외곽에 둘러 경계를 확정
+
+---
+
+### 2026-05-12 (Antigravity — Wall_Tilemap 타일 기반 이동 차단 적용)
+
+#### 이번 세션 작업 요약
+Water_Tilemap에서 이미 작동하던 이동 차단 기능을 Wall_Tilemap에도 동일하게 적용했다. 기존 `wallTilemap` 단일 필드를 `blockingTilemaps` 배열로 확장하여 Wall과 Water 모두를 타일 검사 대상으로 포함시켰다.
+
+#### 수정 파일
+
+**`Assets/Scripts/Adventure/PlayerController.cs`** (수정)
+- `wallTilemap: Tilemap` 필드 → `blockingTilemaps: Tilemap[]` 배열로 교체
+- `ResolveWallTilemap()`: Inspector에 배열이 비어있으면 "Wall_Tilemap"과 "Water_Tilemap" 두 오브젝트를 모두 자동 탐색해 배열에 추가
+- `HasWallTileAt()` → `HasBlockingTileAt()`: 배열 내 모든 타일맵을 순회해 하나라도 타일이 있으면 이동 차단
+- `TryStartMove()` 2단계: `HasBlockingTileAt()` 호출로 Wall/Water 모두 차단
+
+#### 동작 원리
+- **Water_Tilemap**: 물리 콜라이더(TilemapCollider2D + CompositeCollider2D Outlines) → 1단계 물리 검사에서 차단 + 2단계 타일 검사에서 차단(이중 차단)
+- **Wall_Tilemap**: 물리 콜라이더(TilemapCollider2D + CompositeCollider2D Polygons) → 1단계 물리 검사에서 차단 + 2단계 타일 검사에서 차단(이중 차단)
+- Inspector에서 `Blocking Tilemaps` 슬롯에 직접 타일맵을 할당하면 런타임 자동 탐색 비용 없이 동작
+
+#### 검증
+- `PlayerController.cs` 컴파일 오류 0개 (기존 경고 2개는 이전부터 존재)
+- AdventureScene 저장 완료
+
+#### 미검증
+- PlayMode에서 Wall_Tilemap 타일 위치로 이동 시도 시 실제 차단 확인 필요
+- Water_Tilemap 이동 차단이 이전과 동일하게 유지되는지 확인
+
+#### 다음 작업 추천
+1. **Inspector 직접 연결**: Player > PlayerController > Blocking Tilemaps 슬롯에 Wall_Tilemap과 Water_Tilemap을 직접 드래그 할당 (런타임 Find 비용 제거)
+2. **NPC 배치 및 필드 이벤트 전투 트리거**: 베르데 평원 환경 구성 (상점 NPC, BattleEntrance 배치)
+
+---
+
+### 2026-05-12 (Claude — 맵 구조 정비: 건물 정렬 에디터, 벽 충돌, 타일맵 렌더링 순서, 카메라 경계)
+
+#### 이번 세션 작업 요약
+어드벤처 씬의 맵 관련 기능 4가지를 구현했다: Building 레이어 오브젝트 정렬 에디터, Wall Tilemap 충돌 수정 및 타일 기반 이동 차단, 타일맵 렌더링 순서 정비, 카메라 경계 제한.
+
+#### 신규 파일
+
+**`Assets/Scripts/Adventure/BuildingAlignConfig.cs`** (신규 MonoBehaviour)
+- Building 레이어 오브젝트에 붙여서 BuildingAlignerEditor의 동작을 per-building으로 오버라이드
+- `BuildingBoundsSource` 열거형: AutoDetect / TilemapChildren / SpriteRenderer / Manual
+- `IBuildingBoundsProvider` 인터페이스: 커스텀 bounds 제공용 확장 포인트
+- `paddingX/Y`, `snapToGrid`, `alignToCorner` 설정 필드
+
+**`Assets/Scripts/Editor/BuildingAlignerEditor.cs`** (신규 EditorWindow)
+- 메뉴: `CardAdventure > Map > Building Aligner` (단축키 Ctrl+Shift+B)
+- Building 레이어 오브젝트를 타일맵/스프라이트 크기에 맞게 BoxCollider2D 자동 조정
+- bounds 계산 우선순위: IBuildingBoundsProvider → Manual → TilemapChildren 합산 → SpriteRenderer
+- lossyScale 역보정으로 world → local 크기 정확 변환
+- SceneView 기즈모: 하늘색(타겟 bounds) / 주황색(현재 콜라이더)
+- "Building" 레이어 이름 자동 등록 버튼 포함
+
+**`Assets/Scripts/Editor/WallColliderSetup.cs`** (신규 Editor 유틸리티)
+- 메뉴: `CardAdventure > Map > Setup Wall Collider`
+- Wall_Tilemap에 TilemapCollider2D(Merge) + CompositeCollider2D(Polygons) + Rigidbody2D(Static) 구성
+
+**`Assets/Scripts/Adventure/CameraConfinement.cs`** (신규 MonoBehaviour)
+- Main Camera에 부착 (`[DefaultExecutionOrder(100)]` — CinemachineBrain 이후 실행)
+- Wall_Tilemap 셀 범위로 confiner 경계 계산 → LateUpdate에서 카메라 위치 직접 클램프
+- `wallVisibleTiles=1`: 벽 1칸이 화면 가장자리에 보인 채 카메라 멈춤
+- `CellToWorld(cells.max)` exclusive max 활용으로 벽 외곽 경계 정확 계산
+
+#### 수정 파일
+
+**`Assets/Scripts/Adventure/PlayerController.cs`** (수정)
+- `using UnityEngine.Tilemaps;` 추가
+- `[SerializeField] private Tilemap wallTilemap` 필드 추가 (Inspector 또는 자동 탐색)
+- `ResolveWallTilemap()`: Awake에서 "Wall_Tilemap" 자동 탐색
+- `HasWallTileAt(Vector2)`: `Tilemap.HasTile(cell)` 기반 타일 존재 확인
+- `TryStartMove()` 2단계 추가: 물리 검사 → **Wall Tilemap 타일 검사** → GridOccupancy 검사
+
+**`Assets/Scripts/Editor/WallColliderSetup.cs`** (수정)
+- `geometryType = Outlines` → `Polygons` 수정 (Outlines는 OverlapBoxAll 프로브가 타일 내부 위치 시 미감지)
+- `gravityScale = 0f` 명시 추가
+
+#### 씬 변경 (`Assets/Scenes/AdventureScene.unity`)
+
+**타일맵 렌더링 순서 정비**
+- `Water_Tilemap` TilemapRenderer.sortingOrder: 0 → **-10** (최하단, 다른 타일에 가려짐)
+- `Wall_Tilemap` TilemapRenderer.sortingOrder: 0 → **1** (Ground 위에 렌더링)
+
+**Wall_Tilemap 충돌 설정**
+- `TilemapCollider2D.compositeOperation`: None → **Merge** (CompositeCollider2D 연동)
+- `CompositeCollider2D.geometryType`: Outlines → **Polygons** (솔리드 충돌 영역)
+- `Rigidbody2D.bodyType`: → **Static**, `gravityScale = 0`
+
+**카메라 설정**
+- `Main Camera`에 `CameraConfinement` 컴포넌트 추가 (`wallVisibleTiles=1`)
+- `CinemachineCamera`에서 CameraConfinement 제거 (CinemachineConfiner2D 방식 → 카메라 추적 중단 버그 수정)
+
+#### 검증
+- PlayMode에서 콘솔 `[CameraConfinement] 경계 설정 완료` 로그 확인
+- 플레이어가 Wall_Tilemap 타일 경계로 이동 불가 확인 (물리 + 타일 2중 차단)
+- 벽 가까이 이동 시 카메라가 멈추고 벽 1칸이 화면에 보이는지 확인
+
+#### 다음 작업 추천
+1. **NPC 배치 및 필드 이벤트 전투 트리거**: 베르데 평원 환경 구성 (상점 NPC, BattleEntrance 배치)
+2. **Water_Tilemap 이동 차단 연동**: PlayerController의 wallTilemap 방식을 확장해 water tilemap도 이동 차단 여부 설정 가능하게
+3. **Inspector에서 wallTilemap 직접 연결**: Player > PlayerController > Wall Tilemap 슬롯에 Wall_Tilemap 드래그 할당 (런타임 Find 비용 제거)
+
+---
+
 ### 2026-05-11 (Antigravity — 탑다운 2D Y축 기반 정렬 시스템 구현)
 
 #### 이번 세션 작업 요약

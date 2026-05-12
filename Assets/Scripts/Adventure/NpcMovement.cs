@@ -35,9 +35,8 @@ namespace CardAdventure
 
         [Header("Tile Alignment")]
         [SerializeField] private BoxCollider2D footCollider;
-        [SerializeField] private bool alignVisualToTile = true;
-        [SerializeField] private float maxVisualWidthInTiles = 1f;
-        [SerializeField] private float maxVisualHeightInTiles = 2f;
+        [Header("Visual Alignment")]
+        public Transform visualTransform;
 
         [Header("비주얼 (선택)")]
         [Tooltip("좌우 이동 시 flipX로 방향 반전할 SpriteRenderer")]
@@ -119,7 +118,7 @@ namespace CardAdventure
 
         private void AlignVisualToTile()
         {
-            if (!alignVisualToTile || spriteRenderer == null || spriteRenderer.sprite == null)
+            if (spriteRenderer == null || spriteRenderer.sprite == null)
             {
                 return;
             }

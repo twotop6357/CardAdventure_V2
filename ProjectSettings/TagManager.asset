@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
+  serializedVersion: 3
   tags:
   - PlayerOwned
   - OpponentOwned
@@ -10,11 +10,11 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
-  - 
-  - 
+  - Building
+  - Wall
   - 
   - 
   - 
@@ -64,3 +64,5 @@ TagManager:
   - name: GameUI
     uniqueID: 540465013
     locked: 0
+  m_RenderingLayers:
+  - Default

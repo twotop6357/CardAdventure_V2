@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Tilemaps;
 
 namespace CardAdventure
 {
@@ -12,6 +13,8 @@ namespace CardAdventure
     {
         [Header("Movement")]
         [SerializeField] private float moveSpeed = 4f;
+        [Tooltip("이동을 차단할 Tilemap 목록 (예: Wall_Tilemap, Water_Tilemap). 비워두면 런타임에 자동으로 탐색합니다.")]
+        [SerializeField] private Tilemap[] blockingTilemaps;
         [SerializeField] private float moveUnitSize = 1f;
         [SerializeField] private bool useGridCellSize = true;
         [Tooltip("Input shorter than this only turns the player without stepping to the next tile.")]
@@ -21,9 +24,8 @@ namespace CardAdventure
 
         [Header("Tile Alignment")]
         [SerializeField] private BoxCollider2D footCollider;
-        [SerializeField] private bool alignVisualToTile = true;
-        [SerializeField] private float maxVisualWidthInTiles = 1f;
-        [SerializeField] private float maxVisualHeightInTiles = 2f;
+        [Header("Visual Alignment")]
+        public Transform visualTransform;
 
         [Header("Visual")]
         [SerializeField] private SpriteRenderer spriteRenderer;
@@ -62,6 +64,7 @@ namespace CardAdventure
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
             ResolveMoveUnitSize();
+            ResolveWallTilemap();
             ConfigureFootCollider();
 
             if (obstacleLayer.value == 0)
@@ -223,6 +226,59 @@ namespace CardAdventure
             }
         }
 
+        /// <summary>
+        /// blockingTilemaps가 비어있으면 'Wall_Tilemap'과 'Water_Tilemap'을 자동으로 탐색합니다.
+        /// </summary>
+        private void ResolveWallTilemap()
+        {
+            if (blockingTilemaps != null && blockingTilemaps.Length > 0)
+            {
+                // 배열에 null이 없으면 이미 할당된 것으로 간주
+                bool hasAny = false;
+                for (int i = 0; i < blockingTilemaps.Length; i++)
+                {
+                    if (blockingTilemaps[i] != null) { hasAny = true; break; }
+                }
+                if (hasAny) return;
+            }
+
+            // 자동 탐색: 이름으로 찾아 배열 구성
+            string[] autoNames = { "Wall_Tilemap", "Water_Tilemap" };
+            var found = new System.Collections.Generic.List<Tilemap>();
+            for (int i = 0; i < autoNames.Length; i++)
+            {
+                var obj = GameObject.Find(autoNames[i]);
+                if (obj != null)
+                {
+                    var tm = obj.GetComponent<Tilemap>();
+                    if (tm != null) found.Add(tm);
+                }
+            }
+            blockingTilemaps = found.ToArray();
+        }
+
+        /// <summary>
+        /// 월드 좌표 <paramref name="worldPos"/>에 이동 차단 타일맵의 타일이 하나라도 있으면 true.
+        /// blockingTilemaps가 비어있으면 false를 반환해 이동을 허용합니다.
+        /// </summary>
+        private bool HasBlockingTileAt(Vector2 worldPos)
+        {
+            if (blockingTilemaps == null || blockingTilemaps.Length == 0)
+            {
+                return false;
+            }
+
+            Vector3 world3 = new Vector3(worldPos.x, worldPos.y, 0f);
+            for (int i = 0; i < blockingTilemaps.Length; i++)
+            {
+                Tilemap tm = blockingTilemaps[i];
+                if (tm == null) continue;
+                Vector3Int cell = tm.WorldToCell(world3);
+                if (tm.HasTile(cell)) return true;
+            }
+            return false;
+        }
+
         private Vector2 SnapToMoveUnit(Vector2 position)
         {
             if (moveUnitSize <= 0.001f)
@@ -355,7 +411,14 @@ namespace CardAdventure
                 return false;
             }
 
-            // 2단계: 타일 예약 검사 (동시 이동 충돌 방지)
+            // 2단계: 차단 Tilemap 타일 검사 (Wall_Tilemap, Water_Tilemap 등)
+            if (HasBlockingTileAt(nextFootCenter))
+            {
+                PlayDirectionalAnimation(false);
+                return false;
+            }
+
+            // 3단계: 타일 예약 검사 (동시 이동 충돌 방지)
             if (!GridOccupancy.TryReserve(nextFootCenter, moveUnitSize))
             {
                 PlayDirectionalAnimation(false);
@@ -492,7 +555,7 @@ namespace CardAdventure
 
         private void NormalizeVisualToReferenceHeight()
         {
-            if (!alignVisualToTile || spriteRenderer == null || spriteRenderer.sprite == null)
+            if (spriteRenderer == null || spriteRenderer.sprite == null)
             {
                 return;
             }

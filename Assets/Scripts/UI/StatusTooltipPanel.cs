@@ -35,8 +35,8 @@ namespace CardAdventure
         [SerializeField] private Vector2     offset = new Vector2(20, -20);
         [SerializeField] private float       edgePadding = 10f;
 
+        private Coroutine _fadeCoroutine;
         private Canvas rootCanvas;
-        private bool   isVisible;
 
         private void Awake()
         {
@@ -55,8 +55,6 @@ namespace CardAdventure
             UpdatePosition(screenPosition);
 
             gameObject.SetActive(true);
-            isVisible = true;
-
             if (canvasGroup != null)
             {
                 DOTween.Kill(canvasGroup);
@@ -66,7 +64,6 @@ namespace CardAdventure
 
         public void Hide()
         {
-            isVisible = false;
             gameObject.SetActive(false);
             if (canvasGroup != null) canvasGroup.alpha = 0f;
         }
