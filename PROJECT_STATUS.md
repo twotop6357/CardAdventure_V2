@@ -2641,3 +2641,27 @@ Assets/Scenes/BattleTest.unity
 - PlayMode에서 전투 시작 첫 5장 드로우와 턴 시작 1장 드로우 모두 오른쪽 하단에서 들어오는지 눈으로 확인한다.
 
 ---
+### 2026-05-13 (Codex - FemaleChaser NPC 추가)
+
+#### 이번 작업 요약
+- `FemaleNPC_Sprites.png` 기반 여성 추격 NPC 애니메이션 클립 6종과 `NPC_FemaleChaser.controller`를 생성했다.
+- `AdventureScene`에 `NPC_FemaleChaser`를 추가하고 `NPC_MaleChaser`와 동일한 `NpcChaser` 추격/대화/전투 진입 동작을 사용하도록 구성했다.
+- 여성 NPC 전용 전투 인트로 데이터 `BattleIntro_FemaleChaser`와 전투 데이터 `Enemy_MagicDeer_Female`를 추가해, 전투 진입 시 `FemaleNPC_Image.png` 초상화가 나오도록 분리했다.
+- `NpcChaser` 초기화 순서를 조정해 스프라이트 기준 키 스케일 적용 후 발 콜라이더를 계산하도록 수정했다.
+
+#### 변경 파일
+- `Assets/Scenes/AdventureScene.unity`
+- `Assets/Scripts/Adventure/NpcChaser.cs`
+- `Assets/Scripts/Editor/FemaleNpcAnimationSetup.cs`
+- `Assets/Animations/NPC/FemaleNPC_*.anim`
+- `Assets/Animations/NPC/NPC_FemaleChaser.controller`
+- `Assets/ScriptableObjects/BattleIntros/BattleIntro_FemaleChaser.asset`
+- `Assets/ScriptableObjects/Enemies/Enemy_MagicDeer_Female.asset`
+
+#### 검증 결과
+- `NpcChaser.cs`, `FemaleNpcAnimationSetup.cs` Unity `validate_script standard`: 에러 0개.
+- `NPC_FemaleChaser` 컴포넌트 구성 확인: `SpriteRenderer`, `Rigidbody2D`, `BoxCollider2D`, `NpcInteractable`, `NpcChaser`, `Animator`.
+- `NPC_FemaleChaser` 발 콜라이더 월드 중심: `(6.5, 8.0)`, 월드 크기: `1x1`.
+- 미검증: PlayMode에서 실제 추격 후 대화/전투 전환까지 직접 플레이 검증은 아직 수행하지 않았다.
+
+---

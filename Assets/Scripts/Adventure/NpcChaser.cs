@@ -55,12 +55,13 @@ namespace CardAdventure
         public EnemyData battleEnemyData;
 
         // ─── 애니메이션 상태 이름 ────────────────────────────────────
-        private const string AnimWalkFront = "MaleNPC_WalkFront";
-        private const string AnimWalkSide  = "MaleNPC_WalkSide";
-        private const string AnimWalkBack  = "MaleNPC_WalkBack";
-        private const string AnimIdleDown  = "MaleNPC_IdleDown";
-        private const string AnimIdleSide  = "MaleNPC_IdleSide";
-        private const string AnimIdleBack  = "MaleNPC_IdleBack";
+        [Header("애니메이션 상태명")]
+        [SerializeField] private string animWalkFront = "MaleNPC_WalkFront";
+        [SerializeField] private string animWalkSide  = "MaleNPC_WalkSide";
+        [SerializeField] private string animWalkBack  = "MaleNPC_WalkBack";
+        [SerializeField] private string animIdleDown  = "MaleNPC_IdleDown";
+        [SerializeField] private string animIdleSide  = "MaleNPC_IdleSide";
+        [SerializeField] private string animIdleBack  = "MaleNPC_IdleBack";
 
         // ─── 런타임 상태 ─────────────────────────────────────────────
         private Rigidbody2D      rb;
@@ -98,8 +99,8 @@ namespace CardAdventure
             currentFacingDir = initialFacingDir.sqrMagnitude > 0.01f ? initialFacingDir.normalized : Vector2.down;
 
             ResolveMoveUnitSize();
-            ConfigureFootCollider();
             AlignVisualToTile();
+            ConfigureFootCollider();
         }
 
         private void Start()
@@ -450,18 +451,18 @@ namespace CardAdventure
         {
             if (animator == null) animator = GetComponent<Animator>();
             if (animator == null) return;
-            if      (dir.y < 0f) animator.Play(AnimWalkFront, 0);
-            else if (dir.y > 0f) animator.Play(AnimWalkBack,  0);
-            else                  animator.Play(AnimWalkSide,  0);
+            if      (dir.y < 0f) animator.Play(animWalkFront, 0);
+            else if (dir.y > 0f) animator.Play(animWalkBack,  0);
+            else                  animator.Play(animWalkSide,  0);
         }
 
         private void PlayIdleAnim()
         {
             if (animator == null) animator = GetComponent<Animator>();
             if (animator == null) return;
-            if      (currentFacingDir.y < 0f) animator.Play(AnimIdleDown, 0);
-            else if (currentFacingDir.y > 0f) animator.Play(AnimIdleBack, 0);
-            else                               animator.Play(AnimIdleSide, 0);
+            if      (currentFacingDir.y < 0f) animator.Play(animIdleDown, 0);
+            else if (currentFacingDir.y > 0f) animator.Play(animIdleBack, 0);
+            else                               animator.Play(animIdleSide, 0);
         }
 
         // ══════════════════════════════════════════════════════════════
