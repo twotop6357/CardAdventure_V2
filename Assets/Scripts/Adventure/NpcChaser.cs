@@ -116,6 +116,7 @@ namespace CardAdventure
             rb.position        = targetPosition;
             GridOccupancy.TryReserve(snappedFoot, moveUnitSize);
 
+            RestorePostBattleState();
             PlayIdleAnim();
             StartCoroutine(DetectionLoop());
         }
@@ -229,6 +230,8 @@ namespace CardAdventure
                 // 전투 데이터가 있으면 배틀 로드
                 if (battleEnemyData != null)
                 {
+                    GameDataManager.Instance?.SetPendingChaserNpc(gameObject.name);
+
                     yield return new WaitForSeconds(0.2f); // 연출 유예
                     if (SceneLoader.Instance != null)
                     {
@@ -364,6 +367,20 @@ namespace CardAdventure
 
             DialogueManager.Instance.BeginDialogueWithNpc(npcInteractable);
         }
+
+        private void RestorePostBattleState()
+        {
+            if (GameDataManager.Instance == null) return;
+            if (!GameDataManager.Instance.IsChaserNpcBattleCompleted(gameObject.name)) return;
+
+            hasAutoChased = true;
+            isChasing = false;
+            isMoving = false;
+
+            if (afterChaseDialogueData != null)
+                npcInteractable.SetDialogueData(afterChaseDialogueData);
+        }
+
 
         // ══════════════════════════════════════════════════════════════
         //  비주얼 / 방향

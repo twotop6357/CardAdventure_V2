@@ -2641,6 +2641,49 @@ Assets/Scenes/BattleTest.unity
 - PlayMode에서 전투 시작 첫 5장 드로우와 턴 시작 1장 드로우 모두 오른쪽 하단에서 들어오는지 눈으로 확인한다.
 
 ---
+### 2026-05-13 (Codex - 콘솔 에러 수정: DialogueView/Missing Script)
+
+#### 이번 작업 요약
+- 콘솔의 `MissingReferenceException: DialogueView has been destroyed` 원인을 확인하고 수정했다.
+- `DialogueManager.EndDialogue()`에서 파괴된 `DialogueView`에 null-conditional로 접근하던 부분을 Unity null 체크 방식으로 변경했다.
+- `DialogueView.Hide()`의 DOTween 완료 콜백이 씬 전환 후 파괴된 오브젝트의 `gameObject.SetActive(false)`를 호출하지 않도록 `DeactivateIfAlive()` 안전 처리로 교체했다.
+- `AdventureScene` 검증에서 발견된 `Main Camera`의 Missing Script 1개를 자동 복구로 제거하고 씬을 저장했다.
+
+#### 변경 파일
+- `Assets/Scripts/Adventure/DialogueManager.cs`
+- `Assets/Scripts/UI/DialogueView.cs`
+- `Assets/Scenes/AdventureScene.unity`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `DialogueManager.cs`, `DialogueView.cs` Unity `validate_script standard`: 에러 0개.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- Unity 스크립트 refresh/compile 요청 완료.
+- 콘솔 정리 후 게임 코드 에러/경고는 재발하지 않았고, MCP-FOR-UNITY 클라이언트 종료 로그만 남는다.
+
+---
+
+### 2026-05-13 (Codex - Chaser NPC 전투 후 대화 상태 복원)
+
+#### 이번 작업 요약
+- `NPC_MaleChaser`, `NPC_FemaleChaser`가 배틀 후 `AdventureScene` 재로드 시 초기 발견 이벤트 상태로 돌아가던 문제를 수정했다.
+- `GameDataManager`에 전투를 발생시킨 추격 NPC 이름과 전투 완료 추격 NPC 목록을 저장하도록 추가했다.
+- `NpcChaser`가 전투 진입 직전에 자기 이름을 등록하고, 씬 재시작 시 완료 목록에 있으면 자동 추격을 비활성화한 뒤 `afterChaseDialogueData`로 대화 데이터를 복원하도록 수정했다.
+- 새 게임 초기화 시 추격 NPC 완료 목록과 pending NPC 상태도 함께 초기화되도록 정리했다.
+
+#### 변경 파일
+- `Assets/Scripts/Core/GameDataManager.cs`
+- `Assets/Scripts/Adventure/NpcChaser.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `GameDataManager.cs`, `NpcChaser.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 refresh/compile 요청 완료.
+- 콘솔의 남은 `NullReferenceException`은 `UnityEditor.Graphs.Edge.WakeUp` 계열 에디터 내부 스택으로 확인했으며 이번 게임 코드 변경 스택은 아니다.
+- 미검증: PlayMode에서 실제 전투 종료 후 재상호작용까지의 수동 플레이 검증은 아직 수행하지 않았다.
+
+---
+
 ### 2026-05-13 (Codex - FemaleChaser NPC 추가)
 
 #### 이번 작업 요약

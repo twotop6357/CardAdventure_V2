@@ -166,17 +166,23 @@ namespace CardAdventure
                     .Join(canvasGroup != null
                         ? canvasGroup.DOFade(0f, 0.15f).SetDelay(0.05f)
                         : DOTween.To(() => 1f, _ => { }, 0f, 0.15f))
-                    .OnComplete(() => gameObject.SetActive(false));
+                    .OnComplete(DeactivateIfAlive);
             }
             else if (canvasGroup != null)
             {
                 canvasGroup.DOFade(0f, 0.15f)
-                    .OnComplete(() => gameObject.SetActive(false));
+                    .OnComplete(DeactivateIfAlive);
             }
             else
             {
-                gameObject.SetActive(false);
+                DeactivateIfAlive();
             }
+        }
+
+        private void DeactivateIfAlive()
+        {
+            if (this != null && gameObject != null)
+                gameObject.SetActive(false);
         }
 
         // ══════════════════════════════════════════════════════

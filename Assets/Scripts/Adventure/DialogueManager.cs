@@ -254,7 +254,10 @@ namespace CardAdventure
         {
             isDialogueActive = false;
 
-            dialogueView?.Hide();
+            if (dialogueView != null)
+            {
+                dialogueView.Hide();
+            }
 
             // 대화 종료 후 NPC가 플레이어 방향을 바라보게 함
             if (currentNpc != null && activePlayer != null)

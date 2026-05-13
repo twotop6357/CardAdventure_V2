@@ -39,6 +39,10 @@ namespace CardAdventure
         /// <summary>배틀에서 돌아올 어드벤처 씬 이름.</summary>
         public string ReturnSceneName { get; set; } = "AdventureScene";
 
+        private readonly HashSet<string> completedChaserNpcIds = new HashSet<string>();
+
+        public string PendingChaserNpcId { get; private set; }
+
         /// <summary>현재 선택된 직업 정보. null이면 기본값(전사)으로 간주.</summary>
         public JobClassInfo SelectedJobInfo { get; set; }
 
@@ -79,6 +83,8 @@ namespace CardAdventure
             Gold      = 0;
             ChapterProgress = 0;
             HasSavedPosition = false;
+            PendingChaserNpcId = null;
+            completedChaserNpcIds.Clear();
 
             if (defaultJobInfo != null)
             {
@@ -125,6 +131,16 @@ namespace CardAdventure
             }
         }
 
+        public void SetPendingChaserNpc(string npcId)
+        {
+            PendingChaserNpcId = npcId;
+        }
+
+        public bool IsChaserNpcBattleCompleted(string npcId)
+        {
+            return !string.IsNullOrEmpty(npcId) && completedChaserNpcIds.Contains(npcId);
+        }
+
         /// <summary>
         /// 배틀 결과 반영 (승리 시 카드 보상, HP 동기화 등).
         /// BattleScene 종료 시 호출한다.
@@ -135,6 +151,12 @@ namespace CardAdventure
 
             if (rewardCard != null && !Deck.Contains(rewardCard))
                 Deck.Add(rewardCard);
+
+            if (!string.IsNullOrEmpty(PendingChaserNpcId))
+            {
+                completedChaserNpcIds.Add(PendingChaserNpcId);
+                PendingChaserNpcId = null;
+            }
         }
 
         /// <summary>
