@@ -119,7 +119,11 @@ namespace CardAdventure
             if (iconImage != null)
             {
                 iconImage.enabled = status.Data != null && status.Data.icon != null;
-                if (iconImage.enabled) iconImage.sprite = status.Data.icon;
+                if (iconImage.enabled)
+                {
+                    iconImage.sprite = status.Data.icon;
+                    iconImage.color = Color.white;
+                }
             }
         }
 
@@ -129,6 +133,7 @@ namespace CardAdventure
             StatusEffectType.Vulnerable => "취약",
             StatusEffectType.Strength => "강화",
             StatusEffectType.Regeneration => "재생",
+            StatusEffectType.Burn => "화상",
             _ => "상태이상"
         };
 
@@ -138,6 +143,7 @@ namespace CardAdventure
             StatusEffectType.Vulnerable => "받는 데미지가 50% 증가합니다.",
             StatusEffectType.Strength => "공격 데미지가 증가합니다.",
             StatusEffectType.Regeneration => "매 턴 시작 시 체력을 회복합니다.",
+            StatusEffectType.Burn => "매 턴 시작 시 화상 중첩만큼 피해를 입습니다.",
             _ => "활성화된 상태 효과입니다."
         };
     }

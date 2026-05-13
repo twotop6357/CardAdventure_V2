@@ -21,6 +21,7 @@ namespace CardAdventure
         [SerializeField] private Color weakColor          = new Color(0.8f, 0.5f, 0.1f);
         [SerializeField] private Color vulnerableColor    = new Color(0.8f, 0.2f, 0.2f);
         [SerializeField] private Color strengthColor      = new Color(0.9f, 0.7f, 0.1f);
+        [SerializeField] private Color burnColor          = new Color(1f, 0.35f, 0.08f);
         [SerializeField] private Color defaultStatusColor = Color.gray;
 
         private BattleStatusInstance boundStatus;
@@ -36,6 +37,10 @@ namespace CardAdventure
                 raycastTarget.color = Color.clear; // 완전히 투명하게 설정
             }
             raycastTarget.raycastTarget = true;
+
+            if (iconImage != null) iconImage.raycastTarget = false;
+            if (stacksText != null) stacksText.raycastTarget = false;
+            if (durationText != null) durationText.raycastTarget = false;
         }
 
         public void Bind(BattleStatusInstance status)
@@ -45,10 +50,14 @@ namespace CardAdventure
 
             if (iconImage != null)
             {
-                iconImage.color = GetStatusColor(status.EffectType);
                 if (status.Data != null && status.Data.icon != null)
                 {
                     iconImage.sprite = status.Data.icon;
+                    iconImage.color = Color.white;
+                }
+                else
+                {
+                    iconImage.color = GetStatusColor(status.EffectType);
                 }
             }
 
@@ -95,6 +104,7 @@ namespace CardAdventure
             StatusEffectType.Weak => weakColor,
             StatusEffectType.Vulnerable => vulnerableColor,
             StatusEffectType.Strength => strengthColor,
+            StatusEffectType.Burn => burnColor,
             _ => defaultStatusColor,
         };
     }

@@ -38,6 +38,7 @@ namespace CardAdventure
         [SerializeField] private Sprite          buffIntentSprite;
         [SerializeField] private Sprite          debuffIntentSprite;
         [SerializeField] private Sprite          healIntentSprite;
+        [SerializeField] private Sprite          unknownIntentSprite;
 
         [Header("스프라이트")]
         [SerializeField] private Image           enemyImage;
@@ -137,7 +138,7 @@ namespace CardAdventure
             EnemyActionType.Buff        => buffIntentSprite,
             EnemyActionType.DebuffPlayer => debuffIntentSprite,
             EnemyActionType.HealSelf    => healIntentSprite,
-            _                           => null,
+            _                           => unknownIntentSprite,
         };
 
         private void RefreshStatusIcons(BattleCombatantState combatant)

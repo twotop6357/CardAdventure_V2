@@ -40,6 +40,9 @@ namespace CardAdventure
         [Tooltip("직업 선택 UI에서 보여줄 캐릭터 미리보기 스프라이트. SPUM 생성 캐릭터의 Idle 프레임을 사용하는 것을 권장.")]
         public Sprite previewSprite;
 
+        [Tooltip("배틀 씬 HUD의 PlayerFaceImage에 표시할 직업별 초상화 스프라이트.")]
+        public Sprite battleFaceSprite;
+
         [Tooltip("어드벤처 씬에서 플레이어로 사용할 IdleFront 첫 프레임 스프라이트.")]
         public Sprite playerIdleSprite;
 

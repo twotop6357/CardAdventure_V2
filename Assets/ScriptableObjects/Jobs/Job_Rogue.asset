@@ -24,6 +24,8 @@ MonoBehaviour:
   difficulty: 4
   previewSprite: {fileID: -5006887509969225197, guid: fa035fc7c2930774a8890bec26f431ca,
     type: 3}
+  battleFaceSprite: {fileID: 3797029317701837999, guid: b81cb958cb4aa3342a9c410f0ee3ebbd,
+    type: 3}
   playerIdleSprite: {fileID: -1990622483324060912, guid: 7095f7217c8cde14189787072f482326,
     type: 3}
   playerAnimatorController: {fileID: 9100000, guid: fca0151a54c44754695fbb34018f28ae,

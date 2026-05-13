@@ -51,6 +51,10 @@ namespace CardAdventure
         [SerializeField] private RectTransform playerVisual;
         [Tooltip("몬스터 캐릭터 RectTransform (오른쪽에서 슬라이드 인)")]
         [SerializeField] private RectTransform enemyVisual;
+        [Tooltip("인트로 등장 연출이 끝날 때까지 숨길 플레이어 체력 UI")]
+        [SerializeField] private GameObject playerHealthUi;
+        [Tooltip("인트로 등장 연출이 끝날 때까지 숨길 몬스터 체력 UI")]
+        [SerializeField] private GameObject enemyHealthUi;
 
         [Header("연출 설정")]
         [SerializeField] private float slideInDuration      = 0.45f;
@@ -105,6 +109,10 @@ namespace CardAdventure
             if (battleManager == null)
                 battleManager = FindFirstObjectByType<BattleManager>();
 
+            ResolveMissingVisualReferences();
+            ResolveMissingHealthUiReferences();
+            SetHealthUiVisible(false);
+
             // 초상화 패널을 화면 오른쪽 밖으로 이동 후 비활성화
             if (npcPortraitPanel != null)
             {
@@ -128,6 +136,61 @@ namespace CardAdventure
                 enemyVisual.anchoredPosition = new Vector2(
                     enemyOriginalPos.x + entranceSlideDistance,
                     enemyOriginalPos.y);
+            }
+        }
+
+        private void ResolveMissingHealthUiReferences()
+        {
+            if (playerHealthUi == null)
+            {
+                GameObject playerHp = GameObject.Find("HpSlider");
+                if (playerHp != null)
+                {
+                    playerHealthUi = playerHp;
+                }
+            }
+
+            if (enemyHealthUi == null)
+            {
+                GameObject enemyHp = GameObject.Find("EnemyHpSlider");
+                if (enemyHp != null)
+                {
+                    enemyHealthUi = enemyHp;
+                }
+            }
+        }
+
+        private void SetHealthUiVisible(bool visible)
+        {
+            if (playerHealthUi != null)
+            {
+                playerHealthUi.SetActive(visible);
+            }
+
+            if (enemyHealthUi != null)
+            {
+                enemyHealthUi.SetActive(visible);
+            }
+        }
+
+        private void ResolveMissingVisualReferences()
+        {
+            if (playerVisual == null)
+            {
+                GameObject playerAvatar = GameObject.Find("PlayerAvatar");
+                if (playerAvatar != null)
+                {
+                    playerVisual = playerAvatar.GetComponent<RectTransform>();
+                }
+            }
+
+            if (enemyVisual == null)
+            {
+                GameObject enemyArea = GameObject.Find("EnemyArea");
+                if (enemyArea != null)
+                {
+                    enemyVisual = enemyArea.GetComponent<RectTransform>();
+                }
             }
         }
 
@@ -229,6 +292,8 @@ namespace CardAdventure
 
                 yield return entranceSeq.WaitForCompletion();
             }
+
+            SetHealthUiVisible(true);
 
             // 전투 본격 시작 (BattleHandView 카드 딜 포함)
             battleManager?.BeginPlayerTurn();

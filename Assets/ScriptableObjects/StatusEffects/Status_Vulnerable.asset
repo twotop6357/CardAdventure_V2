@@ -17,5 +17,5 @@ MonoBehaviour:
   description: \uBC1B\uB294 \uD53C\uD574\uAC00 50% \uC99D\uAC00\uD55C\uB2E4.
   defaultStacks: 2
   duration: 2
-  icon: {fileID: 0}
+  icon: {fileID: -9120369034046867018, guid: 86a7af5d51148fc4f92915ecd1fc6427, type: 3}
   displayColor: {r: 0.98, g: 0.44, b: 0.09, a: 1}

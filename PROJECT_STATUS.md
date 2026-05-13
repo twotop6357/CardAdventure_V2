@@ -1,3 +1,204 @@
+### 2026-05-13 (Codex - 배틀 플레이어 직업별 FaceImage 연동)
+
+#### 이번 작업 요약
+- `JobClassInfo`에 배틀 HUD 전용 초상화 필드 `battleFaceSprite`를 추가했다.
+- 배틀 시작 시 `BattleUIManager`가 `BattleManager.ActiveJob`을 기준으로 현재 직업의 `battleFaceSprite`를 가져와 `BattleHudView`에 전달하도록 수정했다.
+- `BattleHudView`가 `PlayerFaceImage` Image를 직렬화 참조 또는 이름 자동 탐색으로 찾아 직업별 초상화를 표시하도록 했다.
+- `PlayerFaceImage`는 원본 색상과 비율이 유지되도록 `color = Color.white`, `preserveAspect = true`로 세팅한다.
+- `Job_Warrior`, `Job_Mage`, `Job_Rogue`에 각각 `Warrior_FaceImage`, `Magician_FaceImage`, `Rogue_FaceImage`를 연결했다.
+- `BattleTest.unity`의 `BattleHudView.playerFaceImage`에 씬의 `PlayerFaceImage` 참조를 연결했다.
+
+#### 변경 파일
+- `Assets/Scripts/Data/JobClassInfo.cs`
+- `Assets/Scripts/UI/BattleHudView.cs`
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `Assets/ScriptableObjects/Jobs/Job_Warrior.asset`
+- `Assets/ScriptableObjects/Jobs/Job_Mage.asset`
+- `Assets/ScriptableObjects/Jobs/Job_Rogue.asset`
+- `Assets/Scenes/BattleTest.unity`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `JobClassInfo.cs`, `BattleHudView.cs`, `BattleUIManager.cs` Unity `validate_script standard`: 에러 0개.
+- `BattleUIManager.cs`는 기존 `Update()` 관련 GC 경고 1개만 확인되었고 이번 변경으로 인한 컴파일 오류는 없다.
+- `BattleTest` 씬 `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `PlayerFaceImage`, `PlayerHUD` 오브젝트가 씬에서 검색되는 것을 확인했다.
+- 콘솔의 에러성 로그는 MCP-FOR-UNITY 연결 종료/DisposedObject 로그와 UnityEditor.Graphs 내부 NullReference 로그로, 이번 게임 코드 변경 컴파일 오류는 확인되지 않았다.
+- PlayMode에서 직업 변경 후 배틀 진입 시 실제 초상화 전환 화면은 아직 직접 확인하지 못했다.
+
+#### 다음 작업
+- PlayMode에서 전사/마법사/도적 각각으로 배틀에 진입해 `PlayerFaceImage`가 직업별 초상화로 바뀌는지 최종 화면 검증이 필요하다.
+
+---
+
+### 2026-05-13 (Codex - 배틀 캐릭터 위치/그림자/체력바 표시 타이밍 조정)
+
+#### 이번 작업 요약
+- 배틀씬의 플레이어와 몬스터 표시 위치를 전체적으로 조금 아래로 내렸다. `PlayerAvatar`는 앵커 Y 0.42, `EnemyArea`는 앵커 Y 0.44 기준으로 조정했다.
+- `BattleShadowGraphic`을 추가해 이미지 기반 사각 그림자 대신 납작한 타원형 그림자를 직접 그리도록 했다.
+- `PlayerGroundShadow`, `EnemyGroundShadow`를 `BattleCanvas` 아래에 생성/정리하고 각각 플레이어와 몬스터 이미지의 발밑에 오도록 위치와 크기를 맞췄다.
+- 몬스터 이미지(`EnemyImage`) 크기를 기존 290x290 기준 약 1.5배인 435x435로 키우고, 발 위치가 그림자에 맞도록 `anchoredPosition.y`를 80으로 조정했다.
+- `BattleIntroDirector`에서 인트로 DOTween 등장 연출이 끝나기 전까지 `HpSlider`, `EnemyHpSlider`를 숨기고, 플레이어/몬스터가 목표 위치에 도착한 뒤 다시 표시하도록 수정했다.
+- `BattleIntroSetup`의 `CardAdventure/Adjust Battle Layout` 메뉴 실행 시에도 위 위치, 그림자, 몬스터 크기 설정이 재적용되도록 보강했다.
+
+#### 변경 파일
+- `Assets/Scenes/BattleTest.unity`
+- `Assets/Scripts/Battle/BattleIntroDirector.cs`
+- `Assets/Scripts/Editor/BattleIntroSetup.cs`
+- `Assets/Scripts/UI/BattleShadowGraphic.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `BattleShadowGraphic.cs`, `BattleIntroDirector.cs`, `BattleIntroSetup.cs` Unity `validate_script standard`: 에러 0개.
+- `BattleTest` 씬 `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `CardAdventure/Adjust Battle Layout` 메뉴를 실행하고 씬 저장을 완료했다.
+- `PlayerGroundShadow`, `EnemyGroundShadow`가 `BattleShadowGraphic` 컴포넌트를 사용하며 납작한 타원형 크기와 발밑 위치로 배치된 것을 확인했다.
+- `BattleIntroDirector`의 `playerHealthUi`, `enemyHealthUi`가 각각 `HpSlider`, `EnemyHpSlider`를 참조하는 것을 확인했다.
+- PlayMode에서 실제 화면 연출은 아직 직접 눈으로 확인하지 못했다.
+
+#### 다음 작업
+- PlayMode에서 배틀 인트로 대화 종료 후 캐릭터 진입, 그림자 발밑 정렬, 체력바 표시 타이밍을 최종 화면 기준으로 확인해야 한다.
+
+---
+
+### 2026-05-13 (Codex - 배틀 인트로 캐릭터 등장 연출 복구 및 약화 아이콘 적용)
+
+#### 이번 작업 요약
+- 배틀 인트로 대화 종료 후 플레이어/몬스터가 화면 밖에서 현재 위치로 들어오는 DOTween 연출이 사라진 원인을 확인했다.
+- `BattleTest.unity`의 `BattleIntroDirector`에서 `playerVisual`, `enemyVisual` 참조가 비어 있어 `FinishIntro()`의 캐릭터 등장 시퀀스가 실행되지 않고 있었다.
+- `BattleIntroDirector`에 참조가 비어 있을 때 `PlayerAvatar`, `EnemyArea`를 자동 탐색해 복구하는 보호 코드를 추가했다.
+- `BattleTest.unity`의 `BattleIntroDirector`에 `PlayerAvatar`, `EnemyArea` RectTransform 참조를 다시 연결하고 씬을 저장했다.
+- 몬스터에게 가해지는 도발/약화 디버프 아이콘이 보이지 않던 원인을 확인했다. `Card_Warrior_Taunt`가 `Status_Weak.asset` 없이 enum 방식으로 약화를 부여해 상태 인스턴스에 icon 데이터가 없었다.
+- `Card_Warrior_Taunt.asset`에 `Status_Weak.asset`을 연결하고, `BattleManager`의 `Taunt` 처리에서 카드의 `statusEffect` 데이터가 있으면 해당 데이터로 약화를 부여하도록 수정했다.
+
+#### 변경 파일
+- `Assets/Scenes/BattleTest.unity`
+- `Assets/Scripts/Battle/BattleIntroDirector.cs`
+- `Assets/Scripts/Battle/BattleManager.cs`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_Taunt.asset`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `BattleIntroDirector.cs`, `BattleManager.cs` Unity `validate_script standard`: 에러 0개.
+- `BattleTest` 씬 `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `BattleIntroDirector.playerVisual`, `enemyVisual`이 각각 `PlayerAvatar`, `EnemyArea`로 연결된 것을 확인했다.
+- `Card_Warrior_Taunt.asset`이 `Status_Weak.asset`을 참조하는 것을 확인했다.
+- 콘솔에는 MCP-FOR-UNITY 연결 종료 로그와 UnityEditor.Graphs 계열 에디터 내부 NullReference 로그만 확인되었고, 게임 코드 컴파일/씬 오류는 확인되지 않았다. 마지막에 콘솔은 정리했다.
+
+#### 다음 작업
+- PlayMode에서 인트로 대화 완료 후 실제 슬라이드 인 연출과 도발 사용 후 몬스터 약화 아이콘 표시를 직접 화면 검증해야 한다.
+
+---
+
+### 2026-05-13 (Codex - 콘솔 MCP 연결 종료 로그 확인)
+
+#### 이번 작업 요약
+- 현재 콘솔에 떠 있던 에러 항목을 확인했다.
+- 로그 내용은 `MCP-FOR-UNITY: Client handler exited`이며, 발생 위치는 `Library/PackageCache/com.coplaydev.unity-mcp.../StdioBridgeHost.cs:652`였다.
+- 원인은 게임 코드가 아니라 Codex/Unity MCP 도구 연결이 종료될 때 MCP 패키지가 남기는 정보성 연결 종료 로그다.
+- 콘솔을 정리했다.
+
+#### 변경 파일
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `BattleTest` 씬 `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- 현재 확인된 게임 코드/씬 에러는 없다.
+
+#### 주의사항
+- Unity MCP 도구를 다시 호출하면 같은 `Client handler exited` 로그가 다시 찍힐 수 있다. 프로젝트 런타임 오류가 아니라 도구 브리지 로그다.
+
+---
+
+### 2026-05-13 (Codex - 상태이상 툴팁 복구 및 아이콘 원색 표시)
+
+#### 이번 작업 요약
+- 상태이상 아이콘 이미지가 상태 색상으로 틴트되어 에셋 원래 색상이 보이지 않던 문제를 수정했다.
+- `BattleStatusIconView`에서 상태 데이터 아이콘이 있는 경우 `iconImage.color = Color.white`로 표시하도록 변경했다.
+- 아이콘/스택/지속시간 텍스트가 레이캐스트를 가로채지 않도록 비활성화해, 루트 `StatusIcon`이 마우스 오버 이벤트를 안정적으로 받게 했다.
+- `StatusTooltipPanel`의 아이콘도 흰색으로 표시되게 정리했다.
+- `BattleTest` 씬에 누락되어 있던 `StatusTooltipPanel` UI를 `BattleCanvas` 최상단 자식으로 다시 생성하고 저장했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleStatusIconView.cs`
+- `Assets/Scripts/UI/StatusTooltipPanel.cs`
+- `Assets/Scenes/BattleTest.unity`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `BattleStatusIconView.cs`, `StatusTooltipPanel.cs` Unity `validate_script standard`: 에러 0개.
+- `BattleTest` 씬 `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `StatusTooltipPanel` 오브젝트와 필드 연결(`panelRect`, `iconImage`, `iconBackground`, 텍스트, `canvasGroup`) 생성 확인.
+- 콘솔 정리 후 남은 항목은 MCP-FOR-UNITY client 종료 로그뿐이며 게임 코드 에러는 확인되지 않았다.
+
+#### 다음 작업
+- PlayMode에서 실제 상태이상 아이콘 hover 시 툴팁 위치와 시각 스타일을 화면 기준으로 최종 확인 필요.
+
+---
+
+### 2026-05-13 (Codex - 콘솔 확인 및 적 의도 UI 간격/한글화)
+
+#### 이번 작업 요약
+- 현재 콘솔의 에러 항목을 확인했다. 남아 있던 항목은 게임 코드 예외가 아니라 `MCP-FOR-UNITY` 클라이언트 연결 종료 로그였다.
+- `BattleTest.unity`의 적 의도 패널 폭을 넓히고, 아이콘 위치/크기와 텍스트 영역을 조정해 아이콘과 다음 턴 행동 텍스트가 겹치지 않도록 수정했다.
+- 전투 씬 생성용 에디터 빌더 2종(`BattleSceneBuilder`, `MagicCrowBattleSceneSetup`)에도 같은 의도 UI 간격 값을 반영해 씬 재생성 시 문제가 재발하지 않도록 했다.
+- `EnemyAction.GetIntentDescription()`의 자동 생성 문구를 한글로 정리했다.
+- `Enemy_MagicCrow.asset`에 직접 들어 있던 영어 의도 문구를 한글로 교체했다.
+
+#### 변경 파일
+- `Assets/Scenes/BattleTest.unity`
+- `Assets/Scripts/Data/EnemyData.cs`
+- `Assets/Scripts/Editor/BattleSceneBuilder.cs`
+- `Assets/Scripts/Editor/MagicCrowBattleSceneSetup.cs`
+- `Assets/ScriptableObjects/Enemies/Enemy_MagicCrow.asset`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `EnemyData.cs`, `BattleSceneBuilder.cs`, `MagicCrowBattleSceneSetup.cs` Unity `validate_script standard`: 에러 0개.
+- `BattleTest` 씬 `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `BattleTest` 씬 저장 완료.
+- 콘솔은 마지막에 정리했다. 이후 `MCP-FOR-UNITY` 연결 종료 로그는 도구 접속 종료 시 다시 생길 수 있으나 게임 코드 에러는 아니다.
+
+#### 다음 작업
+- PlayMode에서 실제 적 의도 텍스트 길이가 긴 경우에도 겹치지 않는지 화면 확인 필요.
+
+---
+
+### 2026-05-13 (Codex - 배틀 UI 의도/상태 아이콘 적용 및 화상 상태 준비)
+
+#### 이번 작업 요약
+- `Assets/Assets/UIs/Icons`에 추가된 의도 아이콘 6종과 상태이상 아이콘 6종을 전투 UI/상태이상 데이터에 연결했다.
+- `BattleTest.unity`의 `BattleEnemyView`에 공격/방어/버프/디버프/회복 의도 아이콘을 연결하고, `Unknown.png`는 미정의 의도 fallback 아이콘으로 추가했다.
+- 기존 상태이상 데이터 `독`, `약화`, `취약`, `강화`, `재생`에 각각 아이콘을 연결했다.
+- 신규 `Status_Burn` 상태이상 데이터를 추가하고 `StatusEffectType.Burn`, 툴팁, 상태 아이콘 색상, 턴 시작 피해 처리, HUD 피해 플래시/디버그 로그를 준비했다.
+- 현재 요청대로 화상을 직접 부여하는 카드/적 행동/이벤트 장치는 추가하지 않았다.
+
+#### 변경 파일
+- `Assets/Scenes/BattleTest.unity`
+- `Assets/Scripts/Data/StatusEffectData.cs`
+- `Assets/Scripts/Battle/BattleCombatantState.cs`
+- `Assets/Scripts/Battle/BattleStatusTurnResult.cs`
+- `Assets/Scripts/Battle/BattleDebugHud.cs`
+- `Assets/Scripts/UI/BattleEnemyView.cs`
+- `Assets/Scripts/UI/BattleStatusIconView.cs`
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `Assets/Scripts/UI/StatusTooltipPanel.cs`
+- `Assets/ScriptableObjects/StatusEffects/Status_*.asset`
+- `Assets/ScriptableObjects/StatusEffects/Status_Burn.asset`
+
+#### 검증 결과
+- Unity refresh/compile 요청 완료.
+- 변경 스크립트 8개 `validate_script standard`: 에러 0개.
+- `BattleTest` 씬 `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `BattleEnemyView` 컴포넌트에서 의도 아이콘 6종 참조가 정상 경로로 로드되는 것을 확인했다.
+- 콘솔에는 기존 MCP-FOR-UNITY client 종료 로그와 `UnityEditor.Graphs.Edge.WakeUp` 계열 에디터 예외가 남아 있으며, 이번 변경 스크립트 컴파일 에러는 확인되지 않았다.
+
+#### 다음 작업
+- PlayMode에서 실제 적 의도 변경과 상태이상 표시가 픽셀 스타일에 맞게 보이는지 시각 검증 필요.
+- 이후 화상 부여 카드/적 행동을 만들 때는 `Status_Burn.asset`을 참조하면 즉시 UI와 턴 시작 피해가 동작한다.
+
+---
+
 ### 2026-05-12 (Antigravity — NPC 배틀 전환 구현 및 MagicDeer 연동)
 
 #### 이번 세션 작업 요약
@@ -2641,6 +2842,20 @@ Assets/Scenes/BattleTest.unity
 - PlayMode에서 전투 시작 첫 5장 드로우와 턴 시작 1장 드로우 모두 오른쪽 하단에서 들어오는지 눈으로 확인한다.
 
 ---
+### 2026-05-13 (Codex - 배틀씬 UI 에셋 적용 대상 조사)
+
+#### 이번 작업 요약
+- `BattleTest.unity`의 UI 계층, 연결된 Battle UI 스크립트, `CardSpriteLibrary`, 상태이상 데이터, 씬 내 Image 스프라이트 연결 상태를 점검했다.
+- 직접 에셋을 적용해야 하는 배틀 UI 요소와 런타임 데이터로 자동 주입되는 요소를 분류했다.
+- 조사 후 활성 씬은 다시 `AdventureScene`으로 복귀했다.
+
+#### 조사 결과 핵심
+- 직접 보강 우선순위가 높은 항목: 배틀 배경/HUD 패널류, 턴 종료/재시작 버튼, 적 의도 아이콘 5종, 상태이상 아이콘 5종, 에너지 오브, 결과 패널, 카드 프리팹 내부 장식.
+- 런타임 주입 항목: 카드 프레임은 `CardSpriteLibrary`, 카드 일러스트는 `CardData.cardIcon`, 적 이미지는 `EnemyData.enemySprite`, NPC 초상화는 `BattleIntroData.npcPortrait`, 플레이어 이미지는 `JobClassInfo.previewSprite`.
+- `BattleTest` 씬 검증 결과 Missing Script/Broken Prefab 없음.
+
+---
+
 ### 2026-05-13 (Codex - 콘솔 에러 수정: DialogueView/Missing Script)
 
 #### 이번 작업 요약

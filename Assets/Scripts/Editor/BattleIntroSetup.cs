@@ -57,6 +57,8 @@ namespace CardAdventure.Editor
         // 레이아웃 조정: 대상 오브젝트 이름
         private const string PLAYER_AVATAR_NAME = "PlayerAvatar";
         private const string ENEMY_AREA_NAME    = "EnemyArea";
+        private const string PLAYER_SHADOW_NAME = "PlayerGroundShadow";
+        private const string ENEMY_SHADOW_NAME  = "EnemyGroundShadow";
 
         // ── 메뉴 진입점 ──────────────────────────────────────────
 
@@ -64,6 +66,8 @@ namespace CardAdventure.Editor
         public static void AdjustBattleLayout()
         {
             bool changed = false;
+
+            Canvas battleCanvas = GameObject.Find("BattleCanvas")?.GetComponent<Canvas>();
 
             // ── PlayerAvatar 앵커 Y 하향 ─────────────────────────
             GameObject playerAvatarGo = GameObject.Find(PLAYER_AVATAR_NAME);
@@ -78,6 +82,14 @@ namespace CardAdventure.Editor
                     changed = true;
                     Debug.Log($"[BattleIntroSetup] {PLAYER_AVATAR_NAME} 앵커 Y → 0.42");
                 }
+
+                EnsureBattleShadow(
+                    battleCanvas,
+                    PLAYER_SHADOW_NAME,
+                    new Vector2(0.28f, 0.42f),
+                    new Vector2(0f, -118f),
+                    new Vector2(170f, 28f),
+                    playerAvatarGo.transform.GetSiblingIndex());
             }
             else
             {
@@ -93,10 +105,27 @@ namespace CardAdventure.Editor
                 {
                     rt.anchorMin = new Vector2(rt.anchorMin.x, 0.44f);
                     rt.anchorMax = new Vector2(rt.anchorMax.x, 0.44f);
+                    rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, 10f);
                     EditorUtility.SetDirty(enemyAreaGo);
                     changed = true;
                     Debug.Log($"[BattleIntroSetup] {ENEMY_AREA_NAME} 앵커 Y → 0.44");
                 }
+
+                RectTransform enemyImage = GameObject.Find("EnemyImage")?.GetComponent<RectTransform>();
+                if (enemyImage != null)
+                {
+                    enemyImage.anchoredPosition = new Vector2(0f, 80f);
+                    enemyImage.sizeDelta = new Vector2(435f, 435f);
+                    EditorUtility.SetDirty(enemyImage);
+                }
+
+                EnsureBattleShadow(
+                    battleCanvas,
+                    ENEMY_SHADOW_NAME,
+                    new Vector2(0.69f, 0.44f),
+                    new Vector2(0f, -128f),
+                    new Vector2(390f, 48f),
+                    enemyAreaGo.transform.GetSiblingIndex());
             }
             else
             {
@@ -108,6 +137,52 @@ namespace CardAdventure.Editor
 
             if (changed) MarkSceneDirty();
             Debug.Log("[BattleIntroSetup] ✅ 레이아웃 조정 완료!");
+        }
+
+        private static void EnsureBattleShadow(
+            Canvas parentCanvas,
+            string shadowName,
+            Vector2 anchor,
+            Vector2 anchoredPosition,
+            Vector2 size,
+            int siblingIndex)
+        {
+            if (parentCanvas == null)
+            {
+                Debug.LogWarning($"[BattleIntroSetup] {shadowName} 생성 실패: BattleCanvas를 찾을 수 없습니다.");
+                return;
+            }
+
+            GameObject shadowGo = GameObject.Find(shadowName);
+            if (shadowGo == null)
+            {
+                shadowGo = new GameObject(shadowName, typeof(RectTransform));
+                shadowGo.transform.SetParent(parentCanvas.transform, false);
+            }
+
+            RectTransform rt = shadowGo.GetComponent<RectTransform>();
+            rt.anchorMin = anchor;
+            rt.anchorMax = anchor;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = anchoredPosition;
+            rt.sizeDelta = size;
+
+            Image oldImage = shadowGo.GetComponent<Image>();
+            if (oldImage != null)
+            {
+                Object.DestroyImmediate(oldImage);
+            }
+
+            BattleShadowGraphic shadow = shadowGo.GetComponent<BattleShadowGraphic>();
+            if (shadow == null)
+            {
+                shadow = shadowGo.AddComponent<BattleShadowGraphic>();
+            }
+
+            shadow.color = new Color(0f, 0f, 0f, 0.32f);
+            shadow.raycastTarget = false;
+            shadowGo.transform.SetSiblingIndex(Mathf.Max(0, siblingIndex));
+            EditorUtility.SetDirty(shadowGo);
         }
 
         [MenuItem("CardAdventure/Setup Battle Intro")]

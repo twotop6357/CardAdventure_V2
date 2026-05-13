@@ -24,6 +24,6 @@ MonoBehaviour:
     \uC57D\uD654(1\uD134)\uB97C \uBD80\uC5EC\uD55C\uB2E4."
   cardIcon: {fileID: 0}
   cardColor: {r: 1, g: 1, b: 1, a: 1}
-  statusEffect: {fileID: 0}
+  statusEffect: {fileID: 11400000, guid: b47562738c8deec47897cd7ad2c7737d, type: 2}
   isExhaust: 0
   isStarterCard: 0

@@ -27,6 +27,10 @@ namespace CardAdventure
         [SerializeField] private RectTransform statusContainer;
         [SerializeField] private BattleStatusIconView statusIconPrefab;
 
+        [Header("초상화")]
+        [Tooltip("배틀 HUD에 표시할 플레이어 직업 초상화 Image. 비어 있으면 PlayerFaceImage 이름으로 자동 탐색한다.")]
+        [SerializeField] private Image playerFaceImage;
+
         [Header("턴/페이즈 표시")]
         [SerializeField] private TextMeshProUGUI turnText;
 
@@ -111,6 +115,31 @@ namespace CardAdventure
                 Debug.LogWarning("[BattleHudView] 'PlayerAvatar' Image를 찾을 수 없습니다. " +
                                  "씬에 'PlayerAvatar' 이름의 Image 오브젝트가 있는지 확인하세요.");
             }
+        }
+
+        /// <summary>
+        /// 현재 직업에 맞는 배틀 HUD 초상화를 PlayerFaceImage에 적용한다.
+        /// </summary>
+        public void SetPlayerFaceSprite(Sprite sprite)
+        {
+            if (playerFaceImage == null)
+            {
+                GameObject faceGo = GameObject.Find("PlayerFaceImage");
+                if (faceGo != null)
+                    playerFaceImage = faceGo.GetComponent<Image>();
+            }
+
+            if (playerFaceImage == null)
+            {
+                Debug.LogWarning("[BattleHudView] 'PlayerFaceImage' Image를 찾을 수 없습니다. " +
+                                 "배틀 씬 HUD에 PlayerFaceImage 이름의 Image 오브젝트가 있는지 확인하세요.");
+                return;
+            }
+
+            playerFaceImage.sprite = sprite;
+            playerFaceImage.color = Color.white;
+            playerFaceImage.preserveAspect = true;
+            playerFaceImage.enabled = sprite != null;
         }
 
         /// <summary>피격 연출 (플레이어가 데미지를 받을 때 호출).</summary>

@@ -18,5 +18,5 @@ MonoBehaviour:
     HP\uB97C \uC783\uB294\uB2E4."
   defaultStacks: 2
   duration: 0
-  icon: {fileID: 0}
+  icon: {fileID: -4347532159779508366, guid: abe70adbd7a464b4a9cf9d5873d5cb4f, type: 3}
   displayColor: {r: 0.35, g: 0.75, b: 0.25, a: 1}

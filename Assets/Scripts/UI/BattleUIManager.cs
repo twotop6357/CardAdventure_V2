@@ -164,11 +164,24 @@ namespace CardAdventure
             // 직업 데이터에서 플레이어 스프라이트를 HUD에 코드-side 주입
             // (BattleManager.ActiveJob: GameDataManager 없으면 defaultJob(전사) 사용)
             if (playerHud != null && manager.ActiveJob != null)
+            {
                 playerHud.SetPlayerSprite(manager.ActiveJob.previewSprite);
+                playerHud.SetPlayerFaceSprite(GetPlayerFaceSprite(manager.ActiveJob));
+            }
 
             enemyView?.ResetForBattle(manager.Enemy);
             RefreshHudAndButtons(manager);
             RefreshHand(manager);   // 첫 5장 드로우
+        }
+
+        private static Sprite GetPlayerFaceSprite(JobClassInfo job)
+        {
+            if (job == null)
+            {
+                return null;
+            }
+
+            return job.battleFaceSprite != null ? job.battleFaceSprite : job.previewSprite;
         }
 
         /// <summary>
@@ -198,7 +211,7 @@ namespace CardAdventure
         private void OnTurnStartStatusResolved(BattleManager manager,
             BattleCombatantState combatant, BattleStatusTurnResult result)
         {
-            if (result.PoisonDamage > 0 && combatant == manager.Player?.Combatant)
+            if ((result.PoisonDamage > 0 || result.BurnDamage > 0) && combatant == manager.Player?.Combatant)
                 playerHud?.PlayDamageFlash();
 
             RefreshHudAndButtons(manager);

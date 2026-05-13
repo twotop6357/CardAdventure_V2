@@ -11,7 +11,8 @@ namespace CardAdventure
         Weak,       // 약화: 공격 카드 데미지 25% 감소
         Vulnerable, // 취약: 받는 데미지 50% 증가
         Strength,   // 강화: 공격 카드 데미지 증가
-        Regeneration // 재생: 매 턴 시작 시 HP 회복
+        Regeneration, // 재생: 매 턴 시작 시 HP 회복
+        Burn // 화상: 매 턴 시작 시 HP 감소
     }
 
     /// <summary>

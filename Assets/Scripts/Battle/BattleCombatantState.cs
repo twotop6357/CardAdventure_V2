@@ -115,6 +115,7 @@ namespace CardAdventure
         public BattleStatusTurnResult ApplyTurnStartStatusEffects()
         {
             int poisonDamage = 0;
+            int burnDamage = 0;
             int regenerationHealing = 0;
 
             foreach (BattleStatusInstance status in statuses)
@@ -124,6 +125,9 @@ namespace CardAdventure
                     case StatusEffectType.Poison:
                         poisonDamage += LoseHpIgnoringBlock(status.Stacks);
                         break;
+                    case StatusEffectType.Burn:
+                        burnDamage += LoseHpIgnoringBlock(status.Stacks);
+                        break;
                     case StatusEffectType.Regeneration:
                         int hpBeforeHeal = CurrentHp;
                         Heal(status.Stacks);
@@ -132,7 +136,7 @@ namespace CardAdventure
                 }
             }
 
-            return new BattleStatusTurnResult(poisonDamage, regenerationHealing);
+            return new BattleStatusTurnResult(poisonDamage, burnDamage, regenerationHealing);
         }
 
         public void TickStatusDurations()

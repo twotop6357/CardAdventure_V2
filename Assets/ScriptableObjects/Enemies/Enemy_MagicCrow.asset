@@ -18,22 +18,22 @@ MonoBehaviour:
   actionPattern:
   - actionType: 0
     value: 6
-    intentDescription: Shadow Peck 6
+    intentDescription: "\uADF8\uB9BC\uC790 \uCA61\uAE30 6"
     statusEffect: {fileID: 0}
     statusEffectStacks: 0
   - actionType: 3
     value: 0
-    intentDescription: Poison Feather 2
+    intentDescription: "\uB3C5 \uAE43\uD138 2"
     statusEffect: {fileID: 11400000, guid: 03970def3e819c049997aa4e30a6389a, type: 2}
     statusEffectStacks: 2
   - actionType: 1
     value: 5
-    intentDescription: Wing Guard 5
+    intentDescription: "\uB0A0\uAC1C \uBC29\uC5B4 5"
     statusEffect: {fileID: 0}
     statusEffectStacks: 0
   - actionType: 3
     value: 0
-    intentDescription: Cursed Caw 1
+    intentDescription: "\uC800\uC8FC\uC758 \uC6B8\uC74C 1"
     statusEffect: {fileID: 11400000, guid: 25988997590447d199e70ae14d94a131, type: 2}
     statusEffectStacks: 1
   randomizeActions: 0

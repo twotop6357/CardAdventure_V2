@@ -17,5 +17,5 @@ MonoBehaviour:
   description: "\uACF5\uACA9 \uD53C\uD574\uAC00 25% \uAC10\uC18C\uD55C\uB2E4."
   defaultStacks: 1
   duration: 1
-  icon: {fileID: 0}
+  icon: {fileID: 4035860371971368088, guid: bfaceb1656e3695429e6705ff27e9e79, type: 3}
   displayColor: {r: 0.6, g: 0.6, b: 0.9, a: 1}

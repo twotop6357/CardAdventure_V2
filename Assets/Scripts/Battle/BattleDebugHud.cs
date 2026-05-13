@@ -358,6 +358,11 @@ namespace CardAdventure
                 AddLog(combatant.DisplayName + " poison damage: " + result.PoisonDamage);
             }
 
+            if (result.BurnDamage > 0)
+            {
+                AddLog(combatant.DisplayName + " burn damage: " + result.BurnDamage);
+            }
+
             if (result.RegenerationHealing > 0)
             {
                 AddLog(combatant.DisplayName + " regeneration: " + result.RegenerationHealing);

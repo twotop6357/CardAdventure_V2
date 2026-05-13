@@ -44,20 +44,22 @@ namespace CardAdventure
         public string GetIntentDescription()
         {
             if (!string.IsNullOrEmpty(intentDescription))
+            {
                 return intentDescription;
+            }
 
             return actionType switch
             {
                 EnemyActionType.Attack => $"공격 {value}",
                 EnemyActionType.Defend => $"방어 {value}",
                 EnemyActionType.Buff => statusEffect != null
-                    ? $"{statusEffect.effectName} {statusEffectStacks} 부여"
-                    : $"강화",
+                    ? $"{statusEffect.effectName} {statusEffectStacks} 적용"
+                    : "강화",
                 EnemyActionType.DebuffPlayer => statusEffect != null
                     ? $"{statusEffect.effectName} {statusEffectStacks} 부여"
-                    : $"약화",
+                    : "약화",
                 EnemyActionType.HealSelf => $"회복 {value}",
-                _ => "???"
+                _ => "알 수 없음"
             };
         }
     }

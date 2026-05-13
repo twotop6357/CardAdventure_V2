@@ -100,13 +100,13 @@ public static class BattleSceneBuilder
         // 적 의도 패널
         GameObject intentPanel = CreatePanel("IntentPanel", enemyArea.transform,
             new Color(0.9f, 0.2f, 0.2f, 0.85f),
-            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -8), new Vector2(180, 40));
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -8), new Vector2(260, 42));
         GameObject intentIcon = CreateImageObject("IntentIcon", intentPanel.transform,
             Color.white, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
-            new Vector2(22, 0), new Vector2(28, 28));
+            new Vector2(30, 0), new Vector2(30, 30));
         GameObject intentText = CreateTMP("IntentText", intentPanel.transform,
             "공격 6", 16, TextAlignmentOptions.Left,
-            new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(14, 0), new Vector2(-14, 0));
+            new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(22, 0), new Vector2(-76, 0));
 
         // EnemyView 필드 연결
         SerializeEnemyView(enemyView,

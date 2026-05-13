@@ -309,7 +309,14 @@ namespace CardAdventure
 
                 case CardEffectType.Taunt:
                     Player.Combatant.AddBlock(data.effectValue);
-                    Enemy.Combatant.ApplyStatus(StatusEffectType.Weak, 1, 1);
+                    if (data.statusEffect != null)
+                    {
+                        Enemy.Combatant.ApplyStatus(data.statusEffect, Mathf.Max(1, data.statusEffect.defaultStacks));
+                    }
+                    else
+                    {
+                        Enemy.Combatant.ApplyStatus(StatusEffectType.Weak, 1, 1);
+                    }
                     break;
 
                 // ── 상태이상 부여 ─────────────────────────────────
