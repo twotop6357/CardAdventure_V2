@@ -2284,10 +2284,11 @@ MonoBehaviour:
   cardSpacing: 120
   maxFanAngle: 15
   fanDropY: 30
-  dealDuration: 0.25
-  dealOriginLocal: {x: 0, y: -300, z: 0}
+  dealDuration: 0.4
+  dealOriginLocal: {x: 520, y: -280, z: 0}
   deckOriginMarker: {fileID: 0}
-  cardDealStagger: 0.1
+  screenDealOriginPadding: {x: 120, y: 90}
+  cardDealStagger: 0.08
 --- !u!224 &989033269
 RectTransform:
   m_ObjectHideFlags: 0

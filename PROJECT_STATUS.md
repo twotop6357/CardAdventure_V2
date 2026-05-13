@@ -2586,3 +2586,58 @@ Assets/Scenes/BattleTest.unity
 - 연출이 너무 빠르거나 느리면 `SceneLoader.irisCloseDuration` 기본값 `0.65`를 조정한다.
 
 ---
+### 2026-05-13 (Codex - 배틀 전환 중 플레이어 입력 차단)
+
+#### 이번 작업 요약
+- 어드벤처 씬에서 배틀 씬으로 넘어가는 순간 플레이어의 입력을 즉시 차단하도록 수정했다.
+- `SceneLoader.EnterBattle()` 시작 시 현재 씬의 `PlayerController`를 찾아 `SetInputEnabled(false)`를 호출한다.
+- `PlayerController.SetInputEnabled(false)`가 이동 루프 플래그뿐 아니라 `PlayerInput` 컴포넌트와 `Move` 액션까지 비활성화하도록 보강했다.
+- 입력 차단 시 달리기 상태, 이동 상태, 홀드 입력 상태를 함께 초기화하고 현재 타일 중심으로 스냅하는 기존 흐름은 유지했다.
+
+#### 변경 파일
+- `Assets/Scripts/Core/SceneLoader.cs`
+  - `LockAdventurePlayerInput()` 추가.
+  - `EnterBattle()`에서 배틀 데이터 준비 및 씬 로드 전에 플레이어 입력 차단.
+- `Assets/Scripts/Adventure/PlayerController.cs`
+  - `PlayerInput` 참조 캐싱.
+  - 입력 비활성화 시 `PlayerInput.enabled = false`, `moveAction.Disable()` 적용.
+  - 입력 활성화 시 `PlayerInput.enabled = true`, `moveAction.Enable()` 적용.
+
+#### 검증 결과
+- `SceneLoader.cs` Unity `validate_script standard`: 오류 0개.
+- `PlayerController.cs` Unity `validate_script standard`: 오류 0개, 기존 정적 경고 2개만 확인.
+- Unity 스크립트 리프레시/컴파일 요청 완료.
+- 작업 중 발생한 MCP-FOR-UNITY 연결 로그는 도구 연결 노이즈로 게임 코드 오류가 아니며 콘솔을 정리했다.
+
+#### 다음 작업
+- PlayMode에서 `BattleEntrance` 직접 진입과 `NPC_MaleChaser` 대화 후 진입 모두 전환 중 이동/상호작용/달리기 입력이 먹지 않는지 확인한다.
+
+---
+### 2026-05-13 (Codex - 배틀씬 카드 드로우 연출 시작점 복구)
+
+#### 이번 작업 요약
+- 배틀씬(`BattleTest`)으로 이동해 손패 카드가 오른쪽 하단에서 뽑혀오는 DOTween 딜 연출 설정을 복구했다.
+- `HandArea`의 `BattleHandView`에서 `deckOriginMarker`가 비어 있어 `dealOriginLocal` 대체값을 사용하는 상태였고, 기존 값이 하단 중앙에 가까운 `{x:0, y:-300}`이라 오른쪽 하단 연출이 사라진 것처럼 보였다.
+- 고정 로컬 좌표만으로는 해상도/캔버스 배치에 따라 손패 근처에서 생성되는 것처럼 보여, `Screen.width/height` 기준 화면 오른쪽 하단 좌표를 `HandContainer` 로컬 좌표로 변환해 시작점으로 쓰도록 변경했다.
+- `screenDealOriginPadding` 기본값은 `{x:120, y:90}`이며, `BattleTest` 씬에도 같은 값으로 저장했다.
+- 딜 체감이 보이도록 `dealDuration`을 `0.4`, `cardDealStagger`를 `0.08`로 조정했다.
+- 씬 재생성/컴포넌트 신규 생성 시에도 기본값이 유지되도록 `BattleHandView.cs`의 기본 `dealOriginLocal`도 같은 값으로 변경했다.
+
+#### 변경 파일
+- `Assets/Scenes/BattleTest.unity`
+  - `HandArea > BattleHandView` 딜 시작 위치/속도 설정 저장.
+- `Assets/Scripts/UI/BattleHandView.cs`
+  - `GetDealStartLocalPosition()` 추가.
+  - `deckOriginMarker`가 없으면 화면 오른쪽 하단 기준 좌표를 계산해 새 카드 딜 시작점으로 사용.
+  - `dealDuration`, `dealOriginLocal`, `screenDealOriginPadding`, `cardDealStagger` 기본값 조정.
+
+#### 검증 결과
+- 활성 씬을 `BattleTest`로 이동 후 수정 및 저장 완료.
+- `BattleHandView.cs` Unity `validate_script standard`: 오류 0개.
+- Unity 스크립트 리프레시/컴파일 요청 완료.
+- 콘솔의 남은 항목은 MCP-FOR-UNITY 연결 종료 로그이며 게임 코드 오류가 아니다.
+
+#### 다음 작업
+- PlayMode에서 전투 시작 첫 5장 드로우와 턴 시작 1장 드로우 모두 오른쪽 하단에서 들어오는지 눈으로 확인한다.
+
+---

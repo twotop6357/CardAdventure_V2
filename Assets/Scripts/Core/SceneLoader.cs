@@ -178,10 +178,21 @@ namespace CardAdventure
 
         public void EnterBattle(EnemyData enemy, string returnScene = "AdventureScene")
         {
+            LockAdventurePlayerInput();
+
             if (GameDataManager.Instance != null)
                 GameDataManager.Instance.PrepareBattle(enemy, returnScene);
 
             LoadScene(BATTLE_SCENE_NAME, true);
+        }
+
+        private static void LockAdventurePlayerInput()
+        {
+            PlayerController player = Object.FindFirstObjectByType<PlayerController>();
+            if (player != null)
+            {
+                player.SetInputEnabled(false);
+            }
         }
 
         /// <summary>

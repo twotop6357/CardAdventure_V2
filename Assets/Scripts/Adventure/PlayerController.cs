@@ -38,6 +38,7 @@ namespace CardAdventure
         [SerializeField] private float idleVisualScaleMultiplier = 0.267f;
 
         private Rigidbody2D rb;
+        private PlayerInput playerInput;
         private bool isMoving;
         private bool isSprinting;
         private bool inputEnabled = true;
@@ -93,12 +94,16 @@ namespace CardAdventure
                 walkVisualScale = spriteRenderer.transform.localScale;
             }
 
+            playerInput = GetComponent<PlayerInput>();
             ResolveInputAction();
         }
 
         private void OnEnable()
         {
-            moveAction?.Enable();
+            if (inputEnabled)
+            {
+                moveAction?.Enable();
+            }
         }
 
         private void OnDisable()
@@ -574,7 +579,6 @@ private void PlayDirectionalAnimation(bool moving, bool sprinting)
 
         private void ResolveInputAction()
         {
-            var playerInput = GetComponent<PlayerInput>();
             if (playerInput != null && playerInput.actions != null)
             {
                 moveAction = playerInput.actions.FindAction("Move", throwIfNotFound: false);
@@ -598,6 +602,21 @@ private void PlayDirectionalAnimation(bool moving, bool sprinting)
         public void SetInputEnabled(bool enabled)
         {
             inputEnabled = enabled;
+            if (playerInput != null)
+            {
+                playerInput.enabled = enabled;
+            }
+
+            if (enabled)
+            {
+                moveAction?.Enable();
+            }
+            else
+            {
+                moveAction?.Disable();
+                isSprinting = false;
+            }
+
             if (!enabled)
             {
                 isMoving = false;

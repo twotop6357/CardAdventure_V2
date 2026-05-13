@@ -29,12 +29,14 @@ namespace CardAdventure
         [SerializeField] private float fanDropY = 30f;
 
         [Header("드로우 연출")]
-        [SerializeField] private float dealDuration      = 0.25f;
-        [SerializeField] private Vector3 dealOriginLocal = new Vector3(0, -300f, 0);
+        [SerializeField] private float dealDuration      = 0.4f;
+        [SerializeField] private Vector3 dealOriginLocal = new Vector3(520f, -280f, 0);
         [Tooltip("덱 위치 마커 (없으면 dealOriginLocal 사용). 우하단에 배치한다.")]
         [SerializeField] private RectTransform deckOriginMarker;
+        [Tooltip("deckOriginMarker가 없을 때 화면 오른쪽 하단에서 안쪽으로 띄우는 여백.")]
+        [SerializeField] private Vector2 screenDealOriginPadding = new Vector2(120f, 90f);
         [Tooltip("카드 한 장당 딜 시작 딜레이 간격 (초)")]
-        [SerializeField] private float cardDealStagger = 0.1f;
+        [SerializeField] private float cardDealStagger = 0.08f;
 
         // ── 내부 ───────────────────────────────────────────────────
         // cardViews[i]와 boundRuntimeCards[i]는 항상 1:1 대응한다.
@@ -297,9 +299,7 @@ namespace CardAdventure
                 else if (i >= firstDealIndex)
                 {
                     // ── 새 카드: 덱 위치에서 딜 애니메이션 ──────────
-                    Vector3 startPos = deckOriginMarker != null
-                        ? handContainer.InverseTransformPoint(deckOriginMarker.position)
-                        : dealOriginLocal;
+                    Vector3 startPos = GetDealStartLocalPosition();
 
                     float delay = dealCount * cardDealStagger;
                     dealCount++;
@@ -323,6 +323,39 @@ namespace CardAdventure
                     rt.DOLocalRotate(targetRot.eulerAngles, dealDuration * 0.5f).SetEase(Ease.OutQuad);
                 }
             }
+        }
+
+        private Vector3 GetDealStartLocalPosition()
+        {
+            if (deckOriginMarker != null)
+            {
+                return handContainer.InverseTransformPoint(deckOriginMarker.position);
+            }
+
+            if (handContainer == null)
+            {
+                return dealOriginLocal;
+            }
+
+            Canvas canvas = handContainer.GetComponentInParent<Canvas>()?.rootCanvas;
+            Camera camera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+                ? canvas.worldCamera
+                : null;
+
+            Vector2 screenPoint = new Vector2(
+                Mathf.Max(0f, Screen.width - screenDealOriginPadding.x),
+                Mathf.Max(0f, screenDealOriginPadding.y));
+
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    handContainer,
+                    screenPoint,
+                    camera,
+                    out Vector2 localPoint))
+            {
+                return localPoint;
+            }
+
+            return dealOriginLocal;
         }
     }
 }
