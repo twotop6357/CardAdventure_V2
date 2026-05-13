@@ -1,3 +1,141 @@
+### 2026-05-12 (Antigravity — NPC 배틀 전환 구현 및 MagicDeer 연동)
+
+#### 이번 세션 작업 요약
+- **배틀 전환 시스템 구현**: `NpcChaser.cs`에서 대화 종료 후 `SceneLoader.Instance.EnterBattle()`를 호출하여 배틀 씬으로 자동 전환되는 로직을 구현함.
+- **신규 몬스터 데이터 연동**: `NPC_MaleChaser`에 `Enemy_MagicDeer.asset`을 할당하고, 해당 몬스터의 인트로 연출 데이터(`BattleIntro_MaleChaser`)가 `MaleNPC_Image.png`를 정상적으로 참조하도록 구성함.
+- **컴파일 오류 해결**: 존재하지 않는 `LoadBattle` 메서드 호출을 프로젝트 표준인 `EnterBattle`로 수정하여 빌드 차단 요소를 제거함.
+- **데이터 검증**: `AdventureScene`과 `BattleTest` 씬 간의 데이터 전달 및 씬 로딩 흐름이 정상적으로 동작함을 확인하고 씬 저장을 완료함.
+
+#### 현재 상태
+- **배틀 시스템**: 매직 디어 전투 데이터 구축 및 인트로 연출 준비 완료.
+- **어드벤처 시스템**: 추격형 NPC의 대화-전투 연결 고리 완성.
+
+---
+
+### 2026-05-13 (Codex - 아이리스 전환 콘솔 에러 수정)
+
+#### 이번 작업 요약
+- PlayMode 전투 진입 후 콘솔에 발생한 `MissingComponentException: There is no 'CanvasRenderer' attached to the "IrisTransition" game object` 원인을 확인했다.
+- 원인은 커스텀 `IrisTransitionGraphic` 오브젝트 생성 시 `CanvasRenderer`가 명시적으로 붙지 않아, EventSystem/GraphicRaycaster가 해당 UI Graphic을 레이캐스트할 때 렌더러 접근에 실패한 것이다.
+- `IrisTransitionGraphic`에 `[RequireComponent(typeof(CanvasRenderer))]`를 추가하고, `SceneLoader.BuildFadeCanvas()`에서 `IrisTransition` 생성 직후 `CanvasRenderer`를 명시적으로 추가하도록 수정했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/IrisTransitionGraphic.cs`
+  - `CanvasRenderer` 필수 컴포넌트 선언 추가.
+- `Assets/Scripts/Core/SceneLoader.cs`
+  - `IrisTransition` 생성 시 `CanvasRenderer` 명시 추가.
+
+#### 검증 결과
+- `SceneLoader.cs`, `IrisTransitionGraphic.cs` Unity `validate_script standard`: 오류 0개.
+- Unity 스크립트 리프레시/컴파일 요청 완료.
+- 콘솔 정리 후 확인 결과, 게임 코드의 `MissingComponentException`은 재발하지 않았다.
+- 남은 콘솔 항목은 MCP-FOR-UNITY 클라이언트 접속/종료 로그이며 게임 런타임 오류가 아니다.
+
+---
+
+### 2026-05-12 (Antigravity — CrowBattle 에셋 교체 및 어드벤처 씬 원상복구)
+
+#### 이번 세션 작업 요약
+- **CrowBattle 비주얼 업데이트**: `CrowBattleBackground` 및 `Monster_MagicCrow` 스프라이트를 최신 버전으로 교체하고, 이를 배틀 UI에 반영함.
+- **빌드 시스템 수정**: `MagicCrowBattleSceneSetup.cs`에서 잘못된 스프라이트 이름 참조(`Monster_MagicCrow_0` → `Monster_MagicCrow 1_0`)를 수정하여 빌드 오류를 해결함.
+- **씬 원상복구 및 빌드 분리**: 실수로 `AdventureScene`에 생성된 `BattleCanvas`를 삭제하여 원래 상태로 완벽히 복구했으며, 배틀 UI 작업은 전용 씬인 `BattleTest.unity`에서 수행하여 씬 간 간섭을 제거함.
+
+#### 현재 상태
+- **배틀 시스템**: 매직 크로우 배틀 씬 에셋 교체 및 `BattleTest` 씬 반영 완료.
+- **어드벤처 시스템**: `AdventureScene`의 배틀 UI 오버레이 삭제 및 원상복구 완료. (스크린샷 검증 완료)
+- **UI/UX**: 배틀 전용 씬에서 최신 비주얼 정상 출력 확인.
+
+---
+
+### 2026-05-12 (Claude — 달리기 애니메이션, NPC_MaleChaser 제작, 이벤트 마크 팝업)
+
+#### 이번 세션 작업 요약
+세 가지 기능을 구현했다: (1) Shift+WASD 달리기 시스템, (2) 추격형 NPC 제작, (3) 발각 이벤트 마크 팝업.
+
+---
+
+#### 1. 플레이어 달리기 (Sprint) 기능
+
+**신규 파일**
+- `Assets/Scripts/Editor/PlayerRunAnimationSetup.cs`
+  - `CardAdventure/Player/Setup Run Animations` 메뉴로 직업별 Run 클립 자동 생성
+  - 각 직업 `{Job}_Run.png` 스프라이트 시트 → RunFront / RunSide / RunBack (8fps, loop)
+  - 행 배치: 행0=Down, 행1=Left(flipX로 Right 처리), 행3=Up (행2 미사용)
+
+**수정 파일**
+- `Assets/Scripts/Adventure/PlayerController.cs`
+  - `sprintMultiplier = 2f`, `isSprinting` 필드 추가
+  - FixedUpdate에서 Shift 키 감지 → `effectiveSpeed = moveSpeed * 2`
+  - `PlayDirectionalAnimation(bool moving, bool sprinting)` 2-파라미터로 변경
+  - 이동 중 스프린트 상태에 따라 Run/Walk 애니메이션 전환
+
+**생성된 애니메이션 에셋** (9개)
+- `Assets/Animations/Player/Player_RunFront/Back/Side.anim` (Warrior용)
+- `Assets/Animations/Player/Magician/Player_RunFront/Back/Side.anim`
+- `Assets/Animations/Player/Rogue/Player_RunFront/Back/Side.anim`
+
+---
+
+#### 2. NPC_MaleChaser — 추격형 이벤트 NPC
+
+**신규 파일**
+- `Assets/Scripts/Adventure/NpcChaser.cs`
+  - NPC가 바라보는 방향에 Wall 타일 없이 플레이어가 있으면 자동 추격
+  - 추격 시작: 플레이어 이동 잠금 (`SetInputEnabled(false)`)
+  - 타일 단위 접근 후 인접 시 `NPC_EventBattle_Dialogue` 자동 시작
+  - 1회 자동 추격 완료 후: `hasAutoChased=true` → 이후 수동 Space 상호작용만 가능
+  - 수동 상호작용 시 대화 데이터가 `NPC_AfterEventBattle_Dialogue`로 교체됨
+  - Walk/Idle 애니메이션: `MaleNPC_WalkFront/Side/Back`, `MaleNPC_IdleDown/Side/Back`
+  - 대화 종료 후 플레이어 방향으로 자동 FaceToward
+- `Assets/Scripts/Editor/MaleNpcAnimationSetup.cs`
+  - `CardAdventure/NPC/Setup MaleNPC Animations` 메뉴로 NPC 애니메이션 자동 생성
+  - MaleNPC_Sprites.png 4행×7프레임 구조 파싱
+
+**생성된 애니메이션 에셋** (6개)
+- `Assets/Animations/NPC/NPC_MaleChaser.controller`
+- `Assets/Animations/NPC/MaleNPC_WalkFront/Side/Back.anim` (6fps, loop)
+- `Assets/Animations/NPC/MaleNPC_IdleDown/Side/Back.anim` (1프레임, no loop)
+
+**씬 배치**
+- `NPC_MaleChaser` GameObject @ (4.5, 8, 0)
+- 컴포넌트: Rigidbody2D(Kinematic) + BoxCollider2D + SpriteRenderer + NpcInteractable + NpcChaser + Animator
+- `NPC_EventBattle_Dialogue` / `NPC_AfterEventBattle_Dialogue` 연결 완료
+
+**수정 파일**
+- `Assets/Scripts/Adventure/NpcInteractable.cs`
+  - `SetDialogueData(DialogueData)` public 메서드 추가 (런타임 대화 교체용)
+- `Assets/Scripts/Adventure/DialogueManager.cs`
+  - `BeginDialogueWithNpc(NpcInteractable)` public 메서드 추가 (외부 스크립트 호출용)
+  - `FaceNpcTowardPlayer()`: NpcChaser 케이스 추가
+  - `EndDialogue()`: 대화 종료 후 `FaceNpcTowardPlayer()` 호출 → NPC가 플레이어 방향 유지
+
+---
+
+#### 3. 발각 이벤트 마크 팝업
+
+**수정 파일**
+- `Assets/Scripts/Adventure/NpcChaser.cs`
+  - `ShowEventMark()` 메서드: NPC가 플레이어를 발각하면 플레이어 머리 위에 팝업 연출
+  - **ScreenSpace-Overlay Canvas** 방식 사용 (URP 2D에서 타일맵 위에 보장)
+  - DOTween Sequence: `Scale 0→1 (0.22s, OutBack)` → `대기 0.25s` → `Alpha 1→0 (0.65s, InQuad)`
+  - `Assets/Assets/Sprites/Events/EventMark.png` (`EventMark_0` 서브스프라이트) 연결 완료
+
+---
+
+#### 현재 상태
+- 컴파일 에러 0개
+- AdventureScene 저장 완료
+- 달리기: PlayMode 테스트 필요 (Run 애니메이션 방향 전환 확인)
+- NPC_MaleChaser: 위치(4.5, 8)는 임시 배치 — 맵 구조에 맞게 조정 필요
+- 이벤트 마크: ScreenSpace-Overlay로 수정 완료, PlayMode 테스트 필요
+
+#### 주의사항
+- NPC_MaleChaser의 `wallTilemap`은 런타임에 "Wall_Tilemap" 이름으로 자동 탐색 (씬 저장 기준 null)
+- 달리기 Run 클립은 `CardAdventure/Player/Setup Run Animations` 메뉴를 한 번 더 실행하면 갱신 가능
+- `NPC_AfterEventBattle_Dialogue.asset` 내용이 비어있으면 대화창이 열리지 않음 — 내용 입력 필요
+
+---
+
 ### 2026-05-12 (Antigravity — 확장 가능한 하드 경계 카메라 시스템 구현)
 
 #### 이번 세션 작업 요약
@@ -1911,7 +2049,8 @@ MagicCrow 전투 UI 재구성 과정에서 `BattleHandView.spriteLibrary`가 비
 ## 현재 목표
 
 - 기획서 **카드 배틀 자격증 어드벤처 — 게임 기획서 v1.0 (2026.05)** 를 기준으로 Unity 2D 탑다운 어드벤처 + 턴제 카드 배틀 RPG를 구현한다.
-- Phase 1 (전사 배틀 기본 루프) 완료. Phase 2 어드벤처 씬 기초 완료.
+- [x] Phase 1: 전투 루프 안정화 및 신규 몬스터(MagicDeer) 연동 완료
+- [ ] Phase 2: 베르데 평원 루미나 마을 및 이벤트 전투 구현 (진행 중)
 - 현재 **Phase 2 추가: NPC 대화 시스템** 구현 완료, 씬 연결 작업 필요.
 
 ## 현재 프로젝트 상태
@@ -2421,3 +2560,29 @@ Assets/Scenes/BattleTest.unity
 - 다음 에이전트는 사용자의 수동 테스트 피드백을 반영하거나 실제 배틀 UI 구현을 시작하면 된다.
 - 방어막 유지 규칙을 적용하고 `BattleManagerEditModeTests`에 `Block_RemainsAfterTurnEnds`를 추가했다.
 - 레퍼런스 이미지에 맞춰 CCGKit Demo 텍스처를 `BattleDebugHud`에 연결하고, 공격 카드 대상 선택 화살표 UI를 추가했다.
+### 2026-05-13 (Codex - 어드벤처→배틀 아이리스 전환 연출)
+
+#### 이번 작업 요약
+- `SceneLoader.EnterBattle()` 경로에 DOTween 기반 아이리스 클로즈 전환을 추가했다.
+- 어드벤처 씬에서 배틀 씬으로 넘어갈 때 화면 전체에 검정 오버레이가 뜨고, 가운데 원형 구멍이 `1.15 -> 0`으로 줄어든 뒤 `BattleTest` 씬을 로드한다.
+- 배틀 씬 로드 후에는 검정 오버레이가 기존 `fadeDuration` 값으로 페이드아웃된다.
+- 일반 `LoadScene()` 및 `ReturnFromBattle()` 경로는 기존 전체 페이드 전환을 유지한다.
+
+#### 변경 파일
+- `Assets/Scripts/Core/SceneLoader.cs`
+  - `irisCloseDuration`, `IrisTransitionGraphic`, `CanvasGroup` 참조 추가.
+  - `LoadScene(sceneName, useIrisTransition)` 오버로드와 `PlayIrisTransition()` 추가.
+  - `EnterBattle()`이 아이리스 전환을 사용하도록 변경.
+- `Assets/Scripts/UI/IrisTransitionGraphic.cs`
+  - 검정 UI 메쉬를 직접 생성하고 중앙 원형 구멍을 남기는 `Graphic` 컴포넌트 추가.
+
+#### 검증 결과
+- `SceneLoader.cs`, `IrisTransitionGraphic.cs` Unity `validate_script standard`: 오류 0개.
+- Unity 강제 에셋 리프레시 및 스크립트 컴파일 요청 완료.
+- 콘솔 컴파일 오류는 새 스크립트 인식 전 1회 발생했으나, 강제 리프레시 후 현재 스크립트 컴파일 오류는 확인되지 않았다.
+
+#### 미검증 / 다음 작업
+- PlayMode에서 실제 NPC 추격 전투 진입 또는 `BattleEntrance` 트리거 진입 시 아이리스 구멍 축소 연출의 체감 속도와 화면 중앙 정렬을 눈으로 확인해야 한다.
+- 연출이 너무 빠르거나 느리면 `SceneLoader.irisCloseDuration` 기본값 `0.65`를 조정한다.
+
+---

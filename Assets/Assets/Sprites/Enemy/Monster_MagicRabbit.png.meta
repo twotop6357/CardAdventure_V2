@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: a8baa7bcacdc68744850e630f5a439e3
+guid: 6244c12936e585b4285c59d34b591c39
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7846055692301078890
-    second: Monster_MagicCrow 1_0
+      213: 5068880388157505153
+    second: Monster_MagicRabbit_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Monster_MagicCrow 1_0
+      name: Monster_MagicRabbit_0
       rect:
         serializedVersion: 2
-        x: 22
-        y: 22
-        width: 1213
-        height: 1172
+        x: 120
+        y: 87
+        width: 980
+        height: 1103
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a61998bf41ac2ec60800000000000000
-      internalID: 7846055692301078890
+      spriteID: 18e72116bd7485640800000000000000
+      internalID: 5068880388157505153
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Monster_MagicCrow 1_0: 7846055692301078890
+      Monster_MagicRabbit_0: 5068880388157505153
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

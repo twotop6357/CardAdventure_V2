@@ -26,7 +26,7 @@ public static class MagicCrowBattleSceneSetup
         CardSpriteLibrary cardSpriteLibrary = AssetDatabase.LoadAssetAtPath<CardSpriteLibrary>(CardSpriteLibraryPath);
         GameObject statusIconPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(StatusIconPrefabPath);
         Sprite backgroundSprite = LoadSprite(BattleBackgroundPath, "CrowBattleBackground_0");
-        Sprite crowSprite = LoadSprite(MagicCrowSpritePath, "Monster_MagicCrow_0");
+        Sprite crowSprite = LoadSprite(MagicCrowSpritePath, "Monster_MagicCrow 1_0");
         Sprite playerSprite = LoadSprite(PlayerIdleSpritePath, "Warrior_IdleFront_0");
 
         GameObject canvasGo = new GameObject("BattleCanvas");

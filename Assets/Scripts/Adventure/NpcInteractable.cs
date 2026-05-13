@@ -97,6 +97,12 @@ namespace CardAdventure
             hasSpoken = true;
         }
 
+        /// <summary>런타임에서 대화 데이터를 교체한다 (NpcChaser 등에서 사용).</summary>
+        public void SetDialogueData(DialogueData data)
+        {
+            dialogueData = data;
+        }
+
         private Collider2D GetInteractionCollider()
         {
             BoxCollider2D box = GetComponent<BoxCollider2D>();

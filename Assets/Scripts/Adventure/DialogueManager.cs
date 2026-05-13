@@ -185,6 +185,13 @@ namespace CardAdventure
             BeginDialogue(data, null, false);
         }
 
+        /// <summary>NpcChaser 등 외부 스크립트에서 NPC 대화를 강제 시작할 때 사용</summary>
+        public void BeginDialogueWithNpc(NpcInteractable npc)
+        {
+            if (!isDialogueActive)
+                BeginDialogue(npc);
+        }
+
         private void BeginDialogue(DialogueData data, NpcInteractable npc, bool faceNpc)
         {
             if (data == null || data.lines == null || data.lines.Length == 0)
@@ -249,6 +256,10 @@ namespace CardAdventure
 
             dialogueView?.Hide();
 
+            // 대화 종료 후 NPC가 플레이어 방향을 바라보게 함
+            if (currentNpc != null && activePlayer != null)
+                FaceNpcTowardPlayer(currentNpc);
+
             // NPC에 종료 알림 (repeatable 플래그 처리)
             currentNpc?.OnDialogueFinished();
 
@@ -304,6 +315,14 @@ namespace CardAdventure
             if (alignment != null)
             {
                 alignment.FaceToward(activePlayer.transform.position);
+                return;
+            }
+
+            // 4. 추격형 NPC
+            NpcChaser chaser = npc.GetComponent<NpcChaser>();
+            if (chaser != null)
+            {
+                chaser.FaceToward(activePlayer.transform.position);
                 return;
             }
         }

@@ -17,10 +17,13 @@ namespace CardAdventure
 
         [Header("페이드 설정")]
         [SerializeField] private float fadeDuration = 0.4f;
+        [SerializeField] private float irisCloseDuration = 0.65f;
         [SerializeField] private Color fadeColor    = Color.black;
 
         // ── 내부 ───────────────────────────────────────────────
         private CanvasGroup  canvasGroup;
+        private CanvasGroup  irisCanvasGroup;
+        private IrisTransitionGraphic irisGraphic;
         private bool         isLoading;
 
         // ── 라이프사이클 ───────────────────────────────────────
@@ -70,6 +73,26 @@ namespace CardAdventure
             canvasGroup.alpha          = 0f;
             canvasGroup.blocksRaycasts = false;
             canvasGroup.interactable   = false;
+
+            GameObject irisGo = new GameObject("IrisTransition");
+            irisGo.transform.SetParent(transform, false);
+
+            irisGo.AddComponent<CanvasRenderer>();
+            irisGraphic = irisGo.AddComponent<IrisTransitionGraphic>();
+            irisGraphic.color = fadeColor;
+            irisGraphic.raycastTarget = true;
+            irisGraphic.HoleRadiusNormalized = 1.15f;
+
+            RectTransform irisRt = irisGo.GetComponent<RectTransform>();
+            irisRt.anchorMin = Vector2.zero;
+            irisRt.anchorMax = Vector2.one;
+            irisRt.offsetMin = Vector2.zero;
+            irisRt.offsetMax = Vector2.zero;
+
+            irisCanvasGroup = irisGo.AddComponent<CanvasGroup>();
+            irisCanvasGroup.alpha = 0f;
+            irisCanvasGroup.blocksRaycasts = false;
+            irisCanvasGroup.interactable = false;
         }
 
         // ── 공개 API ───────────────────────────────────────────
@@ -77,12 +100,22 @@ namespace CardAdventure
         /// <summary>씬 이름으로 페이드 전환한다.</summary>
         public void LoadScene(string sceneName)
         {
+            LoadScene(sceneName, false);
+        }
+
+        private void LoadScene(string sceneName, bool useIrisTransition)
+        {
             if (isLoading) return;
             isLoading = true;
 
             DOTween.KillAll();
 
-            // 페이드 아웃
+            if (useIrisTransition && irisGraphic != null && irisCanvasGroup != null)
+            {
+                PlayIrisTransition(sceneName);
+                return;
+            }
+
             canvasGroup.blocksRaycasts = true;
             canvasGroup.DOFade(1f, fadeDuration)
                 .SetEase(Ease.InQuad)
@@ -91,13 +124,45 @@ namespace CardAdventure
                 {
                     SceneManager.LoadSceneAsync(sceneName).completed += _ =>
                     {
-                        // 페이드 인
                         canvasGroup.DOFade(0f, fadeDuration)
                             .SetEase(Ease.OutQuad)
                             .SetUpdate(true)
                             .OnComplete(() =>
                             {
                                 canvasGroup.blocksRaycasts = false;
+                                isLoading = false;
+                            });
+                    };
+                });
+        }
+
+        private void PlayIrisTransition(string sceneName)
+        {
+            canvasGroup.alpha = 0f;
+            canvasGroup.blocksRaycasts = false;
+
+            irisGraphic.HoleRadiusNormalized = 1.15f;
+            irisCanvasGroup.alpha = 1f;
+            irisCanvasGroup.blocksRaycasts = true;
+
+            DOTween.To(
+                    () => irisGraphic.HoleRadiusNormalized,
+                    value => irisGraphic.HoleRadiusNormalized = value,
+                    0f,
+                    irisCloseDuration)
+                .SetEase(Ease.InQuad)
+                .SetUpdate(true)
+                .OnComplete(() =>
+                {
+                    SceneManager.LoadSceneAsync(sceneName).completed += _ =>
+                    {
+                        irisCanvasGroup.DOFade(0f, fadeDuration)
+                            .SetEase(Ease.OutQuad)
+                            .SetUpdate(true)
+                            .OnComplete(() =>
+                            {
+                                irisGraphic.HoleRadiusNormalized = 1.15f;
+                                irisCanvasGroup.blocksRaycasts = false;
                                 isLoading = false;
                             });
                     };
@@ -116,7 +181,7 @@ namespace CardAdventure
             if (GameDataManager.Instance != null)
                 GameDataManager.Instance.PrepareBattle(enemy, returnScene);
 
-            LoadScene(BATTLE_SCENE_NAME);
+            LoadScene(BATTLE_SCENE_NAME, true);
         }
 
         /// <summary>
