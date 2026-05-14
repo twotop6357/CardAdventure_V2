@@ -124,7 +124,7 @@ namespace CardAdventure
         {
             if (isPointerFollowing)
             {
-                transform.position = Input.mousePosition;
+                SetPositionToScreenPoint(Input.mousePosition);
                 return;
             }
 
@@ -353,8 +353,33 @@ namespace CardAdventure
             transform.SetAsLastSibling();
             transform.localRotation = Quaternion.identity;
             transform.localScale = Vector3.one;
-            transform.position = Input.mousePosition;
+            SetPositionToScreenPoint(Input.mousePosition);
             isPointerFollowing = true;
+        }
+
+        // Screen Space Overlay / Camera 양쪽에서 스크린 좌표를 올바른 UI 위치로 변환한다.
+        private void SetPositionToScreenPoint(Vector2 screenPoint)
+        {
+            if (rootCanvas == null)
+            {
+                transform.position = screenPoint;
+                return;
+            }
+
+            if (rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                transform.position = screenPoint;
+            }
+            else
+            {
+                Camera cam = rootCanvas.worldCamera != null ? rootCanvas.worldCamera : Camera.main;
+                RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                        canvasRect, screenPoint, cam, out Vector2 localPoint))
+                {
+                    transform.localPosition = localPoint;
+                }
+            }
         }
 
         public void EndPointerFollow(bool restoreToHand)

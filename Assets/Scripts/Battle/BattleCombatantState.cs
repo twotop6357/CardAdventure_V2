@@ -112,6 +112,31 @@ namespace CardAdventure
             return GetStatusStacks(effectType) > 0;
         }
 
+        public void MultiplyStatusStacks(StatusEffectType effectType, int multiplier)
+        {
+            if (multiplier <= 1)
+                return;
+
+            BattleStatusInstance status = statuses.Find(s => s.EffectType == effectType);
+            if (status == null)
+                return;
+
+            int additionalStacks = status.Stacks * (multiplier - 1);
+            if (additionalStacks > 0)
+                status.AddStacks(additionalStacks);
+        }
+
+        public int RemoveStatus(StatusEffectType effectType)
+        {
+            BattleStatusInstance status = statuses.Find(s => s.EffectType == effectType);
+            if (status == null)
+                return 0;
+
+            int removedStacks = status.Stacks;
+            statuses.RemoveAll(s => s.EffectType == effectType);
+            return removedStacks;
+        }
+
         public BattleStatusTurnResult ApplyTurnStartStatusEffects()
         {
             int poisonDamage = 0;

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a39853eb9f2fef04c82d49f38acfc753, type: 3}
   m_Name: Status_Weak
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.StatusEffectData
-  effectName: "\uC57D\uD654"
+  effectName: "약화"
   effectType: 1
-  description: "\uACF5\uACA9 \uD53C\uD574\uAC00 25% \uAC10\uC18C\uD55C\uB2E4."
+  description: "공격 피해가 25% 감소합니다."
   defaultStacks: 1
   duration: 1
   icon: {fileID: 4035860371971368088, guid: bfaceb1656e3695429e6705ff27e9e79, type: 3}

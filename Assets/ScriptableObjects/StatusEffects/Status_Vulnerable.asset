@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a39853eb9f2fef04c82d49f38acfc753, type: 3}
   m_Name: Status_Vulnerable
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.StatusEffectData
-  effectName: \uCDE8\uC57D
+  effectName: "취약"
   effectType: 2
-  description: \uBC1B\uB294 \uD53C\uD574\uAC00 50% \uC99D\uAC00\uD55C\uB2E4.
+  description: "받는 피해가 50% 증가합니다."
   defaultStacks: 2
   duration: 2
   icon: {fileID: -9120369034046867018, guid: 86a7af5d51148fc4f92915ecd1fc6427, type: 3}

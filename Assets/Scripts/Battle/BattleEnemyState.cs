@@ -22,6 +22,8 @@ namespace CardAdventure
 
         public EnemyAction CurrentIntent { get; private set; }
 
+        public bool SkipNextAction { get; private set; }
+
         public EnemyAction SelectIntent()
         {
             CurrentIntent = Data != null ? Data.GetActionForTurn(TurnIndex) : null;
@@ -32,6 +34,22 @@ namespace CardAdventure
         {
             TurnIndex++;
             CurrentIntent = null;
+        }
+
+        public void FreezeNextAction()
+        {
+            SkipNextAction = true;
+        }
+
+        public bool ConsumeSkipNextAction()
+        {
+            if (!SkipNextAction)
+            {
+                return false;
+            }
+
+            SkipNextAction = false;
+            return true;
         }
     }
 }

@@ -1,3 +1,621 @@
+### 2026-05-14 (Antigravity - 상점 UI 레이아웃 최적화 및 테스트 수정)
+
+#### 이번 작업 요약
+- 상점 UI를 반복해서 열 때 카드가 겹치거나 정렬이 어긋나는 문제를 해결하기 위해 `BetterGridLayoutGroup`의 `Fit` 모드와 `KeepCellAspectRatio` 설정을 최적화했다.
+- 에디터 모드 테스트 시 `BetterGridLayoutGroup`이 초기화되기 전에 프로퍼티에 접근하여 발생하던 `NullReferenceException`을 리플렉션을 이용한 안전한 초기화 로직으로 수정했다.
+- `ShopUIController.ForceShopLayout()`에서 `CalculateCellSize()`를 직접 호출하여 BetterUI의 1프레임 지연 업데이트 문제를 해결하고, 즉각적인 레이아웃 반영을 보장했다.
+- `RecreateCardPreview` 시 기존 자식 오브젝트들을 명확히 제거하여 Play Mode에서의 오브젝트 누적 문제를 방지했다.
+- 사용자의 요청에 따라 그리드 셀의 기준 크기(`OptimizedSize`)를 `1200x1600`으로 조정하여 카드 비율을 변경했다.
+- 카드 이미지 아래의 불필요한 '구매' 버튼을 제거하고, 가격 텍스트의 위치를 하단 중앙으로 재배치했다.
+- 상단 안내 메시지 시스템을 구현했다: 기준 메시지("카드를 눌러 구매하세요.", 흰색), 소지금 부족 시 알림("소지금이 부족합니다.", 빨간색, 3초 후 복구), 구매 성공 알림(3초 후 복구). 패널을 닫을 때 메시지 상태가 초기화되도록 설정했다.
+- 직업별 상점 목록 유지 기능을 구현했다: 카드를 구매하지 않는 한 직업별 상점 목록은 유지되며, 다른 직업으로 전직했다가 돌아와도 이전 목록이 보존된다. 단, 카드를 구매하면 해당 직업의 상점 목록은 즉시 새로운 카드들로 갱신된다.
+- 콘솔 에러를 수정했다: `offerCount` 중복 정의를 제거하고, 잘못된 열거형 참조(`CardClass.Common` -> `CardClass.Universal`)를 수정했다.
+- 테스트용 1000골드를 지급하기 위한 `CheatGold` 스크립트를 생성하여 `Player` 오브젝트에 추가했다. (플레이 모드 진입 시 자동 지급)
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs` Unity `validate_script standard`: 에러 0개.
+- 상점 관련 EditMode 테스트 3개 모두 통과:
+  - `TryBuyOffer_SpendsGoldAndAddsCardToDeck`
+  - `Open_OnlyOffersCardsMatchingSelectedJobClass`
+  - `OpenAfterClose_RecreatesSingleCardPreviewPerOfferSlot` (반복 오픈 시 카드 누적 방지 검증)
+
+#### 다음 작업
+- 실제 Play Mode에서 다양한 해상도(16:9, 16:10 등)로 상점을 열어 카드 간격과 크기가 의도대로 표시되는지 최종 확인한다.
+
+---
+
+### 2026-05-14 (Codex - 상점 두 번째 오픈 카드 겹침 원인 차단)
+
+#### 이번 작업 요약
+- 두 번째 상점 오픈부터 카드가 겹치는 원인을 기존 `OfferView`/카드 프리뷰 재사용 과정에서 이전 프리뷰의 transform/layout 상태가 남을 수 있는 구조로 판단했다.
+- `Refresh()` 시 기존 카드 프리뷰를 재사용하지 않고 슬롯별 프리뷰를 새로 생성하도록 변경했다.
+- 기존 프리뷰 제거 시 PlayMode/EditMode에 맞춰 `Destroy`/`DestroyImmediate`를 분기하는 `DestroyCardPreview(...)`를 추가했다.
+- 상점 오픈 및 갱신 후 `Canvas.ForceUpdateCanvases()`와 `LayoutRebuilder.ForceRebuildLayoutImmediate(...)`를 호출해 `OfferContainer` 그리드 레이아웃을 즉시 재계산하도록 했다.
+- 반복 오픈 재현 테스트 `OpenAfterClose_RecreatesSingleCardPreviewPerOfferSlot`을 추가해, 닫았다 다시 열어도 각 카드 슬롯 프리뷰 부모에 카드가 1개만 남는지 검증했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `Assets/Tests/Editor/ShopUIControllerEditModeTests.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs`, `ShopUIControllerEditModeTests.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 컴파일 후 상점 EditMode 테스트 3개 통과:
+  - `TryBuyOffer_SpendsGoldAndAddsCardToDeck`
+  - `Open_OnlyOffersCardsMatchingSelectedJobClass`
+  - `OpenAfterClose_RecreatesSingleCardPreviewPerOfferSlot`
+- Unity 씬 검증: Missing Script 0개, Broken Prefab 0개.
+- 테스트 실행 전 에디터가 Play Mode 진입 상태라 1회 테스트 시작이 차단되었고, `manage_editor stop` 후 재실행해 통과했다.
+- 콘솔에 과거 Missing Script 로그가 남아 있었으나, 현재 씬 검증과 프로젝트 파일 검색에서는 이번 변경 관련 Missing Script를 찾지 못했다.
+
+#### 다음 작업
+- PlayMode에서 실제 상점 NPC를 통해 상점을 두 번 이상 열고 닫으며 카드 겹침이 사라졌는지 시각적으로 최종 확인한다.
+
+---
+
+### 2026-05-14 (Codex - 상점 반복 오픈 카드 겹침 및 마법사 좌우 반전 수정)
+
+#### 이번 작업 요약
+- 상점 UI를 여러 번 열 때 카드 프리뷰가 이전 오픈/hover 상태의 부모, 위치, 회전, 스케일을 끌고 올 수 있는 문제를 막기 위해 카드 프리뷰를 매번 `CardPreviewFrame` 하위로 되돌리고 RectTransform을 초기화하도록 수정했다.
+- 상점에서는 손패용 `BattleCardView`의 hover 확대/Update 로직이 필요 없으므로, 데이터 바인딩만 사용하고 컴포넌트 이벤트 처리는 비활성화했다. 카드 자체 구매 버튼 기능은 별도 `Button`으로 유지된다.
+- 마법사 직업 에셋 `Job_Mage.asset`의 `invertVisualFlip`을 켜서 좌우 이동 시 스프라이트 반전 방향을 보정했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `Assets/ScriptableObjects/Jobs/Job_Mage.asset`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs`, `PlayerController.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 리프레시/컴파일 후 신규 컴파일 에러 없음.
+- 상점 EditMode 테스트 2개 통과:
+  - `TryBuyOffer_SpendsGoldAndAddsCardToDeck`
+  - `Open_OnlyOffersCardsMatchingSelectedJobClass`
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- 최종 콘솔에는 MCP 연결 종료/테스트 러너 저장 로그만 확인되었고, 이번 변경 관련 에러는 없음.
+
+#### 다음 작업
+- PlayMode에서 상점을 여러 번 열고 닫으며 카드가 겹치지 않는지 시각적으로 확인한다.
+- PlayMode에서 마법사 직업으로 좌/우 이동을 확인해 스프라이트 방향이 의도와 맞는지 최종 확인한다.
+
+---
+
+### 2026-05-14 (Codex - 상점 카드 직업 필터 및 초기 스케일 수정)
+
+#### 이번 작업 요약
+- 상점 카드 후보를 현재 플레이어 직업군(`GameDataManager.SelectedJobClass`)과 같은 `cardClass` 카드만 뽑도록 변경했다.
+- 이제 전사면 전사 카드, 마법사면 마법사 카드처럼 현재 직업군 카드만 상점에 등장한다.
+- 상점 카드 프리뷰가 처음 열릴 때 커져 보이던 원인인 `localScale = 1.25` 강제 확대를 제거하고, 프리팹 기본 크기(`Vector3.one`)로 표시되도록 수정했다.
+- 상점 EditMode 테스트에 직업 필터 검증을 추가했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `Assets/Tests/Editor/ShopUIControllerEditModeTests.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs`, `ShopUIControllerEditModeTests.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 리프레시/컴파일 후 신규 컴파일 에러 없음.
+- 상점 EditMode 테스트 2개 통과:
+  - `TryBuyOffer_SpendsGoldAndAddsCardToDeck`
+  - `Open_OnlyOffersCardsMatchingSelectedJobClass`
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- 콘솔에는 기존 deprecated API 경고와 MCP 연결 종료 로그만 확인되었고, 이번 변경 관련 에러는 없음.
+
+#### 다음 작업
+- PlayMode에서 직업별로 상점 UI를 열어 실제 표시 카드가 직업군별로 바뀌는지 확인한다.
+- 특정 직업 카드 풀이 비어 있을 때 “판매할 카드가 없습니다.” 메시지가 충분한지 UX를 확인한다.
+
+---
+
+### 2026-05-14 (Codex - CardView 프리팹 외형을 Card 프리팹과 동일화)
+
+#### 이번 작업 요약
+- `Assets/Prefabs/UI/Card.prefab`을 기준으로 `Assets/Prefabs/UI/CardView.prefab` 본문을 복제해 두 프리팹의 외형/계층/RectTransform/TMP 배치를 완전히 동일하게 맞췄다.
+- `CardView.prefab.meta`는 유지해 기존 `CardView` GUID 참조가 끊기지 않도록 했다.
+- 새 `CardView.prefab` 구조가 `CardArtImage`, `ManaCostText`, `CardName`, `CardDescription` 이름을 사용하므로, 상점 카드 프리뷰가 루트 카드 이미지와 `CardArtImage`를 인식하도록 `ShopUIController`를 보강했다.
+- `CardView.prefab`과 `Card.prefab` prefab 본문 SHA256 해시가 동일함을 확인했다.
+
+#### 변경 파일
+- `Assets/Prefabs/UI/CardView.prefab`
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `Assets/Scenes/AdventureScene.unity`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs`, `BattleCardView.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 전체 에셋 리프레시/스크립트 컴파일 후 신규 컴파일 에러 없음.
+- `CardAdventure/Setup Shop Keeper` 메뉴 재실행 완료.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- 상점 구매 EditMode 테스트 `ShopUIControllerEditModeTests.TryBuyOffer_SpendsGoldAndAddsCardToDeck`: 통과.
+- Unity 콘솔에는 MCP 연결 종료 로그만 확인되었고, 이번 변경 관련 에러는 없음.
+
+#### 다음 작업
+- PlayMode에서 상점 UI를 열어 `CardView.prefab`이 `Card.prefab`과 같은 카드 외형으로 표시되는지 시각적으로 최종 확인한다.
+- 이후 카드 UI 수정은 `Card.prefab`과 `CardView.prefab`을 함께 갱신하거나, 하나의 기준 프리팹만 참조하도록 정리하는 것이 좋다.
+
+---
+
+### 2026-05-14 (Codex - 상점 카드 프리뷰 배틀 카드 내부 좌표 보존)
+
+#### 이번 작업 요약
+- 배틀씬 손패 카드 출력 방식을 재확인했다. `BattleHandView`는 `CardView.prefab`을 그대로 생성하고 `Bind()`만 호출하며, 프리팹 루트/배경 기준 크기는 `160x220`이다.
+- 상점 UI에서 카드 프리뷰 루트 `sizeDelta`를 `200x275`로 바꾸던 처리를 제거했다.
+- 이제 상점 카드 프리뷰는 배틀 카드 프리팹 내부 RectTransform 좌표를 그대로 보존하고, 카드 전체를 `localScale = 1.25`로 확대한다.
+- 이 방식으로 배경, 카드명, 비용, 설명, 아이콘이 배틀씬과 동일한 상대 위치를 유지한 채 상점에 표시되도록 했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 리프레시/컴파일 후 신규 컴파일 에러 없음.
+- 상점 구매 EditMode 테스트 `ShopUIControllerEditModeTests.TryBuyOffer_SpendsGoldAndAddsCardToDeck`: 통과.
+- Unity 콘솔에는 MCP 연결 종료 로그만 확인되었고, 이번 변경 관련 컴파일 에러/경고는 없음.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+
+#### 다음 작업
+- PlayMode에서 실제 상점 UI를 열어 카드 텍스트가 배틀 손패 카드와 같은 위치에 들어가는지 시각적으로 확인한다.
+- 필요하면 카드 프리뷰 확대 배율 `1.25`만 조정하고, 프리팹 내부 크기/좌표는 변경하지 않는다.
+
+---
+
+### 2026-05-14 (Codex - 상점 카드 프리뷰를 실제 배틀 카드 버튼으로 변경)
+
+#### 이번 작업 요약
+- 상점 상품 카드가 `CardView.prefab` 기반 `BattleCardView`를 그대로 사용하도록 유지하면서, 카드 이름/비용/설명/아이콘을 카드 내부 TMP/Image 필드에 직접 보강 주입하도록 수정했다.
+- 카드 프리뷰 루트에 `Button`을 붙여 카드 이미지 자체를 클릭해 구매할 수 있게 했다.
+- hover 아웃라인을 상품 컨테이너가 아니라 카드 프리팹의 `Background` 이미지에 붙여 카드 모양을 따라 초록색으로 표시되도록 변경했다.
+- 가격/구매 버튼과 카드 프리뷰가 겹치지 않도록 상점 상품 카드 내부 레이아웃을 다시 조정했다.
+- 구매 버튼은 계속 별도로 유지하되, 카드 자체 클릭과 동일하게 `TryBuyOffer`를 호출하도록 했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `Assets/Scenes/AdventureScene.unity`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs`, `BattleCardView.cs`, `ShopKeeperSceneSetup.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 리프레시/컴파일 후 신규 컴파일 에러 없음.
+- `CardAdventure/Setup Shop Keeper` 메뉴 재실행 완료.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- 상점 구매 EditMode 테스트 `ShopUIControllerEditModeTests.TryBuyOffer_SpendsGoldAndAddsCardToDeck`: 통과.
+
+#### 다음 작업
+- PlayMode에서 실제 상점 NPC 대화 종료 후 상점 UI를 열어, 카드 자체 클릭/hover 초록 아웃라인/부족 금액 메시지를 화면 기준으로 최종 확인한다.
+- 필요하면 별도 `BuyButton`을 숨기고 카드 클릭만 남기는 방향으로 UI를 더 단순화한다.
+
+---
+
+### 2026-05-14 (Codex - 상점 카드 프리팹 텍스트 표시 및 구매 버튼 입력 수정)
+
+#### 이번 작업 요약
+- 상점 상품 카드가 `CardView.prefab`의 `BattleCardView`를 그대로 사용하도록 유지하면서, 카드명/비용/설명 텍스트가 배틀 카드 내부에 표시되도록 `BattleRuntimeCard` 바인딩 흐름을 정리했다.
+- 상점 미리보기 카드가 클릭을 가로막지 않도록 `CanvasGroup.blocksRaycasts=false`를 유지하고, 카드 미리보기를 회색 비활성 상태로 만들던 `SetInteractable(false)` 호출을 제거했다.
+- 구매 버튼이 소지금 부족 상태에서 비활성화되어 클릭 이벤트가 발생하지 않던 문제를 수정했다.
+- 이제 구매 버튼은 항상 클릭 가능하며, 소지금이 부족하면 `TryBuyOffer` 내부에서 `소지금이 부족합니다.` 메시지를 출력한다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs`, `BattleCardView.cs`, `ShopKeeperSceneSetup.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 리프레시/컴파일 후 신규 컴파일 에러 없음.
+- 상점 구매 EditMode 테스트 `ShopUIControllerEditModeTests.TryBuyOffer_SpendsGoldAndAddsCardToDeck`: 통과.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+
+#### 다음 작업
+- PlayMode에서 구매 버튼 클릭 시 실제 부족 메시지가 하단 메시지 영역에 표시되는지 확인한다.
+- 실제 상점 화면에서 `CardView.prefab`의 카드 텍스트 크기와 설명 줄바꿈이 상품 카드 영역 안에 자연스럽게 들어가는지 확인한다.
+
+---
+
+### 2026-05-14 (Codex - 상점 상품에 배틀 카드 프리팹 표시 및 헤더 겹침 수정)
+
+#### 이번 작업 요약
+- 상점 상품의 `cardIcon` 단독 표시를 제거하고, 배틀씬에서 사용하는 `Assets/Prefabs/UI/CardView.prefab` 기반 `BattleCardView`를 상품 카드 내부에 표시하도록 변경했다.
+- `ShopUIController`에 `cardViewPrefab`, `spriteLibrary` 참조를 추가하고, `BattleRuntimeCard`로 상점 카드 미리보기를 바인딩한다.
+- `CardAdventure/Setup Shop Keeper` 메뉴가 `CardView.prefab`과 `CardSpriteLibrary.asset`을 상점 UI에 자동 연결하도록 갱신했다.
+- 상점 UI 상단 텍스트를 상품 카드가 가리는 문제를 줄이기 위해 헤더, 상품 그리드, 푸터를 명시적인 RectTransform offset 영역으로 분리했다.
+- 상품 카드 내부는 카드 프리팹 미리보기, 가격, 구매 버튼만 배치해 중복 텍스트와 겹침 가능성을 줄였다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `Assets/Scripts/Editor/ShopKeeperSceneSetup.cs`
+- `Assets/Scenes/AdventureScene.unity`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs`, `ShopKeeperSceneSetup.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 리프레시/컴파일 후 신규 컴파일 에러 없음.
+- `CardAdventure/Setup Shop Keeper` 메뉴 재실행.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- 상점 구매 EditMode 테스트 `ShopUIControllerEditModeTests.TryBuyOffer_SpendsGoldAndAddsCardToDeck`: 통과.
+
+#### 다음 작업
+- PlayMode에서 실제 상점 화면을 열어 `CardView.prefab` 배율, 상품 카드 hover 초록 아웃라인, 헤더와 상품 그리드 간 간격을 눈으로 확인한다.
+- 필요하면 상점 카드 미리보기 크기(`210x300`)와 상품 그리드 셀 크기(`310x414`)를 화면 기준으로 미세 조정한다.
+
+---
+
+### 2026-05-14 (Codex - 상점 카드 UI 겹침 방지 및 Hover 피드백 개선)
+
+#### 이번 작업 요약
+- 상점 상품 카드 내부 레이아웃을 다시 조정해 이미지, 카드명, 메타 정보, 설명, 가격, 구매 버튼이 서로 겹치지 않도록 영역을 분리했다.
+- 카드 이미지 영역을 기존보다 크게 키워 상품 카드 상단에서 카드 아이콘/이미지를 더 명확히 볼 수 있게 했다.
+- 상품 카드 루트에 마우스를 올리면 `Outline` 색상이 초록색으로 바뀌도록 `ShopOfferHoverFeedback` 포인터 이벤트를 추가했다.
+- 구매 버튼을 눌렀을 때 소지금이 부족하면 하단 메시지 공간에 `소지금이 부족합니다.`가 출력되도록 문구와 표시 위치를 정리했다.
+- 하단 메시지 전용 Footer 영역은 유지해 상품 카드/버튼과 메시지가 겹치지 않게 했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs` Unity `validate_script standard`: 에러 0개, 기존 문자열 결합 GC 경고 1개.
+- Unity 스크립트 리프레시/컴파일 후 신규 컴파일 에러 없음.
+- 상점 구매 EditMode 테스트 `ShopUIControllerEditModeTests.TryBuyOffer_SpendsGoldAndAddsCardToDeck`: 통과.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- 콘솔에는 기존 deprecated API 경고만 남아 있으며 이번 상점 UI 변경 관련 오류는 없다.
+
+#### 다음 작업
+- PlayMode에서 실제 마우스 hover 시 초록 아웃라인, 카드 이미지 크기, 부족 메시지 표시 위치를 화면 기준으로 확인한다.
+- 카드 `cardIcon`이 비어 있는 신규 카드들은 상점에서도 빈 이미지 슬롯으로 보이므로, 직업별 카드 아이콘 연결 작업이 필요하다.
+
+---
+
+### 2026-05-14 (Codex - BetterUI 규칙 기반 상점 UI 개선)
+
+#### 이번 작업 요약
+- 기존 `ShopUIController`가 런타임에 고정 크기 패널과 Unity 기본 `HorizontalLayoutGroup`으로 상점 UI를 만들던 구조를 정리했다.
+- `BetterGridLayoutGroup` 기반의 3열 상품 그리드로 변경해 BetterUI 우선 지침을 반영했다.
+- 상품 카드 내부에 `BetterAxisAlignedLayoutGroup`, `BetterContentSizeFitter`, `BetterAspectRatioFitter`를 사용해 설명/아이콘 영역이 더 안정적으로 잡히도록 수정했다.
+- 상점 UI를 헤더, 골드 표시 영역, 상품 카드 3장, 하단 메시지 영역으로 재구성했다.
+- 색상은 기존 갈색 단색 위주에서 청록 헤더/골드 강조/초록 구매 버튼을 섞어 카드 상점 느낌과 가독성을 개선했다.
+- BetterUI 컴포넌트 초기화 전 프로퍼티 접근으로 테스트에서 `NullReferenceException`이 발생해, 생성 직후 값 주입은 Unity base 타입으로 처리하도록 보완했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopUIController.cs` Unity `validate_script standard`: 에러 0개, 기존 문자열 결합 GC 경고 1개.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- 상점 구매 EditMode 테스트 `ShopUIControllerEditModeTests.TryBuyOffer_SpendsGoldAndAddsCardToDeck`: 통과.
+- 전체 EditMode 테스트는 40개 중 6개 실패.
+  - 실패 항목은 `BattleManager` 적 턴 코루틴화 이후 기존 전투 테스트가 즉시 `PlayerTurn`/피해 적용을 기대하는 부분이다.
+  - 이번 상점 UI 변경과 직접 관련된 실패는 확인되지 않았다.
+
+#### 다음 작업
+- PlayMode에서 실제 상점 NPC 대화 종료 후 UI가 뜨는 화면을 확인하고, 카드 3장 폭/텍스트 줄바꿈/구매 버튼 위치를 해상도별로 미세 조정한다.
+- 최근 `BattleManager.ExecuteEnemyTurn()` 코루틴화에 맞춰 기존 EditMode 전투 테스트를 코루틴 대기 방식으로 갱신해야 한다.
+
+---
+
+### 2026-05-14 (Claude Code - 배틀 씬 UI/UX 개선: 상태이상 아이콘, VFX, 적 턴 연출)
+
+#### 이번 작업 요약
+
+**1. 상태이상 아이콘 레이아웃 개선 (`StatusIcon.prefab`, `BattleStatusIconView.cs`)**
+- `DurationText`(지속 턴): 아이콘 **좌상단** 배치 (anchorMin/Max=(0,1), pivot=(0,1), offset=(2,-2))
+- `StacksText`(스택 수): 아이콘 **좌하단** 배치 (anchorMin/Max=(0,0), pivot=(0,0), offset=(2,2))
+- 두 텍스트 모두 `color = Color.black` 코드 강제 설정 (`Bind()` 내부)
+- `TurnAttackDamageBonus`(분노 등 일시 힘) 아이콘: `Status_Strength.asset` 아이콘에 황금 틴트(`SetIconTint`) 적용
+
+**2. VFX 이펙트 스케일 조정 (`BattleVfxController.cs`)**
+- `effectScale` 필드 추가(기본값 3f): 스폰 시 `go.transform.localScale = prefab.transform.localScale * effectScale` 적용
+- Inspector에서 실시간 조절 가능
+
+**3. 적의 턴 DOTween 행동 애니메이션 (`BattleEnemyView.cs`)**
+- `PlayActionAnimation(EnemyActionType)` 메서드 추가
+  - Attack: 왼쪽 돌진(-80px) 후 바운스 복귀
+  - Defend: 파란 빛 펄스 + 1.1× 스케일
+  - Buff: 황금 빛 펄스 + 1.15× 스케일
+  - HealSelf: 초록 빛 펄스
+  - DebuffPlayer: 보라 빛 + 진동
+
+**4. 적 턴 코루틴화 (`BattleManager.cs`)**
+- `ExecuteEnemyTurn()` → `StartCoroutine(ExecuteEnemyTurnRoutine())` 전환
+- 새 이벤트 `EnemyActionExecuting` 추가 (적 행동 직전 발행)
+- 타이밍: Phase=EnemyTurn → 0.35s → 행동 예고 이벤트 → 0.55s → `ApplyEnemyAction` → `StateChanged` → 0.3s → `BeginPlayerTurn`
+
+**5. "나의 턴!" 텍스트 연출 (`BattleUIManager.cs`, `BattleTest.unity`)**
+- `TurnAnnouncement` TextMeshProUGUI(72pt, 노란색, 전체 화면 스트레치) 씬에 추가
+- 2턴째부터 플레이어 턴 시작 시 팝인 → 유지 → 페이드아웃 (총 1초, DOTween Sequence)
+- `EnemyActionExecuting` 이벤트 수신 → `enemyView.PlayActionAnimation(action.actionType)` 호출
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleStatusIconView.cs` — DurationText·StacksText 색상 코드 설정
+- `Assets/Scripts/UI/BattleHudView.cs` — 일시 힘 아이콘 황금 틴트 처리
+- `Assets/Scripts/UI/BattleEnemyView.cs` — PlayActionAnimation 추가
+- `Assets/Scripts/UI/BattleUIManager.cs` — 나의 턴 텍스트·EnemyActionExecuting 구독 추가
+- `Assets/Scripts/Battle/BattleManager.cs` — ExecuteEnemyTurn 코루틴화, EnemyActionExecuting 이벤트
+- `Assets/Scripts/Battle/BattleVfxController.cs` — effectScale 필드 추가
+- `Assets/Prefabs/UI/StatusIcon.prefab` — DurationText 좌상단, StacksText 좌하단 배치
+- `Assets/Scenes/BattleTest.unity` — TurnAnnouncement 오브젝트 추가, BattleUIManager 연결
+
+#### 검증 결과
+- 컴파일 에러 0개 확인
+- MCP로 씬 저장 완료
+- 플레이 모드 시각 확인 미완료 (Unity Editor 직접 실행 필요)
+
+#### 다음 작업 후보
+- "나의 턴!" 텍스트 폰트·색상 Inspector에서 세부 조정
+- 적 턴 타이밍(0.35s / 0.55s / 0.3s) 플레이 확인 후 조정
+- 도적 카드 아이콘 미지정 상태 → 카드 아이콘 이미지 추가
+- 전사·마법사·도적 카드 PlayMode 전체 검증
+
+#### 주의사항
+- `EnemyActionExecuting` 이벤트가 추가되어 기존 BattleVfxController의 `OnEnable/OnDisable`에는 없음 → 필요 시 VFX 구독 추가 가능
+- `ExecuteEnemyTurn()`이 public이고 내부에서 코루틴 시작 → MonoBehaviour가 비활성이면 코루틴 미동작 주의
+
+---
+
+### 2026-05-14 (Claude Code - 구글 시트 기반 도적 카드 11종 추가 및 회피 시스템 구현)
+
+#### 이번 작업 요약
+- 구글 스프레드시트 `gid=1298972056`의 Rogue 행 11개를 읽어 도적 카드 11종을 추가했다.
+- 카드명/에셋명은 설명 기준으로 직접 작명했다.
+  - `에너지 폭발` / `Card_Rogue_EnergyBurst` (스타터)
+  - `날렵한 일격` / `Card_Rogue_NimbleStrike`
+  - `빠른 손놀림` / `Card_Rogue_QuickHands`
+  - `그림자 난타` / `Card_Rogue_ShadowBarrage`
+  - `독침` / `Card_Rogue_PoisonNeedle` (소멸)
+  - `회피 증폭` / `Card_Rogue_DodgeAmplify`
+  - `혼돈 흐름` / `Card_Rogue_ChaosFlow`
+  - `독의 흐름` / `Card_Rogue_ToxicFlow`
+  - `독 폭발` / `Card_Rogue_PoisonBurst`
+  - `잔상` / `Card_Rogue_Afterimage`
+  - `재빠른 뽑기` / `Card_Rogue_SwiftDraw`
+- 신규 상태이상 `회피(Dodge)` 를 `StatusEffectType`에 추가하고 `Status_Dodge.asset`을 생성했다. 아이콘은 `Assets/Assets/UIs/Icons/Dodge.png` 사용.
+- 회피 메커니즘: 스택 1개당 치명타 확률 10% 제공 (`MultiHitWithCritFromDodge`에서 사용).
+- `CardEffectType` enum에 9개 신규 효과 추가 (315~323).
+- `BattlePlayerState`에 `DodgePerFreeCardPlayed`, `DrawPerFreeCardPlayed`, `ConsumeAllEnergy()` 추가.
+- `BattleCombatantState`에 `MultiplyStatusStacks()`, `RemoveStatus()` 추가.
+- `BattleCardPiles`에 `MoveHandCardToDrawPile()` 추가 (잔상 덱 재삽입용).
+- `BattleManager`에 신규 효과 케이스 9개, `TriggerFreeCardPlayedEffects()`, `AttackAndShuffleBackToDeck` 처리 추가.
+- `BattleUIManager.RequiresSingleEnemyTarget`에 신규 공격 효과 5종 추가.
+
+#### 변경 파일
+- `Assets/Scripts/Data/StatusEffectData.cs`
+- `Assets/Scripts/Data/CardData.cs`
+- `Assets/Scripts/Battle/BattleCardPiles.cs`
+- `Assets/Scripts/Battle/BattleCombatantState.cs`
+- `Assets/Scripts/Battle/BattlePlayerState.cs`
+- `Assets/Scripts/Battle/BattleManager.cs`
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `Assets/ScriptableObjects/StatusEffects/Status_Dodge.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_EnergyBurst.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_NimbleStrike.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_QuickHands.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_ShadowBarrage.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_PoisonNeedle.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_DodgeAmplify.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_ChaosFlow.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_ToxicFlow.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_PoisonBurst.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_Afterimage.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_SwiftDraw.asset`
+- `Assets/Tests/Editor/BattleManagerEditModeTests.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- 변경 스크립트 7개 `validate_script standard`: 에러 0개.
+- `CardAdventure.Tests.BattleManagerEditModeTests` EditMode 테스트: 39개 통과, 실패 0개.
+- 신규 도적 테스트 7개 포함: EnergyBurst, NimbleStrike, QuickHands(프리 카드 트리거), ShadowBarrage(0 Dodge 무크리), DodgeAmplify, PoisonBurst, Afterimage.
+
+#### 다음 작업
+- 카드 아이콘이 시트에 비어 있어 신규 도적 카드의 `cardIcon`은 미지정이다.
+- PlayMode에서 회피 스택 아이콘이 전투 HUD에 정상 표시되는지 확인 필요.
+- `빠른 손놀림` 효과 후 0비용 카드 사용 시 회피 스택 증가, `혼돈 흐름` 사용 후 드로우 발동을 플레이 화면으로 확인 권장.
+
+---
+
+### 2026-05-14 (Codex - 구글 시트 기반 마법사 카드 11종 추가 및 효과 구현)
+
+#### 이번 작업 요약
+- 구글 스프레드시트 `gid=1298972056`의 Mage 행 11개를 CSV로 읽어 마법사 카드 11종을 추가했다.
+- 시트에서 비어 있던 카드명/에셋명은 설명 기준으로 정했다.
+  - `마나 불꽃` / `Card_Mage_ManaSpark`
+  - `혼돈 시전` / `Card_Mage_ChaosCasting`
+  - `마나 장벽` / `Card_Mage_ManaBarrier`
+  - `지옥불 폭발` / `Card_Mage_InfernoBlast`
+  - `맹독 흐름` / `Card_Mage_ToxicCurrent`
+  - `불꽃 난사` / `Card_Mage_SparkBarrage`
+  - `빙결 속박` / `Card_Mage_FrostBind`
+  - `힘의 쇄도` / `Card_Mage_PowerSurge`
+  - `마나 쇄도` / `Card_Mage_ManaSurge`
+  - `비전 할인` / `Card_Mage_ArcaneDiscount`
+  - `유성우` / `Card_Mage_MeteorShower`
+- 마법사 카드 구현을 위해 `CardEffectType`을 확장했다.
+- `BattleRuntimeCard`에 이번 턴 임시 에너지 비용 오버라이드를 추가했다.
+- `BattlePlayerState`에 이번 턴 에너지 획득, 다음 턴 에너지 보너스, 피해 시 독 부여, 첫 공격 카드 비용 0 상태를 추가했다.
+- `BattleEnemyState`에 다음 적 행동 스킵 플래그를 추가해 `빙결 속박`을 구현했다.
+- `BattleManager`에 다단히트, 피해 시 독 부여, 다음 턴 에너지 보너스, 동결, 첫 공격 비용 0, 손패 무작위 자동 사용을 구현했다.
+- `BattleUIManager`의 대상 선택 카드 판정에 신규 마법사 대상 효과를 추가했다.
+
+#### 변경 파일
+- `Assets/Scripts/Data/CardData.cs`
+- `Assets/Scripts/Battle/BattleRuntimeCard.cs`
+- `Assets/Scripts/Battle/BattleCardPiles.cs`
+- `Assets/Scripts/Battle/BattlePlayerState.cs`
+- `Assets/Scripts/Battle/BattleEnemyState.cs`
+- `Assets/Scripts/Battle/BattleManager.cs`
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_ManaSpark.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_ChaosCasting.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_ManaBarrier.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_InfernoBlast.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_ToxicCurrent.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_SparkBarrage.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_FrostBind.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_PowerSurge.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_ManaSurge.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_ArcaneDiscount.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_MeteorShower.asset`
+- `Assets/Tests/Editor/BattleManagerEditModeTests.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- 구글 시트 CSV는 네트워크 권한 승인 후 UTF-8 원본 바이트로 읽어 한글 설명을 확인했다.
+- 변경 스크립트 Unity `validate_script standard`: 에러 0개.
+- `BattleUIManager.cs`는 기존 `Update()` 문자열 결합 GC 경고 1개만 유지.
+- 최초 테스트에서 `힘의 쇄도` 기대값을 기존 테스트가 “힘 획득이 다음 공격부터 적용되지 않음”으로 잡아 실패했다. 구현은 피해를 입힐 때마다 즉시 힘을 얻어 후속 타격에 반영되도록 되어 있어, 기대값을 3+4+5 피해 기준으로 조정했다.
+- `CardAdventure.Tests.BattleManagerEditModeTests` EditMode 테스트: 32개 통과, 실패 0개.
+- 콘솔에는 기존 deprecated API 경고, MCP-FOR-UNITY 연결 종료 로그, 테스트 결과 저장 로그만 남아 있으며 이번 Mage 구현 관련 오류는 없다.
+
+#### 다음 작업
+- PlayMode에서 `비전 할인` 사용 후 손패 공격 카드 비용 텍스트가 0으로 표시되는지, 실제 카드 사용 후 원래 비용으로 돌아오는지 UI 기준으로 확인한다.
+- `혼돈 시전`은 현재 단일 적 전투 구조에서 손의 다른 카드를 무작위 순서로 사용하는 방식으로 구현했다. 다중 적 전투가 추가되면 무작위 대상 선택 범위를 확장하면 된다.
+- 카드 아이콘이 시트에 비어 있어 신규 Mage 카드의 `cardIcon`은 미지정이다.
+
+---
+
+### 2026-05-14 (Codex - 반응형 전사 카드 연쇄 의도 반영)
+
+#### 이번 작업 요약
+- `가시 방벽`과 `응전 태세`가 의도적으로 서로 맞물리도록 반응형 효과 처리를 수정했다.
+- 기존 구현에서는 방어도 획득 → 피해 → 피해량 기반 방어도 획득 이후 다시 방어도 획득 효과가 발동하지 않도록 끊어 두었으나, 의도에 맞게 다시 연쇄되도록 변경했다.
+- 연쇄 종료 조건을 안정화하기 위해 `DealPlayerDamageToEnemy(...)`가 `BattleCombatantState.ReceiveDamage(...)` 반환값이 아니라 실제 HP 감소량(`피해 전 HP - 피해 후 HP`)을 기준으로 피해 보상 방어도를 계산하도록 수정했다.
+- 적 HP가 0이 되면 실제 HP 감소량이 0이 되어 반응 연쇄가 자연스럽게 멈춘다.
+- `가시 방벽 + 응전 태세 + 방어` 조합이 적을 쓰러뜨릴 때까지 연쇄되는 테스트를 추가했다.
+
+#### 변경 파일
+- `Assets/Scripts/Battle/BattleManager.cs`
+- `Assets/Tests/Editor/BattleManagerEditModeTests.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity MCP 테스트 실행 중 최초 연쇄 구현이 `ReceiveDamage()` 반환값을 실제 HP 감소량으로 잘못 해석해 테스트가 120초 안에 종료되지 않았다.
+- 이후 실제 HP 감소량 기준으로 수정했다.
+- Unity MCP 세션을 다시 연결한 뒤 `CardAdventure.Tests.BattleManagerEditModeTests`를 재실행했다.
+- EditMode 테스트: 23개 통과, 실패 0개.
+- `BarbedGuardAndCounterStance_ChainUntilEnemyIsDefeated` 테스트에서 `가시 방벽 + 응전 태세 + 방어` 연쇄가 적 HP가 0이 될 때까지 이어지고 전투 승리로 종료되는 것을 확인했다.
+- 이전 대체 검증으로 `dotnet build CardAdventure.sln --no-restore`도 빌드 성공, 오류 0개를 확인했다.
+
+#### 다음 작업
+- PlayMode에서 실제 카드 사용 연출/로그/UI 갱신이 연쇄 처리와 어색하게 충돌하지 않는지 확인하면 된다.
+
+---
+
+### 2026-05-14 (Codex - 구글 시트 기반 전사 카드 9종 추가 및 효과 구현)
+
+#### 이번 작업 요약
+- 구글 스프레드시트 `gid=1298972056`의 신규 카드 데이터를 CSV로 읽어 전사 카드 9종을 추가했다.
+- 시트에서 비어 있던 카드명/에셋명은 설명 기준으로 정했다.
+  - `피갑옷` / `Card_Warrior_BloodArmor`
+  - `가시 방벽` / `Card_Warrior_BarbedGuard`
+  - `응전 태세` / `Card_Warrior_CounterStance`
+  - `방패 투척` / `Card_Warrior_ShieldThrow`
+  - `전투 준비` / `Card_Warrior_BattlePreparation`
+  - `철벽의 힘` / `Card_Warrior_IronStrength`
+  - `파쇄 일격` / `Card_Warrior_ShatteringBlow`
+  - `수비 전술` / `Card_Warrior_DefensiveTactics`
+  - `고난의 결의` / `Card_Warrior_AdversityResolve`
+- 기존 효과 타입으로 설명을 정확히 표현하기 어려운 카드들을 위해 `CardEffectType`을 확장했다.
+- `BattleManager`에 플레이어 피해/방어도 처리 헬퍼를 추가해 신규 카드 효과를 구현했다.
+- `BattlePlayerState`에 이번 턴 반응형 효과 상태를 추가했다.
+  - 방어도 획득 시 피해.
+  - 피해를 입힐 때 방어도 획득.
+  - 방어도 획득 시 카드 드로우.
+  - 다음 적 공격 피해량만큼 강화 획득.
+- `BattleUIManager`의 대상 선택 카드 판정에 신규 적 대상 효과를 추가했다.
+- 신규 카드 효과별 EditMode 테스트를 추가했다.
+
+#### 변경 파일
+- `Assets/Scripts/Data/CardData.cs`
+- `Assets/Scripts/Battle/BattlePlayerState.cs`
+- `Assets/Scripts/Battle/BattleManager.cs`
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_BloodArmor.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_BarbedGuard.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_CounterStance.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_ShieldThrow.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_BattlePreparation.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_IronStrength.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_ShatteringBlow.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_DefensiveTactics.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_AdversityResolve.asset`
+- `Assets/Tests/Editor/BattleManagerEditModeTests.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- 구글 시트 CSV는 네트워크 권한 승인 후 UTF-8 원본 바이트로 읽어 한글 설명을 확인했다.
+- `CardData.cs`, `BattlePlayerState.cs`, `BattleManager.cs`, `BattleManagerEditModeTests.cs` Unity `validate_script standard`: 에러 0개, 경고 0개.
+- `BattleUIManager.cs` Unity `validate_script standard`: 에러 0개, 기존 `Update()` 문자열 결합 GC 경고 1개.
+- `CardAdventure.Tests.BattleManagerEditModeTests` EditMode 테스트: 22개 통과, 실패 0개.
+- 콘솔에는 기존 MCP-FOR-UNITY 연결 종료 로그와 기존 deprecated API 경고만 남아 있으며, 이번 카드 구현 관련 컴파일/테스트 오류는 없다.
+
+#### 다음 작업
+- PlayMode에서 신규 카드 9종이 카드 UI에 표시되고 대상 선택/연출이 자연스럽게 보이는지 화면 기준으로 확인한다.
+- 카드 아이콘이 시트에 비어 있어 현재 `cardIcon`은 미지정이다. 픽셀 아이콘 적용 작업 시 각 카드에 맞는 아이콘을 연결하면 된다.
+
+---
+
+### 2026-05-14 (Codex - 상태이상 한글 문구 정리 및 효과 검증)
+
+#### 이번 작업 요약
+- 모든 상태이상 ScriptableObject의 `effectName`, `description`을 깨지지 않는 한글 문구로 다시 작성했다.
+- 대상 상태이상: `독`, `약화`, `취약`, `강화`, `재생`, `화상`.
+- 현재 구현 상태를 확인한 결과 6종 모두 런타임 효과 분기가 존재했다.
+  - 독/화상: 대상 턴 시작 시 방어막을 무시하고 중첩 수만큼 HP 감소.
+  - 재생: 대상 턴 시작 시 중첩 수만큼 HP 회복.
+  - 강화: 공격 피해에 중첩 수만큼 추가 피해.
+  - 약화: 공격 피해 25% 감소.
+  - 취약: 받는 피해 50% 증가.
+- 누락 효과는 없었고, 회귀 방지를 위해 상태이상별 EditMode 테스트를 추가했다.
+
+#### 변경 파일
+- `Assets/ScriptableObjects/StatusEffects/Status_Poison.asset`
+- `Assets/ScriptableObjects/StatusEffects/Status_Weak.asset`
+- `Assets/ScriptableObjects/StatusEffects/Status_Vulnerable.asset`
+- `Assets/ScriptableObjects/StatusEffects/Status_Strength.asset`
+- `Assets/ScriptableObjects/StatusEffects/Status_Regeneration.asset`
+- `Assets/ScriptableObjects/StatusEffects/Status_Burn.asset`
+- `Assets/Tests/Editor/BattleManagerEditModeTests.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `StatusEffectData.cs` Unity `validate_script standard`: 에러 0개, 경고 0개.
+- `BattleManagerEditModeTests.cs` Unity `validate_script standard`: 에러 0개, 경고 0개.
+- `CardAdventure.Tests.BattleManagerEditModeTests` EditMode 테스트: 13개 통과, 실패 0개.
+- 상태이상 에셋 파일에서 `effectName`, `description`이 모두 정상 한글 문구로 저장된 것을 확인했다.
+- Unity 임시 C# 실행으로 실제 로드 값을 출력하려는 추가 확인은 Mono 실행 경로 오류(`파일 이름이나 확장명이 너무 깁니다`)로 실패했다. 컴파일/테스트 검증에는 영향 없음.
+
+#### 다음 작업
+- PlayMode에서 상태이상 아이콘 툴팁에 이번 한글 문구가 실제 UI 폭 안에서 자연스럽게 표시되는지 화면 기준으로 확인하면 된다.
+
+---
+
+### 2026-05-14 (Codex - 카드 색상 필드 제거 및 신규 카드 구글시트 양식 추가)
+
+#### 이번 작업 요약
+- 카드 데이터에서 더 이상 사용하지 않는 `CardData.cardColor` 필드를 제거했다.
+- 기존 카드 ScriptableObject 에셋에 남아 있던 직렬화 필드 `cardColor` 항목을 모두 제거했다.
+- 신규 카드 추가용 구글 스프레드시트 가져오기 양식 `신규카드_구글시트_양식.csv`를 루트에 추가했다.
+- 양식에는 카드 에셋명, 표시명, 직업, 등급, 비용, 타입, 효과 타입, 효과 수치, 상태이상 에셋 경로, 아이콘 경로, 소멸/스타터 여부, 메모 컬럼을 포함했다.
+
+#### 변경 파일
+- `Assets/Scripts/Data/CardData.cs`
+- `Assets/ScriptableObjects/Cards/**/*.asset`
+- `신규카드_구글시트_양식.csv`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `CardData.cs` Unity `validate_script standard`: 에러 0개, 경고 0개.
+- `Assets/Scripts`, `Assets/ScriptableObjects/Cards`, `신규카드_구글시트_양식.csv` 기준 `cardColor` 검색 결과 없음.
+
+#### 다음 작업
+- 신규 카드 일괄 생성 도구가 필요하면 `신규카드_구글시트_양식.csv`의 컬럼을 기준으로 CSV/스프레드시트 데이터를 `CardData` ScriptableObject로 변환하는 에디터 메뉴를 추가하면 된다.
+
+---
+
 ### 2026-05-13 (Codex - 배틀 플레이어 직업별 FaceImage 연동)
 
 #### 이번 작업 요약
@@ -2921,5 +3539,39 @@ Assets/Scenes/BattleTest.unity
 - `NPC_FemaleChaser` 컴포넌트 구성 확인: `SpriteRenderer`, `Rigidbody2D`, `BoxCollider2D`, `NpcInteractable`, `NpcChaser`, `Animator`.
 - `NPC_FemaleChaser` 발 콜라이더 월드 중심: `(6.5, 8.0)`, 월드 크기: `1x1`.
 - 미검증: PlayMode에서 실제 추격 후 대화/전투 전환까지 직접 플레이 검증은 아직 수행하지 않았다.
+
+---
+### 2026-05-14 (Codex - ShopKeeper 상점 NPC 및 임의 카드 판매 UI 추가)
+
+#### 이번 작업 요약
+- `ShopKeeper_Sprites.png` 기반 상점 NPC `NPC_ShopKeeper`를 `AdventureScene`에 추가했다.
+- 상점 NPC와 대화가 끝나면 `ShopUIController.Open()`이 호출되어 상점 UI가 열리도록 `ShopKeeperNpc`를 구현했다.
+- 상점 UI는 씬의 카드 풀에서 임의 카드 3장을 제시하고, 카드 등급별 가격으로 구매할 수 있게 구성했다.
+- 구매 성공 시 `GameDataManager.SpendGold(...)`로 골드를 차감하고 `GameDataManager.AddCardToDeck(...)`로 덱에 카드를 추가한다.
+- 상점 UI가 열려 있는 동안 플레이어 입력과 NPC 재상호작용 힌트가 막히도록 `DialogueManager`와 연동했다.
+- 재실행 가능한 에디터 메뉴 `CardAdventure/Setup Shop Keeper`를 추가해 상점 NPC, 대화 데이터, 상점 UI, 카드 판매 풀을 한 번에 갱신할 수 있게 했다.
+
+#### 변경 파일
+- `Assets/Scripts/Adventure/ShopKeeperNpc.cs`
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `Assets/Scripts/Adventure/DialogueManager.cs`
+- `Assets/Scripts/Editor/ShopKeeperSceneSetup.cs`
+- `Assets/Tests/Editor/ShopUIControllerEditModeTests.cs`
+- `Assets/Scenes/AdventureScene.unity`
+- `Assets/ScriptableObjects/Dialogues/NPC_ShopKeeper_Dialogue.asset`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopKeeperNpc.cs`, `ShopUIController.cs`, `DialogueManager.cs`, `ShopKeeperSceneSetup.cs` Unity `validate_script standard`: 오류 0개.
+- `CardAdventure/Setup Shop Keeper` 메뉴 실행 완료.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- 상점 구매 EditMode 테스트 `ShopUIControllerEditModeTests.TryBuyOffer_SpendsGoldAndAddsCardToDeck`: 통과.
+- 전체 EditMode 테스트: 33개 통과, 실패 0개.
+- 콘솔에는 기존 deprecated API 경고와 MCP 연결 종료 로그만 남아 있으며, 이번 상점 구현 관련 컴파일 오류는 없다.
+
+#### 다음 작업
+- PlayMode에서 실제로 `NPC_ShopKeeper`와 상호작용해 대화 종료 직후 상점 UI가 열리는지, 골드 보유량에 따라 구매 버튼 상태가 자연스럽게 바뀌는지 화면 기준으로 확인하면 된다.
+- 상점 위치는 현재 `(-3.5, 5.5, 0)` 기준이며, 루미나 마을 최종 배치에 맞춰 필요하면 조정한다.
+- 판매 카드 가격과 카드 풀 필터(직업별/희귀도별/챕터별)는 밸런싱 단계에서 조정한다.
 
 ---

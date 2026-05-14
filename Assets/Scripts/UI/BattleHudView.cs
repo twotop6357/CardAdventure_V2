@@ -34,6 +34,10 @@ namespace CardAdventure
         [Header("턴/페이즈 표시")]
         [SerializeField] private TextMeshProUGUI turnText;
 
+        [Header("턴 공격 보너스 표시")]
+        [Tooltip("분노 등 이번 턴 일시적 공격 보너스를 표시할 때 아이콘 기준으로 사용할 상태 에셋 (Status_Strength.asset 할당)")]
+        [SerializeField] private StatusEffectData turnStrengthStatusData;
+
         [Header("피격 연출")]
         [SerializeField] private float shakeDuration  = 0.3f;
         [SerializeField] private float shakeStrength  = 18f;
@@ -82,8 +86,8 @@ namespace CardAdventure
                 turnText.text = $"턴 {turnCount}";
             }
 
-            // 상태이상
-            RefreshStatusIcons(c);
+            // 상태이상 + 턴 공격 보너스 (분노 등)
+            RefreshStatusIcons(c, player.TurnAttackDamageBonus);
         }
 
         /// <summary>
@@ -182,15 +186,12 @@ namespace CardAdventure
 
         // ── 내부 ───────────────────────────────────────────────────
 
-        private void RefreshStatusIcons(BattleCombatantState combatant)
+        private void RefreshStatusIcons(BattleCombatantState combatant, int turnAttackBonus = 0)
         {
             if (statusContainer == null) return;
 
-            // 기존 아이콘 제거
             foreach (Transform child in statusContainer)
-            {
                 Destroy(child.gameObject);
-            }
 
             if (statusIconPrefab == null || combatant == null) return;
 
@@ -199,6 +200,21 @@ namespace CardAdventure
                 if (status.IsExpired) continue;
                 BattleStatusIconView icon = Instantiate(statusIconPrefab, statusContainer);
                 icon.Bind(status);
+            }
+
+            // 이번 턴 공격 보너스(분노 등): Strength 아이콘 + 황금 틴트
+            if (turnAttackBonus > 0)
+            {
+                BattleStatusIconView icon = Instantiate(statusIconPrefab, statusContainer);
+                if (turnStrengthStatusData != null)
+                {
+                    icon.Bind(new BattleStatusInstance(turnStrengthStatusData, turnAttackBonus));
+                    icon.SetIconTint(new Color(1f, 0.85f, 0.1f, 1f)); // 황금색 틴트
+                }
+                else
+                {
+                    icon.Bind(new BattleStatusInstance(StatusEffectType.Strength, turnAttackBonus, 0));
+                }
             }
         }
     }

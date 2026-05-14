@@ -13,7 +13,19 @@
       "mcp__UnityMCP__manage_gameobject",
       "mcp__UnityMCP__batch_execute",
       "mcp__UnityMCP__manage_camera",
-      "Bash(grep -B5 \"m_SortingOrder: 10$\")"
+      "Bash(grep -B5 \"m_SortingOrder: 10$\")",
+      "WebFetch(domain:docs.google.com)",
+      "WebFetch(domain:doc-04-18-sheets.googleusercontent.com)",
+      "mcp__UnityMCP__validate_script",
+      "mcp__UnityMCP__manage_scriptable_object",
+      "mcp__UnityMCP__run_tests",
+      "mcp__UnityMCP__get_test_job",
+      "mcp__UnityMCP__manage_editor",
+      "Bash(Get-Content \"C:\\\\UnityProjects\\\\CardAdventure\\\\Assets\\\\Animations\\\\NPC\\\\NPC_MaleChaser.controller.meta\")",
+      "Bash(Select-String \"guid\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\UnityProjects\\\\CardAdventure\\\\Assets\" -Directory)",
+      "Bash(Select-Object Name)",
+      "mcp__UnityMCP__manage_asset"
     ]
   }
 }

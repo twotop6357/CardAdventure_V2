@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
+  m_Name: Card_Rogue_DodgeAmplify
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
+  cardName: "회피 증폭"
+  energyCost: 1
+  cardType: 2
+  cardClass: 3
+  grade: 1
+  effectType: 319
+  effectValue: 2
+  secondaryValue: 0
+  effectDescription: "회피 중첩을 {value}배 증폭합니다."
+  cardIcon: {fileID: 0}
+  statusEffect: {fileID: 0}
+  isExhaust: 0
+  isStarterCard: 0

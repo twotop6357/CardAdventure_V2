@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a39853eb9f2fef04c82d49f38acfc753, type: 3}
   m_Name: Status_Poison
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.StatusEffectData
-  effectName: "\uB3C5"
+  effectName: "독"
   effectType: 0
-  description: "\uB300\uC0C1 \uD134 \uC2DC\uC791 \uC2DC \uC2A4\uD0DD\uB9CC\uD07C
-    HP\uB97C \uC783\uB294\uB2E4."
+  description: "대상 턴 시작 시 중첩 수만큼 방어막을 무시하고 HP를 잃습니다."
   defaultStacks: 2
   duration: 0
   icon: {fileID: -4347532159779508366, guid: abe70adbd7a464b4a9cf9d5873d5cb4f, type: 3}

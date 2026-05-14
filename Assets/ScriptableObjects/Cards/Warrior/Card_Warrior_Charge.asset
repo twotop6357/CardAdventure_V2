@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -22,7 +22,6 @@ MonoBehaviour:
   secondaryValue: 4
   effectDescription: "{value} \uB370\uBBF8\uC9C0\uB97C \uC785\uD788\uACE0 {value2} \uBC29\uC5B4\uB9C9\uC744 \uD68D\uB4DD\uD55C\uB2E4."
   cardIcon: {fileID: 0}
-  cardColor: {r: 1.000, g: 0.435, b: 0.000, a: 1}
   statusEffect: {fileID: 0}
   isExhaust: 0
   isStarterCard: 0

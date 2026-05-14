@@ -39,6 +39,11 @@ namespace CardAdventure
         [SerializeField] private CanvasGroup fadeMask;
         [SerializeField] private float       fadeInDuration = 0.5f;
 
+        [Header("턴 알림 텍스트")]
+        [Tooltip("화면 중앙에 표시되는 '나의 턴!' 등 알림 텍스트")]
+        [SerializeField] private TextMeshProUGUI turnAnnouncementText;
+        [SerializeField] private float           announceDuration = 1f;
+
         [Header("카드 사용 연출 기준점")]
         [SerializeField] private RectTransform cardPlayTarget;
 
@@ -135,6 +140,7 @@ namespace CardAdventure
             battleManager.EnemyIntentSelected     += OnEnemyIntentSelected;
             battleManager.TurnStartStatusResolved += OnTurnStartStatusResolved;
             battleManager.BattleEnded             += OnBattleEnded;
+            battleManager.EnemyActionExecuting    += OnEnemyActionExecuting;
         }
 
         private void UnsubscribeEvents()
@@ -145,6 +151,7 @@ namespace CardAdventure
             battleManager.EnemyIntentSelected     -= OnEnemyIntentSelected;
             battleManager.TurnStartStatusResolved -= OnTurnStartStatusResolved;
             battleManager.BattleEnded             -= OnBattleEnded;
+            battleManager.EnemyActionExecuting    -= OnEnemyActionExecuting;
         }
 
         // ── 이벤트 핸들러 ──────────────────────────────────────────
@@ -201,11 +208,16 @@ namespace CardAdventure
         {
             enemyView?.Refresh(manager.Enemy);
 
-            // 첫 턴(BattleStarted에서 이미 RefreshHand 호출)은 중복 방지
             if (manager.PlayerTurnCount > 1)
             {
+                ShowTurnAnnouncement("나의 턴!");
                 RefreshHand(manager);
             }
+        }
+
+        private void OnEnemyActionExecuting(BattleManager manager, EnemyAction action)
+        {
+            enemyView?.PlayActionAnimation(action.actionType);
         }
 
         private void OnTurnStartStatusResolved(BattleManager manager,
@@ -326,7 +338,20 @@ namespace CardAdventure
                 || effectType == CardEffectType.BerserkerAttack
                 || effectType == CardEffectType.AttackAndDefend
                 || effectType == CardEffectType.AttackAndApplyStatus
-                || effectType == CardEffectType.ApplyStatusToEnemy;
+                || effectType == CardEffectType.AttackAndGainBlockEqualDamage
+                || effectType == CardEffectType.ConsumeBlockToDealDamage
+                || effectType == CardEffectType.DamageAndApplyStatus
+                || effectType == CardEffectType.GrantEnemyStrengthAndRetaliateNext
+                || effectType == CardEffectType.MultiHitAttack
+                || effectType == CardEffectType.MultiHitAndGainStrength
+                || effectType == CardEffectType.FreezeEnemyNextAction
+                || effectType == CardEffectType.PlayHandRandomly
+                || effectType == CardEffectType.ApplyStatusToEnemy
+                || effectType == CardEffectType.ConsumeAllEnergyAndAttack
+                || effectType == CardEffectType.AttackAndGainDodge
+                || effectType == CardEffectType.MultiHitWithCritFromDodge
+                || effectType == CardEffectType.PoisonAndDetonateAllPoison
+                || effectType == CardEffectType.AttackAndShuffleBackToDeck;
         }
 
         private bool IsPointerOverEnemy()
@@ -423,6 +448,24 @@ namespace CardAdventure
                     new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 10f));
 
             return Vector3.zero;
+        }
+
+        private void ShowTurnAnnouncement(string message)
+        {
+            if (turnAnnouncementText == null) return;
+
+            DOTween.Kill(turnAnnouncementText);
+            turnAnnouncementText.text  = message;
+            turnAnnouncementText.alpha = 0f;
+            turnAnnouncementText.transform.localScale = Vector3.one * 0.6f;
+            turnAnnouncementText.gameObject.SetActive(true);
+
+            DOTween.Sequence()
+                .Append(turnAnnouncementText.DOFade(1f, 0.15f))
+                .Join(turnAnnouncementText.transform.DOScale(1f, 0.2f).SetEase(Ease.OutBack))
+                .AppendInterval(announceDuration - 0.35f)
+                .Append(turnAnnouncementText.DOFade(0f, 0.2f))
+                .OnComplete(() => turnAnnouncementText.gameObject.SetActive(false));
         }
 
         private static void ShakeCard(BattleCardView cv)

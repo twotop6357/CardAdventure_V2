@@ -20,8 +20,20 @@ namespace CardAdventure
 
         public string DisplayName => Data != null ? Data.cardName : string.Empty;
 
-        public int EnergyCost => Data != null ? Data.energyCost : 0;
+        public int EnergyCost => temporaryEnergyCostOverride ?? (Data != null ? Data.energyCost : 0);
 
         public bool IsExhaust => Data != null && Data.isExhaust;
+
+        private int? temporaryEnergyCostOverride;
+
+        public void SetTemporaryEnergyCost(int energyCost)
+        {
+            temporaryEnergyCostOverride = Math.Max(0, energyCost);
+        }
+
+        public void ClearTemporaryEnergyCost()
+        {
+            temporaryEnergyCostOverride = null;
+        }
     }
 }

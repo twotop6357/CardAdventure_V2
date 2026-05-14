@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a39853eb9f2fef04c82d49f38acfc753, type: 3}
   m_Name: Status_Regeneration
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.StatusEffectData
-  effectName: \uC7AC\uC0DD
+  effectName: "재생"
   effectType: 4
-  description: \uB300\uC0C1 \uD134 \uC2DC\uC791 \uC2DC \uC2A4\uD0DD\uB9CC\uD07C HP\uB97C \uD68C\uBCF5\uD55C\uB2E4.
+  description: "대상 턴 시작 시 중첩 수만큼 HP를 회복합니다."
   defaultStacks: 2
   duration: 3
   icon: {fileID: 811347052310813615, guid: dc0e48c890117e440ad0073115b9e347, type: 3}

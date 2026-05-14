@@ -160,16 +160,73 @@ namespace CardAdventure
             }
         }
 
+        /// <summary>적 행동 직전 호출 — 행동 타입에 맞는 예고 애니메이션을 재생한다.</summary>
+        public void PlayActionAnimation(EnemyActionType actionType)
+        {
+            if (enemyImage == null) return;
+            DOTween.Kill(enemyImage.rectTransform);
+
+            switch (actionType)
+            {
+                case EnemyActionType.Attack:
+                    // 플레이어 쪽(왼쪽)으로 전진했다가 복귀
+                    enemyImage.rectTransform
+                        .DOLocalMoveX(enemyImage.rectTransform.localPosition.x - 80f, 0.2f)
+                        .SetEase(Ease.OutQuad)
+                        .OnComplete(() =>
+                            enemyImage.rectTransform
+                                .DOLocalMoveX(enemyImage.rectTransform.localPosition.x + 80f, 0.25f)
+                                .SetEase(Ease.OutBounce));
+                    break;
+
+                case EnemyActionType.Defend:
+                    // 파란 빛 펄스 + 살짝 커졌다 복귀
+                    DOTween.Sequence()
+                        .Append(enemyImage.DOColor(new Color(0.4f, 0.7f, 1f), 0.15f))
+                        .Append(enemyImage.DOColor(Color.white, 0.25f));
+                    enemyImage.rectTransform
+                        .DOScale(Vector3.one * 1.1f, 0.2f).SetEase(Ease.OutQuad)
+                        .OnComplete(() =>
+                            enemyImage.rectTransform.DOScale(Vector3.one, 0.2f));
+                    break;
+
+                case EnemyActionType.Buff:
+                    // 황금빛 펄스
+                    DOTween.Sequence()
+                        .Append(enemyImage.DOColor(new Color(1f, 0.85f, 0.1f), 0.2f))
+                        .Append(enemyImage.DOColor(Color.white, 0.3f));
+                    enemyImage.rectTransform
+                        .DOScale(Vector3.one * 1.15f, 0.25f).SetEase(Ease.OutQuad)
+                        .OnComplete(() =>
+                            enemyImage.rectTransform.DOScale(Vector3.one, 0.2f));
+                    break;
+
+                case EnemyActionType.HealSelf:
+                    // 초록빛 펄스
+                    DOTween.Sequence()
+                        .Append(enemyImage.DOColor(new Color(0.3f, 1f, 0.4f), 0.2f))
+                        .Append(enemyImage.DOColor(Color.white, 0.3f));
+                    break;
+
+                case EnemyActionType.DebuffPlayer:
+                    // 보라빛 진동
+                    DOTween.Sequence()
+                        .Append(enemyImage.DOColor(new Color(0.8f, 0.3f, 1f), 0.2f))
+                        .Append(enemyImage.DOColor(Color.white, 0.3f));
+                    enemyImage.rectTransform
+                        .DOShakePosition(0.4f, 6f, 12, 90f, false, true);
+                    break;
+            }
+        }
+
         private void PlayHitAnimation()
         {
-            // 흔들림
             if (enemyImage != null)
             {
                 enemyImage.rectTransform
                     .DOShakePosition(shakeDuration, shakeStrength, shakeVibrato, 90f, false, true)
                     .SetEase(Ease.OutQuad);
 
-                // 붉은 플래시
                 DOTween.Sequence()
                     .Append(enemyImage.DOColor(Color.red,   flashDuration))
                     .Append(enemyImage.DOColor(Color.white, flashDuration));

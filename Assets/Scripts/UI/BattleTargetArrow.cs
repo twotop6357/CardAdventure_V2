@@ -205,15 +205,19 @@ namespace CardAdventure
 
         private Vector2 ScreenToCanvasLocal(Vector2 screenPos)
         {
-            if (canvas == null) return screenPos;
+            // segments/arrowHead는 TargetArrow 자신의 자식이므로
+            // TargetArrow 자신의 RectTransform 기준으로 변환해야 localPosition이 올바름
+            RectTransform selfRect = transform as RectTransform;
+            if (selfRect == null) return screenPos;
 
-            RectTransform canvasRect = canvas.GetComponent<RectTransform>();
-            if (canvasRect == null) return screenPos;
-
-            Camera cam = (canvas.renderMode == RenderMode.ScreenSpaceOverlay) ? null : uiCamera ?? Camera.main;
+            Camera cam = (canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+                         ? null
+                         : uiCamera != null ? uiCamera
+                         : canvas.worldCamera != null ? canvas.worldCamera
+                         : Camera.main;
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvasRect, screenPos, cam, out Vector2 localPoint);
+                selfRect, screenPos, cam, out Vector2 localPoint);
             return localPoint;
         }
 

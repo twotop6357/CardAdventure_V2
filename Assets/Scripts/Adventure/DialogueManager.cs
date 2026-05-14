@@ -74,7 +74,7 @@ namespace CardAdventure
             {
                 UpdatePendingNpc();
 
-                if (spaceDown && pendingNpc != null && !JobChangeUIController.IsAnyOpen)
+                if (spaceDown && pendingNpc != null && !JobChangeUIController.IsAnyOpen && !ShopUIController.IsAnyOpen)
                 {
                     BeginDialogue(pendingNpc);
                 }
@@ -113,7 +113,7 @@ namespace CardAdventure
                 }
             }
 
-            if (pendingNpc != null && !JobChangeUIController.IsAnyOpen)
+            if (pendingNpc != null && !JobChangeUIController.IsAnyOpen && !ShopUIController.IsAnyOpen)
             {
                 pendingNpc.SetHintActive(true);
             }
@@ -306,6 +306,13 @@ namespace CardAdventure
             }
 
             // 2. 이동형 NPC
+            ShopKeeperNpc shopKeeper = npc.GetComponent<ShopKeeperNpc>();
+            if (shopKeeper != null)
+            {
+                shopKeeper.FaceToward(activePlayer.transform.position);
+                return;
+            }
+
             NpcMovement movement = npc.GetComponent<NpcMovement>();
             if (movement != null)
             {

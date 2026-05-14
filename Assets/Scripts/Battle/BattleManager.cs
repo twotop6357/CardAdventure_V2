@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -38,6 +39,8 @@ namespace CardAdventure
         public event Action<BattleManager, EnemyAction> EnemyIntentSelected;
         public event Action<BattleManager, BattleCombatantState, BattleStatusTurnResult> TurnStartStatusResolved;
         public event Action<BattleManager, BattlePhase> BattleEnded;
+        /// <summary>적이 실제로 행동하기 직전 발생. UI 애니메이션 재생에 사용한다.</summary>
+        public event Action<BattleManager, EnemyAction> EnemyActionExecuting;
 
         public BattlePlayerState Player { get; private set; }
 
@@ -198,26 +201,50 @@ namespace CardAdventure
                                  || card.Data.effectType == CardEffectType.BerserkerAttack
                                  || card.Data.effectType == CardEffectType.AttackAndDefend
                                  || card.Data.effectType == CardEffectType.AttackAndApplyStatus
-                                 || card.Data.effectType == CardEffectType.ApplyStatusToEnemy;
+                                 || card.Data.effectType == CardEffectType.AttackAndGainBlockEqualDamage
+                                 || card.Data.effectType == CardEffectType.ConsumeBlockToDealDamage
+                                 || card.Data.effectType == CardEffectType.DamageAndApplyStatus
+                                 || card.Data.effectType == CardEffectType.GrantEnemyStrengthAndRetaliateNext
+                                 || card.Data.effectType == CardEffectType.MultiHitAttack
+                                 || card.Data.effectType == CardEffectType.MultiHitAndGainStrength
+                                 || card.Data.effectType == CardEffectType.FreezeEnemyNextAction
+                                 || card.Data.effectType == CardEffectType.PlayHandRandomly
+                                 || card.Data.effectType == CardEffectType.ApplyStatusToEnemy
+                                 || card.Data.effectType == CardEffectType.ConsumeAllEnergyAndAttack
+                                 || card.Data.effectType == CardEffectType.AttackAndGainDodge
+                                 || card.Data.effectType == CardEffectType.MultiHitWithCritFromDodge
+                                 || card.Data.effectType == CardEffectType.PoisonAndDetonateAllPoison
+                                 || card.Data.effectType == CardEffectType.AttackAndShuffleBackToDeck;
             if (needsEnemyTarget && (Enemy == null || Enemy.Combatant.IsDefeated))
             {
                 return BattleCardPlayResult.Failed(BattleCardPlayFailureReason.TargetRequired);
             }
 
+            bool cardWasFree = card.EnergyCost == 0;
             if (!Player.SpendEnergy(card))
             {
                 return BattleCardPlayResult.Failed(BattleCardPlayFailureReason.NotEnoughEnergy);
             }
 
             ApplyCardEffect(card);
+            Player.ConsumeFirstAttackFreeIfNeeded(card);
 
-            if (card.IsExhaust)
+            if (card.Data.effectType == CardEffectType.AttackAndShuffleBackToDeck)
+            {
+                Player.CardPiles.MoveHandCardToDrawPile(card);
+            }
+            else if (card.IsExhaust)
             {
                 Player.CardPiles.MoveHandCardToExhaust(card);
             }
             else
             {
                 Player.CardPiles.MoveHandCardToDiscard(card);
+            }
+
+            if (cardWasFree)
+            {
+                TriggerFreeCardPlayedEffects();
             }
 
             CardPlayed?.Invoke(this, card);
@@ -232,37 +259,48 @@ namespace CardAdventure
                 return;
             }
 
-            // 손패 유지 방식: 사용하지 않은 카드는 다음 턴에도 그대로 남는다.
-            // (카드를 버리지 않으므로 DiscardHand 호출 없음)
             Player.Combatant.TickStatusDurations();
-            ExecuteEnemyTurn();
+            StartCoroutine(ExecuteEnemyTurnRoutine());
         }
 
-        public void ExecuteEnemyTurn()
+        // 하위 호환성을 위해 공개 유지 (즉시 코루틴 시작)
+        public void ExecuteEnemyTurn() => StartCoroutine(ExecuteEnemyTurnRoutine());
+
+        private IEnumerator ExecuteEnemyTurnRoutine()
         {
             if (!IsBattleActive || Enemy == null || Enemy.Combatant.IsDefeated)
             {
                 ResolveBattleEndOrNotify();
-                return;
+                yield break;
             }
 
             Phase = BattlePhase.EnemyTurn;
-            ResolveTurnStartStatuses(Enemy.Combatant);
+            StateChanged?.Invoke(this); // 버튼·손패 비활성화 즉시 처리
 
-            if (ResolveBattleEndOrNotify())
-            {
-                return;
-            }
+            // 플레이어 상태이상 틱 (독 등)
+            ResolveTurnStartStatuses(Enemy.Combatant);
+            if (ResolveBattleEndOrNotify()) yield break;
+
+            yield return new WaitForSeconds(0.35f);
 
             EnemyAction action = Enemy.CurrentIntent ?? Enemy.SelectIntent();
-            ApplyEnemyAction(action);
+            if (!Enemy.ConsumeSkipNextAction())
+            {
+                // UI가 행동 예고 애니메이션을 재생할 수 있도록 이벤트 발행
+                EnemyActionExecuting?.Invoke(this, action);
+
+                yield return new WaitForSeconds(0.55f); // 적 전진 애니메이션 대기
+
+                ApplyEnemyAction(action);
+                StateChanged?.Invoke(this); // HP 변화 → HUD·VFX 갱신
+
+                yield return new WaitForSeconds(0.3f); // 피격 이펙트가 보일 시간
+            }
+
             Enemy.AdvanceTurn();
             Enemy.Combatant.TickStatusDurations();
 
-            if (ResolveBattleEndOrNotify())
-            {
-                return;
-            }
+            if (ResolveBattleEndOrNotify()) yield break;
 
             BeginPlayerTurn();
         }
@@ -283,23 +321,19 @@ namespace CardAdventure
                 // ── 공격 ──────────────────────────────────────────
                 case CardEffectType.BasicAttack:
                 {
-                    int damage = Player.GetAttackDamage(data.effectValue);
-                    damage = ApplyVulnerableDamageModifier(Enemy.Combatant, damage);
-                    Enemy.Combatant.ReceiveDamage(damage);
+                    DealPlayerDamageToEnemy(data.effectValue, true, true);
                     break;
                 }
                 case CardEffectType.ShieldBash:
                 {
                     int baseDamage = data.effectValue + Player.Combatant.Block;
-                    int damage = Player.GetAttackDamage(baseDamage);
-                    damage = ApplyVulnerableDamageModifier(Enemy.Combatant, damage);
-                    Enemy.Combatant.ReceiveDamage(damage);
+                    DealPlayerDamageToEnemy(baseDamage, true, true);
                     break;
                 }
 
                 // ── 방어 ──────────────────────────────────────────
                 case CardEffectType.BasicDefense:
-                    Player.Combatant.AddBlock(data.effectValue);
+                    AddPlayerBlock(data.effectValue);
                     break;
 
                 // ── 스킬 ──────────────────────────────────────────
@@ -308,7 +342,7 @@ namespace CardAdventure
                     break;
 
                 case CardEffectType.Taunt:
-                    Player.Combatant.AddBlock(data.effectValue);
+                    AddPlayerBlock(data.effectValue);
                     if (data.statusEffect != null)
                     {
                         Enemy.Combatant.ApplyStatus(data.statusEffect, Mathf.Max(1, data.statusEffect.defaultStacks));
@@ -339,34 +373,26 @@ namespace CardAdventure
                 // ── 공격 확장 ─────────────────────────────────────
                 case CardEffectType.DoubleStrike:
                 {
-                    int dmg = Player.GetAttackDamage(data.effectValue);
-                    dmg = ApplyVulnerableDamageModifier(Enemy.Combatant, dmg);
-                    Enemy.Combatant.ReceiveDamage(dmg);
-                    Enemy.Combatant.ReceiveDamage(dmg);
+                    DealPlayerDamageToEnemy(data.effectValue, true, true);
+                    DealPlayerDamageToEnemy(data.effectValue, true, true);
                     break;
                 }
                 case CardEffectType.BerserkerAttack:
                 {
                     int selfDmg = Mathf.Max(0, data.secondaryValue);
                     Player.Combatant.ReceiveDamage(selfDmg);
-                    int dmg = Player.GetAttackDamage(data.effectValue);
-                    dmg = ApplyVulnerableDamageModifier(Enemy.Combatant, dmg);
-                    Enemy.Combatant.ReceiveDamage(dmg);
+                    DealPlayerDamageToEnemy(data.effectValue, true, true);
                     break;
                 }
                 case CardEffectType.AttackAndDefend:
                 {
-                    int dmg = Player.GetAttackDamage(data.effectValue);
-                    dmg = ApplyVulnerableDamageModifier(Enemy.Combatant, dmg);
-                    Enemy.Combatant.ReceiveDamage(dmg);
-                    Player.Combatant.AddBlock(data.secondaryValue);
+                    DealPlayerDamageToEnemy(data.effectValue, true, true);
+                    AddPlayerBlock(data.secondaryValue);
                     break;
                 }
                 case CardEffectType.AttackAndApplyStatus:
                 {
-                    int dmg = Player.GetAttackDamage(data.effectValue);
-                    dmg = ApplyVulnerableDamageModifier(Enemy.Combatant, dmg);
-                    Enemy.Combatant.ReceiveDamage(dmg);
+                    DealPlayerDamageToEnemy(data.effectValue, true, true);
                     if (data.statusEffect != null)
                     {
                         int stacks = data.secondaryValue > 0 ? data.secondaryValue : data.statusEffect.defaultStacks;
@@ -376,12 +402,73 @@ namespace CardAdventure
                         Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}': AttackAndApplyStatus인데 statusEffect가 없습니다.");
                     break;
                 }
+                case CardEffectType.AttackAndGainBlockEqualDamage:
+                {
+                    int damageDealt = DealPlayerDamageToEnemy(data.effectValue, true, true);
+                    AddPlayerBlock(damageDealt);
+                    break;
+                }
+                case CardEffectType.ConsumeBlockToDealDamage:
+                {
+                    int blockToConsume = Player.Combatant.Block;
+                    Player.Combatant.ClearBlock();
+                    DealPlayerDamageToEnemy(blockToConsume, true, true);
+                    break;
+                }
+                case CardEffectType.DamageAndApplyStatus:
+                {
+                    DealPlayerDamageToEnemy(data.secondaryValue, true, true);
+                    if (data.statusEffect != null)
+                    {
+                        int stacks = data.effectValue > 0 ? data.effectValue : data.statusEffect.defaultStacks;
+                        Enemy.Combatant.ApplyStatus(data.statusEffect, Mathf.Max(1, stacks));
+                    }
+                    else
+                        Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}': DamageAndApplyStatus인데 statusEffect가 없습니다.");
+                    break;
+                }
+                case CardEffectType.MultiHitAttack:
+                {
+                    int hitCount = Mathf.Max(1, data.secondaryValue);
+                    for (int i = 0; i < hitCount; i++)
+                    {
+                        DealPlayerDamageToEnemy(data.effectValue, true, true);
+                        if (Enemy.Combatant.IsDefeated)
+                        {
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case CardEffectType.MultiHitAndGainStrength:
+                {
+                    const int hitCount = 3;
+                    for (int i = 0; i < hitCount; i++)
+                    {
+                        int damageDealt = DealPlayerDamageToEnemy(data.effectValue, true, true);
+                        if (damageDealt > 0)
+                        {
+                            Player.Combatant.ApplyStatus(StatusEffectType.Strength, Mathf.Max(1, data.secondaryValue), 0);
+                        }
+
+                        if (Enemy.Combatant.IsDefeated)
+                        {
+                            break;
+                        }
+                    }
+                    break;
+                }
 
                 // ── 방어 확장 ─────────────────────────────────────
                 case CardEffectType.DefenseAndDraw:
-                    Player.Combatant.AddBlock(data.effectValue);
+                    AddPlayerBlock(data.effectValue);
                     if (data.secondaryValue > 0)
                         Player.CardPiles.Draw(data.secondaryValue);
+                    break;
+                case CardEffectType.DrawAndDefense:
+                    if (data.effectValue > 0)
+                        Player.CardPiles.Draw(data.effectValue);
+                    AddPlayerBlock(data.secondaryValue);
                     break;
 
                 // ── 스킬 확장 ─────────────────────────────────────
@@ -394,10 +481,236 @@ namespace CardAdventure
                     Player.Combatant.ApplyStatus(StatusEffectType.Strength,
                         Mathf.Max(1, data.effectValue), 0);
                     break;
+                case CardEffectType.DealDamageWhenBlockGained:
+                    Player.AddDamageDealtPerBlockGainedForTurn(Mathf.Max(1, data.effectValue));
+                    break;
+                case CardEffectType.GainBlockWhenDamageDealt:
+                    Player.AddBlockGainedPerDamageDealtForTurn(Mathf.Max(1, data.effectValue));
+                    break;
+                case CardEffectType.GainStrengthEqualCurrentBlock:
+                    if (Player.Combatant.Block > 0)
+                    {
+                        Player.Combatant.ApplyStatus(StatusEffectType.Strength, Player.Combatant.Block, 0);
+                    }
+                    break;
+                case CardEffectType.DrawCardWhenBlockGained:
+                    Player.AddCardsDrawnPerBlockGainForTurn(Mathf.Max(1, data.effectValue));
+                    break;
+                case CardEffectType.GrantEnemyStrengthAndRetaliateNext:
+                    Enemy.Combatant.ApplyStatus(StatusEffectType.Strength, Mathf.Max(1, data.effectValue), 0);
+                    Player.PrepareGainStrengthFromNextEnemyDamage();
+                    break;
+                case CardEffectType.GainEnergyThisTurn:
+                    Player.AddEnergy(data.effectValue);
+                    break;
+                case CardEffectType.BlockAndNextTurnEnergy:
+                    AddPlayerBlock(data.effectValue);
+                    Player.AddNextTurnEnergyBonus(data.secondaryValue);
+                    break;
+                case CardEffectType.ApplyPoisonWhenDamageDealt:
+                    Player.AddPoisonAppliedPerDamageDealtForTurn(Mathf.Max(1, data.effectValue));
+                    break;
+                case CardEffectType.FreezeEnemyNextAction:
+                    Enemy.FreezeNextAction();
+                    break;
+                case CardEffectType.MakeFirstAttackFreeThisTurn:
+                    Player.MakeFirstAttackFreeThisTurn();
+                    break;
+                case CardEffectType.PlayHandRandomly:
+                    PlayOtherHandCardsRandomly(card);
+                    break;
+
+                // ── 도적 전용 ─────────────────────────────────────
+                case CardEffectType.ConsumeAllEnergyAndAttack:
+                {
+                    int energyConsumed = Player.ConsumeAllEnergy();
+                    int damage = data.effectValue + energyConsumed * data.secondaryValue;
+                    DealPlayerDamageToEnemy(damage, true, true);
+                    break;
+                }
+                case CardEffectType.AttackAndGainDodge:
+                {
+                    DealPlayerDamageToEnemy(data.effectValue, true, true);
+                    Player.Combatant.ApplyStatus(StatusEffectType.Dodge, Mathf.Max(1, data.secondaryValue), 0);
+                    break;
+                }
+                case CardEffectType.GainDodgeWhenPlayingFreeCards:
+                    Player.SetDodgePerFreeCardPlayed(Mathf.Max(1, data.effectValue));
+                    break;
+                case CardEffectType.MultiHitWithCritFromDodge:
+                {
+                    int dodgeStacks = Player.Combatant.GetStatusStacks(StatusEffectType.Dodge);
+                    float critChance = Mathf.Clamp01(dodgeStacks * 0.01f);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        int hitDamage = data.effectValue;
+                        if (UnityEngine.Random.value < critChance)
+                            hitDamage = Mathf.RoundToInt(hitDamage * data.secondaryValue);
+                        DealPlayerDamageToEnemy(hitDamage, true, true);
+                        if (Enemy.Combatant.IsDefeated)
+                            break;
+                    }
+                    break;
+                }
+                case CardEffectType.MultiplyDodgeStacks:
+                    Player.Combatant.MultiplyStatusStacks(StatusEffectType.Dodge, Mathf.Max(2, data.effectValue));
+                    break;
+                case CardEffectType.DrawCardWhenPlayingFreeCards:
+                    Player.SetDrawPerFreeCardPlayed(Mathf.Max(1, data.effectValue));
+                    break;
+                case CardEffectType.PoisonAndDetonateAllPoison:
+                {
+                    Enemy.Combatant.ApplyStatus(StatusEffectType.Poison, Mathf.Max(1, data.effectValue), 0);
+                    int removedPoison = Enemy.Combatant.RemoveStatus(StatusEffectType.Poison);
+                    int detonationDamage = data.effectValue + removedPoison;
+                    DealPlayerDamageToEnemy(detonationDamage, false, true);
+                    break;
+                }
+                case CardEffectType.AttackAndShuffleBackToDeck:
+                    DealPlayerDamageToEnemy(data.effectValue, true, true);
+                    break;
+                case CardEffectType.DrawCardsGainDodgeOnFreeDraw:
+                {
+                    List<BattleRuntimeCard> drawn = Player.CardPiles.Draw(Mathf.Max(0, data.effectValue));
+                    int dodgePerFree = Mathf.Max(0, data.secondaryValue);
+                    if (dodgePerFree > 0)
+                    {
+                        foreach (BattleRuntimeCard drawnCard in drawn)
+                        {
+                            if (drawnCard?.EnergyCost == 0)
+                                Player.Combatant.ApplyStatus(StatusEffectType.Dodge, dodgePerFree, 0);
+                        }
+                    }
+                    break;
+                }
 
                 default:
                     Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}'의 effectType({data.effectType})에 대한 처리가 없습니다.");
                     break;
+            }
+        }
+
+        private void TriggerFreeCardPlayedEffects()
+        {
+            if (Player == null)
+                return;
+
+            if (Player.DodgePerFreeCardPlayed > 0)
+                Player.Combatant.ApplyStatus(StatusEffectType.Dodge, Player.DodgePerFreeCardPlayed, 0);
+
+            if (Player.DrawPerFreeCardPlayed > 0)
+                Player.CardPiles.Draw(Player.DrawPerFreeCardPlayed);
+        }
+
+        private void AddPlayerBlock(int amount, bool triggerBlockGainEffects = true)
+        {
+            int blockAmount = Mathf.Max(0, amount);
+            if (blockAmount <= 0 || Player == null)
+            {
+                return;
+            }
+
+            Player.Combatant.AddBlock(blockAmount);
+
+            if (!triggerBlockGainEffects)
+            {
+                return;
+            }
+
+            if (Player.DamageDealtPerBlockGained > 0)
+            {
+                int damage = blockAmount * Player.DamageDealtPerBlockGained;
+                DealPlayerDamageToEnemy(damage, false, true);
+            }
+
+            if (Player.CardsDrawnPerBlockGain > 0)
+            {
+                Player.CardPiles.Draw(blockAmount * Player.CardsDrawnPerBlockGain);
+            }
+        }
+
+        private int DealPlayerDamageToEnemy(int baseDamage, bool includeAttackBonuses, bool triggerDamageRewards)
+        {
+            if (Enemy == null || Enemy.Combatant == null)
+            {
+                return 0;
+            }
+
+            int damage = Mathf.Max(0, baseDamage);
+            if (includeAttackBonuses)
+            {
+                damage = Player.GetAttackDamage(damage);
+            }
+
+            damage = ApplyVulnerableDamageModifier(Enemy.Combatant, damage);
+            int hpBeforeDamage = Enemy.Combatant.CurrentHp;
+            Enemy.Combatant.ReceiveDamage(damage);
+            int damageDealt = Mathf.Max(0, hpBeforeDamage - Enemy.Combatant.CurrentHp);
+
+            if (triggerDamageRewards && damageDealt > 0 && Player.BlockGainedPerDamageDealt > 0)
+            {
+                AddPlayerBlock(damageDealt * Player.BlockGainedPerDamageDealt, true);
+            }
+
+            if (triggerDamageRewards && damageDealt > 0 && Player.PoisonAppliedPerDamageDealt > 0)
+            {
+                Enemy.Combatant.ApplyStatus(StatusEffectType.Poison, Player.PoisonAppliedPerDamageDealt, 0);
+            }
+
+            return damageDealt;
+        }
+
+        private void PlayOtherHandCardsRandomly(BattleRuntimeCard sourceCard)
+        {
+            if (Player == null || Enemy == null)
+            {
+                return;
+            }
+
+            List<BattleRuntimeCard> cardsToPlay = new List<BattleRuntimeCard>();
+            foreach (BattleRuntimeCard handCard in Player.CardPiles.Hand)
+            {
+                if (handCard != null && handCard != sourceCard)
+                {
+                    cardsToPlay.Add(handCard);
+                }
+            }
+
+            for (int i = cardsToPlay.Count - 1; i > 0; i--)
+            {
+                int swapIndex = UnityEngine.Random.Range(0, i + 1);
+                (cardsToPlay[i], cardsToPlay[swapIndex]) = (cardsToPlay[swapIndex], cardsToPlay[i]);
+            }
+
+            foreach (BattleRuntimeCard card in cardsToPlay)
+            {
+                if (Phase != BattlePhase.PlayerTurn || Enemy.Combatant.IsDefeated || !Player.CardPiles.HasHandCard(card))
+                {
+                    break;
+                }
+
+                ApplyCardEffect(card);
+                Player.ConsumeFirstAttackFreeIfNeeded(card);
+
+                if (card.Data.effectType == CardEffectType.AttackAndShuffleBackToDeck)
+                {
+                    Player.CardPiles.MoveHandCardToDrawPile(card);
+                }
+                else if (card.IsExhaust)
+                {
+                    Player.CardPiles.MoveHandCardToExhaust(card);
+                }
+                else
+                {
+                    Player.CardPiles.MoveHandCardToDiscard(card);
+                }
+
+                CardPlayed?.Invoke(this, card);
+
+                if (ResolveBattleEndOrNotify())
+                {
+                    break;
+                }
             }
         }
 
@@ -411,7 +724,8 @@ namespace CardAdventure
             switch (action.actionType)
             {
                 case EnemyActionType.Attack:
-                    Player.Combatant.ReceiveDamage(GetEnemyAttackDamage(action.value));
+                    int damageTaken = Player.Combatant.ReceiveDamage(GetEnemyAttackDamage(action.value));
+                    Player.ResolveGainStrengthFromEnemyDamage(damageTaken);
                     break;
                 case EnemyActionType.Defend:
                     Enemy.Combatant.AddBlock(action.value);

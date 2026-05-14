@@ -31,6 +31,7 @@ MonoBehaviour:
   playerAnimatorController: {fileID: 9100000, guid: 2b0ad0cd80d38544daa2d0d987d7d9c5,
     type: 2}
   playerIdleVisualScaleMultiplier: 0.85
+  invertVisualFlip: 1
   starterCards:
   - {fileID: 11400000, guid: 7c11354cb7434bf3b5a7d1a7db7cc4d7, type: 2}
   - {fileID: 11400000, guid: 7c11354cb7434bf3b5a7d1a7db7cc4d7, type: 2}

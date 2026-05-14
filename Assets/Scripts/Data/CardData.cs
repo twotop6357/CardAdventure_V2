@@ -43,13 +43,41 @@ namespace CardAdventure
         BerserkerAttack      = 103, // 자신에게 secondaryValue 피해, 적에게 effectValue 피해 (비용 대비 고화력)
         AttackAndDefend      = 104, // effectValue 피해 + secondaryValue 방어막 동시 획득
         AttackAndApplyStatus = 105, // effectValue 피해 후 statusEffect 를 적에게 secondaryValue 스택 부여
+        AttackAndGainBlockEqualDamage = 106, // effectValue 피해 + 실제 HP 피해량만큼 방어막 획득
+        ConsumeBlockToDealDamage      = 107, // 현재 방어막을 모두 소모하고 그 수치만큼 피해
+        DamageAndApplyStatus          = 108, // secondaryValue 피해 + statusEffect 를 effectValue 스택 부여
+        MultiHitAttack                = 109, // effectValue 피해 × secondaryValue회
+        MultiHitAndGainStrength       = 110, // effectValue 피해 × N회, 피해를 줄 때마다 secondaryValue 강화
 
         // ── 방어 확장 ─────────────────────────────
         DefenseAndDraw = 202,       // effectValue 방어막 + secondaryValue 장 드로우
+        DrawAndDefense = 203,       // effectValue 장 드로우 + secondaryValue 방어막
 
         // ── 스킬 확장 ─────────────────────────────
         DrawCards    = 302,         // effectValue 장 드로우 (손패 보충)
         GainStrength = 303,         // 자신에게 강화(Strength) effectValue 스택 부여
+        DealDamageWhenBlockGained          = 304, // 이번 턴 방어막 1 획득마다 effectValue 피해
+        GainBlockWhenDamageDealt           = 305, // 이번 턴 피해 1마다 effectValue 방어막 획득
+        GainStrengthEqualCurrentBlock      = 306, // 현재 방어막만큼 강화 획득
+        DrawCardWhenBlockGained            = 307, // 이번 턴 방어막 획득마다 effectValue 장 드로우
+        GrantEnemyStrengthAndRetaliateNext = 308, // 적에게 강화 부여, 다음 적 공격 피해량만큼 강화 획득
+        GainEnergyThisTurn                 = 309, // 이번 턴 에너지 effectValue 획득
+        BlockAndNextTurnEnergy             = 310, // effectValue 방어막 + 다음 턴 에너지 secondaryValue 추가
+        ApplyPoisonWhenDamageDealt         = 311, // 이번 턴 피해를 줄 때마다 독 effectValue 부여
+        FreezeEnemyNextAction              = 312, // 적의 다음 행동 스킵
+        MakeFirstAttackFreeThisTurn        = 313, // 이번 턴 첫 공격 카드 비용 0
+        PlayHandRandomly                   = 314, // 손의 다른 카드를 무작위 순서로 사용
+
+        // ── 도적 전용 ──────────────────────────────────────
+        ConsumeAllEnergyAndAttack     = 315, // 모든 에너지 소비; effectValue 기본 피해 + 에너지당 secondaryValue 추가 피해
+        AttackAndGainDodge            = 316, // effectValue 피해 + secondaryValue Dodge 스택 획득
+        GainDodgeWhenPlayingFreeCards = 317, // 이번 턴 비용 0 카드 사용 시마다 Dodge effectValue 획득
+        MultiHitWithCritFromDodge     = 318, // effectValue 피해 x3; Dodge 스택*1% 치명타, 치명타 시 secondaryValue배
+        MultiplyDodgeStacks           = 319, // 플레이어 Dodge 스택 effectValue배
+        DrawCardWhenPlayingFreeCards  = 320, // 이번 턴 비용 0 카드 사용 시마다 카드 effectValue장 드로우
+        PoisonAndDetonateAllPoison    = 321, // effectValue 독 부여 → 적의 독 전부 제거 + (effectValue + 제거 독) 피해
+        AttackAndShuffleBackToDeck    = 322, // effectValue 피해; 사용 후 이 카드를 덱에 다시 섞기
+        DrawCardsGainDodgeOnFreeDraw  = 323, // effectValue 카드 드로우; 비용 0 카드 드로우마다 secondaryValue Dodge 획득
     }
 
     /// <summary>
@@ -116,9 +144,6 @@ namespace CardAdventure
         [Header("비주얼")]
         [Tooltip("카드에 표시될 아이콘 스프라이트")]
         public Sprite cardIcon;
-
-        [Tooltip("카드 배경 색상 (타입별 구분용)")]
-        public Color cardColor = Color.white;
 
         [Header("추가 효과 (선택)")]
         [Tooltip("상태이상을 부여하는 카드의 경우 해당 상태이상 데이터 (effectType이 ApplyStatus* 일 때 참조)")]

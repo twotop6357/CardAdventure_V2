@@ -43,6 +43,12 @@ namespace CardAdventure
             if (durationText != null) durationText.raycastTarget = false;
         }
 
+        public void SetIconTint(Color tint)
+        {
+            if (iconImage != null)
+                iconImage.color = tint;
+        }
+
         public void Bind(BattleStatusInstance status)
         {
             if (status == null) return;
@@ -64,11 +70,13 @@ namespace CardAdventure
             if (stacksText != null)
             {
                 stacksText.text = status.Stacks > 1 ? status.Stacks.ToString() : "";
+                stacksText.color = Color.black;
             }
 
             if (durationText != null)
             {
                 durationText.text = status.HasTimedDuration ? status.RemainingDuration.ToString() : "";
+                durationText.color = Color.black;
             }
         }
 

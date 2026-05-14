@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
+  m_Name: Card_Mage_FrostBind
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
+  cardName: "빙결 속박"
+  energyCost: 2
+  cardType: 2
+  cardClass: 2
+  grade: 2
+  effectType: 312
+  effectValue: 0
+  secondaryValue: 0
+  effectDescription: "대상을 얼려 다음 턴에 아무런 행동도 취할 수 없게 합니다."
+  cardIcon: {fileID: 0}
+  statusEffect: {fileID: 0}
+  isExhaust: 0
+  isStarterCard: 0

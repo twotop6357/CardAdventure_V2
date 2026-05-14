@@ -1,0 +1,845 @@
+fileFormatVersion: 2
+guid: ff1c9035ca8e92b48b802a8e7bd934f8
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 631106349387086376
+    second: ShopKeeper_Sprites_0
+  - first:
+      213: 282675513605808185
+    second: ShopKeeper_Sprites_1
+  - first:
+      213: 4541432227858209724
+    second: ShopKeeper_Sprites_2
+  - first:
+      213: -9047204559560042473
+    second: ShopKeeper_Sprites_3
+  - first:
+      213: 5454645495897449662
+    second: ShopKeeper_Sprites_4
+  - first:
+      213: 4858330420244107486
+    second: ShopKeeper_Sprites_5
+  - first:
+      213: -1435344263466926429
+    second: ShopKeeper_Sprites_6
+  - first:
+      213: 4917805836562662433
+    second: ShopKeeper_Sprites_7
+  - first:
+      213: -5297016517905978453
+    second: ShopKeeper_Sprites_8
+  - first:
+      213: -5180898675656462518
+    second: ShopKeeper_Sprites_9
+  - first:
+      213: -7755380184635643554
+    second: ShopKeeper_Sprites_10
+  - first:
+      213: -7607917691516495151
+    second: ShopKeeper_Sprites_11
+  - first:
+      213: 8233575405901347763
+    second: ShopKeeper_Sprites_12
+  - first:
+      213: 4980588248303036031
+    second: ShopKeeper_Sprites_13
+  - first:
+      213: -4643444029265715727
+    second: ShopKeeper_Sprites_14
+  - first:
+      213: 2213977859491786240
+    second: ShopKeeper_Sprites_15
+  - first:
+      213: 6504622258630248355
+    second: ShopKeeper_Sprites_16
+  - first:
+      213: -174965812751836359
+    second: ShopKeeper_Sprites_17
+  - first:
+      213: -9139786017654350511
+    second: ShopKeeper_Sprites_18
+  - first:
+      213: -1463812151103319923
+    second: ShopKeeper_Sprites_19
+  - first:
+      213: 9112992044082342390
+    second: ShopKeeper_Sprites_20
+  - first:
+      213: 6808812008898003420
+    second: ShopKeeper_Sprites_21
+  - first:
+      213: 9070886013514470110
+    second: ShopKeeper_Sprites_22
+  - first:
+      213: -7743203681214309864
+    second: ShopKeeper_Sprites_23
+  - first:
+      213: -3445540153899927478
+    second: ShopKeeper_Sprites_24
+  - first:
+      213: -490893853305825435
+    second: ShopKeeper_Sprites_25
+  - first:
+      213: -8113356793889953801
+    second: ShopKeeper_Sprites_26
+  - first:
+      213: -820013887336837919
+    second: ShopKeeper_Sprites_27
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_0
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 931
+        width: 157
+        height: 255
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82af5ba81e322c800800000000000000
+      internalID: 631106349387086376
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_1
+      rect:
+        serializedVersion: 2
+        x: 222
+        y: 931
+        width: 159
+        height: 255
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 930ec27c1e34ce300800000000000000
+      internalID: 282675513605808185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_2
+      rect:
+        serializedVersion: 2
+        x: 393
+        y: 931
+        width: 158
+        height: 255
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbbdff8bc88660f30800000000000000
+      internalID: 4541432227858209724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_3
+      rect:
+        serializedVersion: 2
+        x: 562
+        y: 928
+        width: 160
+        height: 255
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7181121236fd17280800000000000000
+      internalID: -9047204559560042473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_4
+      rect:
+        serializedVersion: 2
+        x: 727
+        y: 928
+        width: 159
+        height: 255
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb4e6a6bd2bc2bb40800000000000000
+      internalID: 5454645495897449662
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_5
+      rect:
+        serializedVersion: 2
+        x: 892
+        y: 931
+        width: 159
+        height: 251
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed0df14d6c14c6340800000000000000
+      internalID: 4858330420244107486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_6
+      rect:
+        serializedVersion: 2
+        x: 1053
+        y: 928
+        width: 155
+        height: 254
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3aeb8a54ff1a41ce0800000000000000
+      internalID: -1435344263466926429
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_7
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 652
+        width: 140
+        height: 243
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12409aa4a5e8f3440800000000000000
+      internalID: 4917805836562662433
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_8
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 652
+        width: 141
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bab66d0ba873d76b0800000000000000
+      internalID: -5297016517905978453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_9
+      rect:
+        serializedVersion: 2
+        x: 396
+        y: 652
+        width: 139
+        height: 243
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4f6434aa10c918b0800000000000000
+      internalID: -5180898675656462518
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_10
+      rect:
+        serializedVersion: 2
+        x: 562
+        y: 651
+        width: 141
+        height: 240
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5960b4dfca5f5490800000000000000
+      internalID: -7755380184635643554
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_11
+      rect:
+        serializedVersion: 2
+        x: 724
+        y: 652
+        width: 142
+        height: 240
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1dadfb40b2f3b6690800000000000000
+      internalID: -7607917691516495151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_12
+      rect:
+        serializedVersion: 2
+        x: 887
+        y: 652
+        width: 140
+        height: 239
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3bb74245539834270800000000000000
+      internalID: 8233575405901347763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_13
+      rect:
+        serializedVersion: 2
+        x: 1056
+        y: 652
+        width: 141
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f766690af9a9e1540800000000000000
+      internalID: 4980588248303036031
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_14
+      rect:
+        serializedVersion: 2
+        x: 58
+        y: 371
+        width: 144
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fd5535e14c2f8fb0800000000000000
+      internalID: -4643444029265715727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_15
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 368
+        width: 145
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00e669f0221a9be10800000000000000
+      internalID: 2213977859491786240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_16
+      rect:
+        serializedVersion: 2
+        x: 405
+        y: 368
+        width: 142
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a741c33b7f054a50800000000000000
+      internalID: 6504622258630248355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_17
+      rect:
+        serializedVersion: 2
+        x: 572
+        y: 367
+        width: 142
+        height: 240
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93bd6133585629df0800000000000000
+      internalID: -174965812751836359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_18
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 367
+        width: 141
+        height: 242
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15d51a6aa05f82180800000000000000
+      internalID: -9139786017654350511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_19
+      rect:
+        serializedVersion: 2
+        x: 897
+        y: 367
+        width: 139
+        height: 240
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d80169baa9e7fabe0800000000000000
+      internalID: -1463812151103319923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_20
+      rect:
+        serializedVersion: 2
+        x: 1058
+        y: 368
+        width: 140
+        height: 240
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f92d7c3bf9d77e70800000000000000
+      internalID: 9112992044082342390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_21
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 77
+        width: 163
+        height: 250
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd187cc8272cd7e50800000000000000
+      internalID: 6808812008898003420
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_22
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 80
+        width: 163
+        height: 247
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed2d69905c242ed70800000000000000
+      internalID: 9070886013514470110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_23
+      rect:
+        serializedVersion: 2
+        x: 398
+        y: 78
+        width: 159
+        height: 246
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81a59b5f64d9a8490800000000000000
+      internalID: -7743203681214309864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_24
+      rect:
+        serializedVersion: 2
+        x: 564
+        y: 80
+        width: 157
+        height: 245
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a48337b3c7bfe20d0800000000000000
+      internalID: -3445540153899927478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_25
+      rect:
+        serializedVersion: 2
+        x: 734
+        y: 75
+        width: 156
+        height: 250
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 567984b24aeff29f0800000000000000
+      internalID: -490893853305825435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_26
+      rect:
+        serializedVersion: 2
+        x: 899
+        y: 77
+        width: 158
+        height: 247
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f7ef2c7bf0976f80800000000000000
+      internalID: -8113356793889953801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ShopKeeper_Sprites_27
+      rect:
+        serializedVersion: 2
+        x: 1056
+        y: 77
+        width: 156
+        height: 248
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ec866ec6b9be94f0800000000000000
+      internalID: -820013887336837919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ShopKeeper_Sprites_0: 631106349387086376
+      ShopKeeper_Sprites_1: 282675513605808185
+      ShopKeeper_Sprites_10: -7755380184635643554
+      ShopKeeper_Sprites_11: -7607917691516495151
+      ShopKeeper_Sprites_12: 8233575405901347763
+      ShopKeeper_Sprites_13: 4980588248303036031
+      ShopKeeper_Sprites_14: -4643444029265715727
+      ShopKeeper_Sprites_15: 2213977859491786240
+      ShopKeeper_Sprites_16: 6504622258630248355
+      ShopKeeper_Sprites_17: -174965812751836359
+      ShopKeeper_Sprites_18: -9139786017654350511
+      ShopKeeper_Sprites_19: -1463812151103319923
+      ShopKeeper_Sprites_2: 4541432227858209724
+      ShopKeeper_Sprites_20: 9112992044082342390
+      ShopKeeper_Sprites_21: 6808812008898003420
+      ShopKeeper_Sprites_22: 9070886013514470110
+      ShopKeeper_Sprites_23: -7743203681214309864
+      ShopKeeper_Sprites_24: -3445540153899927478
+      ShopKeeper_Sprites_25: -490893853305825435
+      ShopKeeper_Sprites_26: -8113356793889953801
+      ShopKeeper_Sprites_27: -820013887336837919
+      ShopKeeper_Sprites_3: -9047204559560042473
+      ShopKeeper_Sprites_4: 5454645495897449662
+      ShopKeeper_Sprites_5: 4858330420244107486
+      ShopKeeper_Sprites_6: -1435344263466926429
+      ShopKeeper_Sprites_7: 4917805836562662433
+      ShopKeeper_Sprites_8: -5297016517905978453
+      ShopKeeper_Sprites_9: -5180898675656462518
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
+  m_Name: Card_Rogue_EnergyBurst
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
+  cardName: "\uC5D0\uB108\uC9C0 \uD3ED\uBC1C"
+  energyCost: 0
+  cardType: 0
+  cardClass: 3
+  grade: 0
+  effectType: 315
+  effectValue: 2
+  secondaryValue: 2
+  effectDescription: "\uBAA8\uB4E0 \uC5D0\uB108\uC9C0\uB97C \uC18C\uBE44\uD558\uC5EC
+    \uACF5\uACA9\uD569\uB2C8\uB2E4. \uB300\uC0C1\uC5D0\uAC8C {value}\uC758 \uD53C\uD574\uB97C
+    \uC785\uD788\uBA70, \uC18C\uBAA8\uD55C \uC5D0\uB108\uC9C0 \uB2F9 {value2}\uC758
+    \uCD94\uAC00 \uD53C\uD574\uB97C \uC785\uD799\uB2C8\uB2E4."
+  cardIcon: {fileID: 0}
+  statusEffect: {fileID: 0}
+  isExhaust: 0
+  isStarterCard: 1

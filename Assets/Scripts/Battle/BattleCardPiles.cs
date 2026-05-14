@@ -92,6 +92,18 @@ namespace CardAdventure
             return true;
         }
 
+        public bool MoveHandCardToDrawPile(BattleRuntimeCard card)
+        {
+            if (card == null || !hand.Remove(card))
+            {
+                return false;
+            }
+
+            int insertIndex = Random.Range(0, drawPile.Count + 1);
+            drawPile.Insert(insertIndex, card);
+            return true;
+        }
+
         public void DiscardHand()
         {
             if (hand.Count == 0)
@@ -101,6 +113,14 @@ namespace CardAdventure
 
             discardPile.AddRange(hand);
             hand.Clear();
+        }
+
+        public void ClearTemporaryEnergyCosts()
+        {
+            ClearTemporaryEnergyCosts(drawPile);
+            ClearTemporaryEnergyCosts(hand);
+            ClearTemporaryEnergyCosts(discardPile);
+            ClearTemporaryEnergyCosts(exhaustPile);
         }
 
         public void ShuffleDrawPile()
@@ -122,6 +142,14 @@ namespace CardAdventure
             drawPile.AddRange(discardPile);
             discardPile.Clear();
             ShuffleDrawPile();
+        }
+
+        private static void ClearTemporaryEnergyCosts(List<BattleRuntimeCard> cards)
+        {
+            foreach (BattleRuntimeCard card in cards)
+            {
+                card?.ClearTemporaryEnergyCost();
+            }
         }
     }
 }

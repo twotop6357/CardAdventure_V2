@@ -1,0 +1,3 @@
+assetName,cardName,cardClass,grade,energyCost,cardType,effectType,effectValue,secondaryValue,statusEffectAsset,effectDescription,cardIconAsset,isExhaust,isStarterCard,memo
+Card_Warrior_NewAttack,새 공격 카드,Warrior,Common,1,Attack,BasicAttack,6,0,,"적에게 {value} 피해를 줍니다.",Assets/Assets/UIs/Icons/example.png,FALSE,FALSE,"assetName은 ScriptableObject 파일명으로 사용"
+Card_Mage_NewStatus,새 상태 카드,Mage,Uncommon,1,StatusEffect,ApplyStatusToEnemy,2,0,Assets/ScriptableObjects/StatusEffects/Status_Weak.asset,"적에게 약화를 {value} 부여합니다.",Assets/Assets/UIs/Icons/example.png,FALSE,FALSE,"상태 부여 카드는 statusEffectAsset 필수"
