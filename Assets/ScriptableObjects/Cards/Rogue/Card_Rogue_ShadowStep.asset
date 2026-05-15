@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 202
   effectValue: 4
   secondaryValue: 1
-  effectDescription: "\uBC29\uC5B4\uB9C9 {value} \uD68D\uB4DD + \uCE74\uB4DC {value2}\uC7A5 \uB4DC\uB85C\uC6B0."
+  effectDescription: "방어도 {value}를 획득하고 카드를 {value2}장 드로우합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

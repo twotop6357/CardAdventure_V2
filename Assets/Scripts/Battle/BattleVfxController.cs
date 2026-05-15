@@ -70,6 +70,7 @@ namespace CardAdventure
             if (bm == null) return;
             bm.BattleStarted             += HandleBattleStarted;
             bm.CardPlayed                += HandleCardPlayed;
+            bm.PlayerTriggeredDamageResolved += HandlePlayerTriggeredDamageResolved;
             bm.TurnStartStatusResolved   += HandleTurnStartStatus;
             bm.StateChanged              += HandleStateChanged;
         }
@@ -79,6 +80,7 @@ namespace CardAdventure
             if (bm == null) return;
             bm.BattleStarted             -= HandleBattleStarted;
             bm.CardPlayed                -= HandleCardPlayed;
+            bm.PlayerTriggeredDamageResolved -= HandlePlayerTriggeredDamageResolved;
             bm.TurnStartStatusResolved   -= HandleTurnStartStatus;
             bm.StateChanged              -= HandleStateChanged;
         }
@@ -106,6 +108,14 @@ namespace CardAdventure
 
             // 카드 종류에 따른 상태이상 이펙트
             SpawnStatusEffectForCard(card.Data, m);
+
+            SnapshotHp(m);
+        }
+
+        private void HandlePlayerTriggeredDamageResolved(BattleManager m, int damage)
+        {
+            if (damage > 0)
+                SpawnHitByDamage(damage, GetWorldPos(enemyAreaRect));
 
             SnapshotHp(m);
         }

@@ -196,7 +196,7 @@ namespace CardAdventure.Tests
             AssertStatusText("Assets/ScriptableObjects/StatusEffects/Status_Vulnerable.asset",
                 "취약", "받는 피해가 50% 증가합니다.");
             AssertStatusText("Assets/ScriptableObjects/StatusEffects/Status_Strength.asset",
-                "강화", "공격 피해에 중첩 수만큼 추가 피해를 더합니다.");
+                "힘", "공격 피해에 중첩 수만큼 추가 피해를 더합니다.");
             AssertStatusText("Assets/ScriptableObjects/StatusEffects/Status_Regeneration.asset",
                 "재생", "대상 턴 시작 시 중첩 수만큼 HP를 회복합니다.");
             AssertStatusText("Assets/ScriptableObjects/StatusEffects/Status_Burn.asset",

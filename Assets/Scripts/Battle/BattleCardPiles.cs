@@ -72,36 +72,71 @@ namespace CardAdventure
 
         public bool MoveHandCardToDiscard(BattleRuntimeCard card)
         {
-            if (card == null || !hand.Remove(card))
+            if (!RemoveHandCard(card))
             {
                 return false;
             }
 
-            discardPile.Add(card);
+            AddToDiscard(card);
             return true;
         }
 
         public bool MoveHandCardToExhaust(BattleRuntimeCard card)
         {
-            if (card == null || !hand.Remove(card))
+            if (!RemoveHandCard(card))
             {
                 return false;
             }
 
-            exhaustPile.Add(card);
+            AddToExhaust(card);
             return true;
         }
 
         public bool MoveHandCardToDrawPile(BattleRuntimeCard card)
         {
-            if (card == null || !hand.Remove(card))
+            if (!RemoveHandCard(card))
             {
                 return false;
             }
 
+            AddToDrawPile(card);
+            return true;
+        }
+
+        public bool RemoveHandCard(BattleRuntimeCard card)
+        {
+            return card != null && hand.Remove(card);
+        }
+
+        public void AddToDiscard(BattleRuntimeCard card)
+        {
+            if (card == null)
+            {
+                return;
+            }
+
+            discardPile.Add(card);
+        }
+
+        public void AddToExhaust(BattleRuntimeCard card)
+        {
+            if (card == null)
+            {
+                return;
+            }
+
+            exhaustPile.Add(card);
+        }
+
+        public void AddToDrawPile(BattleRuntimeCard card)
+        {
+            if (card == null)
+            {
+                return;
+            }
+
             int insertIndex = Random.Range(0, drawPile.Count + 1);
             drawPile.Insert(insertIndex, card);
-            return true;
         }
 
         public void DiscardHand()

@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 401
   effectValue: 2
   secondaryValue: 0
-  effectDescription: "\uC790\uC2E0\uC5D0\uAC8C \uC7AC\uC0DD {value} \uBD80\uC5EC."
+  effectDescription: "자신에게 재생 {value}를 부여합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 11400000, guid: c739f5cbecfa4afdb1cd13e8b420f531, type: 2}
   isExhaust: 0

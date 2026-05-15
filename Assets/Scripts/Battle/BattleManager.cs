@@ -36,11 +36,17 @@ namespace CardAdventure
         public event Action<BattleManager> BattleStarted;
         public event Action<BattleManager> StateChanged;
         public event Action<BattleManager, BattleRuntimeCard> CardPlayed;
+        public event Action<BattleManager, int> PlayerTriggeredDamageResolved;
         public event Action<BattleManager, EnemyAction> EnemyIntentSelected;
         public event Action<BattleManager, BattleCombatantState, BattleStatusTurnResult> TurnStartStatusResolved;
         public event Action<BattleManager, BattlePhase> BattleEnded;
         /// <summary>적이 실제로 행동하기 직전 발생. UI 애니메이션 재생에 사용한다.</summary>
         public event Action<BattleManager, EnemyAction> EnemyActionExecuting;
+
+        private readonly List<BattleTriggeredDamageRequest> pendingTriggeredDamageRequests =
+            new List<BattleTriggeredDamageRequest>();
+
+        private bool deferTriggeredDamage;
 
         public BattlePlayerState Player { get; private set; }
 
@@ -178,6 +184,48 @@ namespace CardAdventure
             StateChanged?.Invoke(this);
         }
 
+        /// <summary>카드 사용 가능 여부만 확인한다 (효과 미적용).</summary>
+        public bool CanPlayCard(BattleRuntimeCard card)
+        {
+            if (Phase != BattlePhase.PlayerTurn || Player == null) return false;
+            if (card == null || card.Data == null) return false;
+            if (!Player.CardPiles.HasHandCard(card)) return false;
+            if (!Player.CanPayEnergy(card)) return false;
+            return true;
+        }
+
+        public void SetTriggeredDamageDeferred(bool deferred)
+        {
+            deferTriggeredDamage = deferred;
+            if (!deferred)
+            {
+                pendingTriggeredDamageRequests.Clear();
+            }
+        }
+
+        public List<BattleTriggeredDamageRequest> ConsumePendingTriggeredDamageRequests()
+        {
+            List<BattleTriggeredDamageRequest> requests = new List<BattleTriggeredDamageRequest>(pendingTriggeredDamageRequests);
+            pendingTriggeredDamageRequests.Clear();
+            return requests;
+        }
+
+        public int ResolveTriggeredDamage(BattleTriggeredDamageRequest request)
+        {
+            int damageDealt = DealPlayerDamageToEnemy(
+                request.BaseDamage,
+                request.IncludeAttackBonuses,
+                request.TriggerDamageRewards);
+
+            if (damageDealt > 0)
+            {
+                PlayerTriggeredDamageResolved?.Invoke(this, damageDealt);
+            }
+
+            ResolveBattleEndOrNotify();
+            return damageDealt;
+        }
+
         public BattleCardPlayResult PlayCard(BattleRuntimeCard card)
         {
             if (Phase != BattlePhase.PlayerTurn)
@@ -226,26 +274,17 @@ namespace CardAdventure
                 return BattleCardPlayResult.Failed(BattleCardPlayFailureReason.NotEnoughEnergy);
             }
 
+            Player.CardPiles.RemoveHandCard(card);
+
             ApplyCardEffect(card);
             Player.ConsumeFirstAttackFreeIfNeeded(card);
-
-            if (card.Data.effectType == CardEffectType.AttackAndShuffleBackToDeck)
-            {
-                Player.CardPiles.MoveHandCardToDrawPile(card);
-            }
-            else if (card.IsExhaust)
-            {
-                Player.CardPiles.MoveHandCardToExhaust(card);
-            }
-            else
-            {
-                Player.CardPiles.MoveHandCardToDiscard(card);
-            }
 
             if (cardWasFree)
             {
                 TriggerFreeCardPlayedEffects();
             }
+
+            MoveResolvedCardToDestination(card);
 
             CardPlayed?.Invoke(this, card);
             ResolveBattleEndOrNotify();
@@ -620,12 +659,13 @@ namespace CardAdventure
             if (Player.DamageDealtPerBlockGained > 0)
             {
                 int damage = blockAmount * Player.DamageDealtPerBlockGained;
-                DealPlayerDamageToEnemy(damage, false, true);
+                DealOrQueueTriggeredDamage(damage, false, true);
             }
 
             if (Player.CardsDrawnPerBlockGain > 0)
             {
-                Player.CardPiles.Draw(blockAmount * Player.CardsDrawnPerBlockGain);
+                // "방어막을 획득할 때마다 N장 드로우"는 획득량이 아닌 이벤트 단위
+                Player.CardPiles.Draw(Player.CardsDrawnPerBlockGain);
             }
         }
 
@@ -660,6 +700,20 @@ namespace CardAdventure
             return damageDealt;
         }
 
+        private void DealOrQueueTriggeredDamage(int baseDamage, bool includeAttackBonuses, bool triggerDamageRewards)
+        {
+            if (deferTriggeredDamage)
+            {
+                pendingTriggeredDamageRequests.Add(new BattleTriggeredDamageRequest(
+                    baseDamage,
+                    includeAttackBonuses,
+                    triggerDamageRewards));
+                return;
+            }
+
+            DealPlayerDamageToEnemy(baseDamage, includeAttackBonuses, triggerDamageRewards);
+        }
+
         private void PlayOtherHandCardsRandomly(BattleRuntimeCard sourceCard)
         {
             if (Player == null || Enemy == null)
@@ -689,21 +743,12 @@ namespace CardAdventure
                     break;
                 }
 
+                Player.CardPiles.RemoveHandCard(card);
+
                 ApplyCardEffect(card);
                 Player.ConsumeFirstAttackFreeIfNeeded(card);
 
-                if (card.Data.effectType == CardEffectType.AttackAndShuffleBackToDeck)
-                {
-                    Player.CardPiles.MoveHandCardToDrawPile(card);
-                }
-                else if (card.IsExhaust)
-                {
-                    Player.CardPiles.MoveHandCardToExhaust(card);
-                }
-                else
-                {
-                    Player.CardPiles.MoveHandCardToDiscard(card);
-                }
+                MoveResolvedCardToDestination(card);
 
                 CardPlayed?.Invoke(this, card);
 
@@ -711,6 +756,27 @@ namespace CardAdventure
                 {
                     break;
                 }
+            }
+        }
+
+        private void MoveResolvedCardToDestination(BattleRuntimeCard card)
+        {
+            if (card == null || card.Data == null || Player == null)
+            {
+                return;
+            }
+
+            if (card.Data.effectType == CardEffectType.AttackAndShuffleBackToDeck)
+            {
+                Player.CardPiles.AddToDrawPile(card);
+            }
+            else if (card.IsExhaust)
+            {
+                Player.CardPiles.AddToExhaust(card);
+            }
+            else
+            {
+                Player.CardPiles.AddToDiscard(card);
             }
         }
 

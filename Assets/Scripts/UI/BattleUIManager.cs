@@ -1,4 +1,5 @@
 using DG.Tweening;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +12,7 @@ namespace CardAdventure
     /// 손패 갱신 시점:
     ///   - BattleStarted   → 전체 갱신 (첫 5장 드로우)
     ///   - EnemyIntentSelected → 새 플레이어 턴 시작 → 손패 갱신 (턴 드로우)
-    ///   - 카드 사용 성공 시 → 해당 카드 뷰만 애니메이션 후 제거
+    ///   - 카드 사용 성공 시 → 사용 카드 애니메이션 후 현재 런타임 손패와 동기화
     ///
     /// HUD / 적 영역 갱신 시점:
     ///   - StateChanged 마다 (HP, 방어막, 에너지, 의도)
@@ -401,39 +402,116 @@ namespace CardAdventure
             pendingStartedFrame = -1;
             targetArrow?.Hide();
 
+            Vector2 cardUseScreenPoint = Input.mousePosition;
+
             if (useMode == CardUseMode.PlayArea)
-            {
                 played.EndPointerFollow(restoreToHand: false);
-            }
 
-            handView?.DetachCardView(played);
-
-            BattleCardPlayResult result = battleManager.PlayCard(card);
-
-            if (!result.Success)
+            // ── 사전 검증 (효과 미적용) ──────────────────────────────
+            if (!battleManager.CanPlayCard(card))
             {
                 handView?.ReattachCardView(played, card);
-
-                if (result.FailureReason == BattleCardPlayFailureReason.NotEnoughEnergy)
+                if (battleManager.Player != null && !battleManager.Player.CanPayEnergy(card))
                     ShakeCard(played);
-
-                Debug.Log("[BattleUIManager] 카드 사용 실패: " + result.FailureReason);
                 return;
             }
 
+            handView?.DetachCardView(played);
             isCardAnimating = true;
             handView?.SetInteractable(false);
 
-            Vector3 targetWorld = GetCardPlayTargetWorld();
-            played.PlayCardAnimation(targetWorld, () =>
+            bool cardEffectResolved = false;
+            bool cardFlyCompleted = false;
+
+            void CompleteCardUseIfReady()
             {
+                if (!cardEffectResolved || !cardFlyCompleted)
+                    return;
+
                 isCardAnimating = false;
 
                 if (battleManager.Phase == BattlePhase.PlayerTurn)
                 {
                     handView?.SetInteractable(true);
-                    RefreshHand(battleManager); // 드로우 효과 반영
+
+                    // 카드 효과가 방어/피해/무료 카드 트리거를 통해 간접 드로우를 만들 수 있으므로
+                    // effectType 추정 대신 현재 런타임 손패를 항상 동기화한다.
+                    RefreshHand(battleManager);
                 }
+            }
+
+            void ResolveCardEffect()
+            {
+                if (cardEffectResolved)
+                    return;
+
+                battleManager.SetTriggeredDamageDeferred(true);
+                BattleCardPlayResult result = battleManager.PlayCard(card);
+                List<BattleTriggeredDamageRequest> triggeredDamageRequests =
+                    battleManager.ConsumePendingTriggeredDamageRequests();
+
+                if (!result.Success)
+                {
+                    battleManager.SetTriggeredDamageDeferred(false);
+                    Debug.LogWarning("[BattleUIManager] 카드 효과 발동 실패: " + result.FailureReason);
+                }
+
+                if (triggeredDamageRequests.Count > 0 && playerHud != null)
+                {
+                    ResolveTriggeredDamageRequests(triggeredDamageRequests, 0);
+                    return;
+                }
+
+                foreach (BattleTriggeredDamageRequest request in triggeredDamageRequests)
+                {
+                    battleManager.ResolveTriggeredDamage(request);
+                }
+
+                battleManager.SetTriggeredDamageDeferred(false);
+                FinishCardEffectResolution();
+            }
+
+            void ResolveTriggeredDamageRequests(List<BattleTriggeredDamageRequest> requests, int index)
+            {
+                if (index >= requests.Count)
+                {
+                    List<BattleTriggeredDamageRequest> chainedRequests =
+                        battleManager.ConsumePendingTriggeredDamageRequests();
+                    if (chainedRequests.Count > 0)
+                    {
+                        requests.AddRange(chainedRequests);
+                        ResolveTriggeredDamageRequests(requests, index);
+                        return;
+                    }
+
+                    battleManager.SetTriggeredDamageDeferred(false);
+                    FinishCardEffectResolution();
+                    return;
+                }
+
+                BattleTriggeredDamageRequest request = requests[index];
+                playerHud.PlayTriggeredAttackAnim(
+                    () => battleManager.ResolveTriggeredDamage(request),
+                    () => ResolveTriggeredDamageRequests(requests, index + 1));
+            }
+
+            void FinishCardEffectResolution()
+            {
+                cardEffectResolved = true;
+                CompleteCardUseIfReady();
+            }
+
+            // ── 플레이어 애니메이션 → 피크에서 카드 효과 발동 ──────
+            if (playerHud != null)
+                playerHud.PlayCardUsedAnimation(card.Data, ResolveCardEffect);
+            else
+                ResolveCardEffect();
+
+            // 카드 퇴장 애니메이션 동시 시작 → 효과 처리까지 끝난 뒤 손패 갱신
+            played.PlayCardUseAnimation(cardUseScreenPoint, card.IsExhaust, () =>
+            {
+                cardFlyCompleted = true;
+                CompleteCardUseIfReady();
             });
         }
 

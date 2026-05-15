@@ -47,7 +47,10 @@ namespace CardAdventure
         [SerializeField] private Graphic damageFlash;
 
         // 코드-side 주입 (BattleUIManager가 직업 데이터를 통해 설정)
-        private Image playerImage;
+        private Image   playerImage;
+        private Vector2 playerRestAnchoredPos;
+        private bool    playerRestPosCached;
+        private const float SuspiciousAvatarOffset = 800f;
 
         // ── 공개 메서드 ────────────────────────────────────────────
 
@@ -87,7 +90,11 @@ namespace CardAdventure
             }
 
             // 상태이상 + 턴 공격 보너스 (분노 등)
-            RefreshStatusIcons(c, player.TurnAttackDamageBonus);
+            // 첫 공격 전에는 AttackBonusGainedPerAttack을, 이후엔 누적된 TurnAttackDamageBonus를 표시
+            int displayBonus = player.TurnAttackDamageBonus > 0
+                ? player.TurnAttackDamageBonus
+                : player.AttackBonusGainedPerAttack;
+            RefreshStatusIcons(c, displayBonus);
         }
 
         /// <summary>
@@ -113,6 +120,17 @@ namespace CardAdventure
             {
                 playerImage.sprite  = sprite;
                 playerImage.enabled = sprite != null;
+                if (!playerRestPosCached)
+                {
+                    playerRestAnchoredPos = playerImage.rectTransform.anchoredPosition;
+                    if (IsSuspiciousAvatarPosition(playerRestAnchoredPos))
+                    {
+                        playerRestAnchoredPos = Vector2.zero;
+                        playerImage.rectTransform.anchoredPosition = playerRestAnchoredPos;
+                    }
+
+                    playerRestPosCached = true;
+                }
             }
             else
             {
@@ -184,7 +202,294 @@ namespace CardAdventure
             }
         }
 
+        // ── 카드 사용 애니메이션 ────────────────────────────────────
+
+        /// <summary>
+        /// 방어·버프 카드 사용 중 연쇄 피해(가시 방벽 등)가 발생했을 때
+        /// 후속 반격 모션을 재생한다. 기존 애니메이션을 중단하고 휴식 위치 기준으로 돌진한다.
+        /// </summary>
+        public void PlayTriggeredAttackAnim(System.Action onImpact = null, System.Action onComplete = null)
+        {
+            if (playerImage == null)
+            {
+                onImpact?.Invoke();
+                onComplete?.Invoke();
+                return;
+            }
+
+            DOTween.Kill(playerImage.rectTransform);
+            DOTween.Kill(playerImage);
+
+            Vector2 rest = GetPlayerRestAnchoredPosition();
+
+            DOTween.Sequence()
+                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + 50f, 0.12f).SetEase(Ease.OutQuint))
+                .AppendCallback(() => onImpact?.Invoke())
+                .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.18f).SetEase(Ease.OutQuad))
+                .OnComplete(() => onComplete?.Invoke());
+            DOTween.Sequence()
+                .Append(playerImage.DOColor(new Color(1f, 0.5f, 0.1f), 0.1f))
+                .Append(playerImage.DOColor(Color.white, 0.2f));
+        }
+
+        /// <summary>
+        /// 카드 사용 시 플레이어 스프라이트 애니메이션을 재생한다.
+        /// onImpact: 애니메이션 피크(타격 순간)에 호출 — 여기서 카드 효과를 발동한다.
+        /// </summary>
+        public void PlayCardUsedAnimation(CardData data, System.Action onImpact = null)
+        {
+            if (playerImage == null || data == null)
+            {
+                onImpact?.Invoke();
+                return;
+            }
+
+            CachePlayerRestPoseIfNeeded();
+            DOTween.Kill(playerImage.rectTransform);
+            DOTween.Kill(playerImage);
+            playerImage.rectTransform.anchoredPosition = GetPlayerRestAnchoredPosition();
+            playerImage.rectTransform.localScale = Vector3.one;
+            playerImage.color = Color.white;
+
+            switch (data.effectType)
+            {
+                // ── 다중 타격 ──────────────────────────────────────
+                case CardEffectType.DoubleStrike:
+                case CardEffectType.MultiHitAttack:
+                case CardEffectType.MultiHitAndGainStrength:
+                case CardEffectType.MultiHitWithCritFromDodge:
+                case CardEffectType.PlayHandRandomly:
+                    PlayerMultiHitAnim(data, onImpact);
+                    break;
+
+                // ── 버서커 (자해 + 강타) ───────────────────────────
+                case CardEffectType.BerserkerAttack:
+                    PlayerBerserkerAnim(onImpact);
+                    break;
+
+                // ── 일반 공격 ─────────────────────────────────────
+                case CardEffectType.BasicAttack:
+                case CardEffectType.ShieldBash:
+                case CardEffectType.AttackAndDefend:
+                case CardEffectType.AttackAndApplyStatus:
+                case CardEffectType.AttackAndGainBlockEqualDamage:
+                case CardEffectType.ConsumeBlockToDealDamage:
+                case CardEffectType.DamageAndApplyStatus:
+                case CardEffectType.ConsumeAllEnergyAndAttack:
+                case CardEffectType.AttackAndGainDodge:
+                case CardEffectType.PoisonAndDetonateAllPoison:
+                case CardEffectType.AttackAndShuffleBackToDeck:
+                    PlayerAttackAnim(onImpact);
+                    break;
+
+                // ── 방어 ──────────────────────────────────────────
+                case CardEffectType.BasicDefense:
+                case CardEffectType.DefenseAndDraw:
+                case CardEffectType.DrawAndDefense:
+                case CardEffectType.BlockAndNextTurnEnergy:
+                case CardEffectType.DealDamageWhenBlockGained:
+                case CardEffectType.GainBlockWhenDamageDealt:
+                case CardEffectType.DrawCardWhenBlockGained:
+                case CardEffectType.GainStrengthEqualCurrentBlock:
+                    PlayerDefenseAnim(onImpact);
+                    break;
+
+                // ── 힘 버프 ──────────────────────────────────────
+                case CardEffectType.Rage:
+                case CardEffectType.GainStrength:
+                case CardEffectType.GrantEnemyStrengthAndRetaliateNext:
+                case CardEffectType.GainDodgeWhenPlayingFreeCards:
+                case CardEffectType.MultiplyDodgeStacks:
+                    PlayerPowerBuffAnim(onImpact);
+                    break;
+
+                // ── 적에게 상태이상 투척 ──────────────────────────
+                case CardEffectType.Taunt:
+                case CardEffectType.ApplyStatusToEnemy:
+                case CardEffectType.FreezeEnemyNextAction:
+                case CardEffectType.ApplyPoisonWhenDamageDealt:
+                    PlayerStatusThrowAnim(onImpact);
+                    break;
+
+                // ── 자신 버프/회복 ────────────────────────────────
+                case CardEffectType.ApplyStatusToPlayer:
+                    PlayerHealAnim(onImpact);
+                    break;
+
+                // ── 드로우 / 유틸리티 ─────────────────────────────
+                case CardEffectType.DrawCards:
+                case CardEffectType.DrawCardWhenPlayingFreeCards:
+                case CardEffectType.DrawCardsGainDodgeOnFreeDraw:
+                case CardEffectType.GainEnergyThisTurn:
+                case CardEffectType.MakeFirstAttackFreeThisTurn:
+                    PlayerUtilityAnim(onImpact);
+                    break;
+
+                default:
+                    if      (data.cardType == CardType.Attack)  PlayerAttackAnim(onImpact);
+                    else if (data.cardType == CardType.Defense)  PlayerDefenseAnim(onImpact);
+                    else                                         PlayerPowerBuffAnim(onImpact);
+                    break;
+            }
+        }
+
+        // 공격: 전진 피크에서 효과 발동 → 복귀
+        private void PlayerAttackAnim(System.Action onImpact = null)
+        {
+            Vector2 rest = GetPlayerRestAnchoredPosition();
+            DOTween.Sequence()
+                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + 56f, 0.14f).SetEase(Ease.OutQuint))
+                .AppendCallback(() => onImpact?.Invoke())
+                .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.18f).SetEase(Ease.OutQuad));
+        }
+
+        // 다중타격: 첫 타격 피크에서 효과 발동 → 연타 → 복귀
+        private void PlayerMultiHitAnim(CardData data, System.Action onImpact = null)
+        {
+            Vector2 rest = GetPlayerRestAnchoredPosition();
+
+            if (data != null
+                && data.effectType == CardEffectType.MultiHitAttack
+                && data.secondaryValue >= 10)
+            {
+                // 유성우처럼 타격 수가 매우 많은 카드는 플레이어가 앞으로 반복 돌진하지 않고
+                // 짧은 시전 펄스만 재생해 원위치 이탈을 방지한다.
+                DOTween.Sequence()
+                    .Append(playerImage.rectTransform.DOAnchorPosY(rest.y + 12f, 0.08f).SetEase(Ease.OutQuad))
+                    .Join(playerImage.rectTransform.DOScale(Vector3.one * 1.08f, 0.08f).SetEase(Ease.OutQuad))
+                    .AppendCallback(() => onImpact?.Invoke())
+                    .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.14f).SetEase(Ease.OutQuad))
+                    .Join(playerImage.rectTransform.DOScale(Vector3.one, 0.14f).SetEase(Ease.OutQuad));
+                DOTween.Sequence()
+                    .Append(playerImage.DOColor(new Color(0.9f, 0.45f, 1f), 0.08f))
+                    .Append(playerImage.DOColor(Color.white, 0.18f));
+                return;
+            }
+
+            float d = 36f;
+            DOTween.Sequence()
+                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + d,        0.07f).SetEase(Ease.OutQuint))
+                .AppendCallback(() => onImpact?.Invoke())
+                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + d * 0.35f, 0.04f))
+                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + d,        0.07f).SetEase(Ease.OutQuint))
+                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + d * 0.35f, 0.04f))
+                .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.14f).SetEase(Ease.OutQuad));
+        }
+
+        // 버서커: 전진 피크에서 효과 발동 → 복귀
+        private void PlayerBerserkerAnim(System.Action onImpact = null)
+        {
+            Vector2 rest = GetPlayerRestAnchoredPosition();
+            DOTween.Sequence()
+                .Append(playerImage.DOColor(new Color(1f, 0.25f, 0.25f), 0.07f))
+                .Join(playerImage.rectTransform.DOAnchorPosX(rest.x + 64f, 0.13f).SetEase(Ease.OutQuint))
+                .AppendCallback(() => onImpact?.Invoke())
+                .Append(playerImage.DOColor(Color.white, 0.28f))
+                .Join(playerImage.rectTransform.DOAnchorPos(rest, 0.18f).SetEase(Ease.OutQuad));
+        }
+
+        // 방어: 후퇴 완료(방어 자세)에서 효과 발동 → 복귀
+        private void PlayerDefenseAnim(System.Action onImpact = null)
+        {
+            Vector2 rest = GetPlayerRestAnchoredPosition();
+            DOTween.Sequence()
+                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x - 18f, 0.1f).SetEase(Ease.OutQuad))
+                .AppendCallback(() => onImpact?.Invoke())
+                .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.18f).SetEase(Ease.OutQuad));
+            DOTween.Sequence()
+                .Append(playerImage.DOColor(new Color(0.35f, 0.6f, 1f), 0.12f))
+                .Append(playerImage.DOColor(Color.white, 0.25f));
+            DOTween.Sequence()
+                .Append(playerImage.rectTransform.DOScale(Vector3.one * 1.1f,  0.12f).SetEase(Ease.OutQuad))
+                .Append(playerImage.rectTransform.DOScale(Vector3.one,          0.2f));
+        }
+
+        // 힘/버프: 광채 피크에서 효과 발동
+        private void PlayerPowerBuffAnim(System.Action onImpact = null)
+        {
+            DOTween.Sequence()
+                .Append(playerImage.DOColor(new Color(1f, 0.78f, 0.1f), 0.15f))
+                .AppendCallback(() => onImpact?.Invoke())
+                .Append(playerImage.DOColor(Color.white, 0.3f));
+            DOTween.Sequence()
+                .Append(playerImage.rectTransform.DOScale(Vector3.one * 1.15f, 0.2f).SetEase(Ease.OutBack))
+                .Append(playerImage.rectTransform.DOScale(Vector3.one,          0.2f));
+        }
+
+        // 상태이상 투척: 전진 피크에서 효과 발동 → 복귀
+        private void PlayerStatusThrowAnim(System.Action onImpact = null)
+        {
+            Vector2 rest = GetPlayerRestAnchoredPosition();
+            DOTween.Sequence()
+                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + 24f, 0.1f).SetEase(Ease.OutQuad))
+                .AppendCallback(() => onImpact?.Invoke())
+                .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.16f).SetEase(Ease.OutQuad));
+            DOTween.Sequence()
+                .Append(playerImage.DOColor(new Color(0.65f, 0.3f, 1f), 0.1f))
+                .Append(playerImage.DOColor(Color.white, 0.22f));
+        }
+
+        // 자신 회복/버프: 광채 피크에서 효과 발동
+        private void PlayerHealAnim(System.Action onImpact = null)
+        {
+            DOTween.Sequence()
+                .Append(playerImage.DOColor(new Color(0.3f, 1f, 0.45f), 0.15f))
+                .AppendCallback(() => onImpact?.Invoke())
+                .Append(playerImage.DOColor(Color.white, 0.3f));
+            DOTween.Sequence()
+                .Append(playerImage.rectTransform.DOScale(Vector3.one * 1.08f, 0.15f).SetEase(Ease.OutBack))
+                .Append(playerImage.rectTransform.DOScale(Vector3.one,          0.2f));
+        }
+
+        // 드로우/유틸리티: 점프 피크에서 효과 발동 → 착지
+        private void PlayerUtilityAnim(System.Action onImpact = null)
+        {
+            Vector2 rest = GetPlayerRestAnchoredPosition();
+            DOTween.Sequence()
+                .Append(playerImage.rectTransform.DOAnchorPosY(rest.y + 20f, 0.15f).SetEase(Ease.OutQuad))
+                .AppendCallback(() => onImpact?.Invoke())
+                .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.18f).SetEase(Ease.OutQuad));
+            DOTween.Sequence()
+                .Append(playerImage.DOColor(new Color(0.45f, 0.85f, 1f), 0.15f))
+                .Append(playerImage.DOColor(Color.white, 0.25f));
+        }
+
         // ── 내부 ───────────────────────────────────────────────────
+
+        private void CachePlayerRestPoseIfNeeded()
+        {
+            if (playerImage == null || playerRestPosCached)
+            {
+                return;
+            }
+
+            playerRestAnchoredPos = playerImage.rectTransform.anchoredPosition;
+            if (IsSuspiciousAvatarPosition(playerRestAnchoredPos))
+            {
+                playerRestAnchoredPos = Vector2.zero;
+                playerImage.rectTransform.anchoredPosition = playerRestAnchoredPos;
+            }
+
+            playerRestPosCached = true;
+        }
+
+        private Vector2 GetPlayerRestAnchoredPosition()
+        {
+            CachePlayerRestPoseIfNeeded();
+            if (IsSuspiciousAvatarPosition(playerRestAnchoredPos))
+            {
+                playerRestAnchoredPos = Vector2.zero;
+            }
+
+            return playerRestPosCached
+                ? playerRestAnchoredPos
+                : playerImage.rectTransform.anchoredPosition;
+        }
+
+        private static bool IsSuspiciousAvatarPosition(Vector2 position)
+        {
+            return Mathf.Abs(position.x) > SuspiciousAvatarOffset || Mathf.Abs(position.y) > SuspiciousAvatarOffset;
+        }
 
         private void RefreshStatusIcons(BattleCombatantState combatant, int turnAttackBonus = 0)
         {

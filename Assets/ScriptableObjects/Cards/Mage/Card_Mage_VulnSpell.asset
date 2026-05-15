@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 400
   effectValue: 2
   secondaryValue: 0
-  effectDescription: "\uC801\uC5D0\uAC8C \uCDE8\uC57D {value}\uD134 \uBD80\uC5EC."
+  effectDescription: "대상에게 취약 {value}턴을 부여합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 11400000, guid: 25988997590447d199e70ae14d94a131, type: 2}
   isExhaust: 0

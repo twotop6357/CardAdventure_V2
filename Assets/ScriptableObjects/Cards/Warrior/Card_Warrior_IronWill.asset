@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 303
   effectValue: 2
   secondaryValue: 0
-  effectDescription: "\uAC15\uD654 {value}\uB97C \uD68D\uB4DD\uD55C\uB2E4."
+  effectDescription: "힘 {value}를 획득합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -20,8 +20,7 @@ MonoBehaviour:
   effectType: 316
   effectValue: 1
   secondaryValue: 5
-  effectDescription: "\uB300\uC0C1\uC5D0\uAC8C {value}\uC758 \uD53C\uD574\uB97C \uC785\uD799\uB2C8\uB2E4.
-    \uD68C\uD53C\uB97C {value2} \uD68D\uB4DD\uD569\uB2C8\uB2E4."
+  effectDescription: "대상에게 {value} 피해를 적용하고 회피 {value2}를 획득합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

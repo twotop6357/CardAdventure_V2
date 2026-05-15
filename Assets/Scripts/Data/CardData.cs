@@ -47,7 +47,7 @@ namespace CardAdventure
         ConsumeBlockToDealDamage      = 107, // 현재 방어막을 모두 소모하고 그 수치만큼 피해
         DamageAndApplyStatus          = 108, // secondaryValue 피해 + statusEffect 를 effectValue 스택 부여
         MultiHitAttack                = 109, // effectValue 피해 × secondaryValue회
-        MultiHitAndGainStrength       = 110, // effectValue 피해 × N회, 피해를 줄 때마다 secondaryValue 강화
+        MultiHitAndGainStrength       = 110, // effectValue 피해 × N회, 피해를 줄 때마다 secondaryValue 힘
 
         // ── 방어 확장 ─────────────────────────────
         DefenseAndDraw = 202,       // effectValue 방어막 + secondaryValue 장 드로우
@@ -55,12 +55,12 @@ namespace CardAdventure
 
         // ── 스킬 확장 ─────────────────────────────
         DrawCards    = 302,         // effectValue 장 드로우 (손패 보충)
-        GainStrength = 303,         // 자신에게 강화(Strength) effectValue 스택 부여
+        GainStrength = 303,         // 자신에게 힘(Strength) effectValue 스택 부여
         DealDamageWhenBlockGained          = 304, // 이번 턴 방어막 1 획득마다 effectValue 피해
         GainBlockWhenDamageDealt           = 305, // 이번 턴 피해 1마다 effectValue 방어막 획득
-        GainStrengthEqualCurrentBlock      = 306, // 현재 방어막만큼 강화 획득
+        GainStrengthEqualCurrentBlock      = 306, // 현재 방어막만큼 힘 획득
         DrawCardWhenBlockGained            = 307, // 이번 턴 방어막 획득마다 effectValue 장 드로우
-        GrantEnemyStrengthAndRetaliateNext = 308, // 적에게 강화 부여, 다음 적 공격 피해량만큼 강화 획득
+        GrantEnemyStrengthAndRetaliateNext = 308, // 적에게 힘 부여, 다음 적 공격 피해량만큼 힘 획득
         GainEnergyThisTurn                 = 309, // 이번 턴 에너지 effectValue 획득
         BlockAndNextTurnEnergy             = 310, // effectValue 방어막 + 다음 턴 에너지 secondaryValue 추가
         ApplyPoisonWhenDamageDealt         = 311, // 이번 턴 피해를 줄 때마다 독 effectValue 부여

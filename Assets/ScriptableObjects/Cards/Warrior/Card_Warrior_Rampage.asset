@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 300
   effectValue: 4
   secondaryValue: 0
-  effectDescription: "\uC774\uBC88 \uD134 \uACF5\uACA9 \uCE74\uB4DC \uC0AC\uC6A9 \uC2DC {value} \uCD94\uAC00 \uD53C\uD574. (\uC18C\uBA78)"
+  effectDescription: "이번 턴에 공격 카드 사용 시 추가 피해 {value}를 획득합니다. 사용 후 소멸합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 1

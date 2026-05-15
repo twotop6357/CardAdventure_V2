@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 200
   effectValue: 8
   secondaryValue: 0
-  effectDescription: "\uBC29\uC5B4\uB9C9 {value} \uD68D\uB4DD. (\uC18C\uBA78)"
+  effectDescription: "방어도 {value}를 획득합니다. 사용 후 소멸합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 1

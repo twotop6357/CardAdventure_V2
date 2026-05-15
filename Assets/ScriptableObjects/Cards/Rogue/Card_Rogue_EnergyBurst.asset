@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -20,10 +20,7 @@ MonoBehaviour:
   effectType: 315
   effectValue: 2
   secondaryValue: 2
-  effectDescription: "\uBAA8\uB4E0 \uC5D0\uB108\uC9C0\uB97C \uC18C\uBE44\uD558\uC5EC
-    \uACF5\uACA9\uD569\uB2C8\uB2E4. \uB300\uC0C1\uC5D0\uAC8C {value}\uC758 \uD53C\uD574\uB97C
-    \uC785\uD788\uBA70, \uC18C\uBAA8\uD55C \uC5D0\uB108\uC9C0 \uB2F9 {value2}\uC758
-    \uCD94\uAC00 \uD53C\uD574\uB97C \uC785\uD799\uB2C8\uB2E4."
+  effectDescription: "모든 에너지를 소비하여 대상에게 {value} 피해를 적용합니다. 소모한 에너지마다 {value2} 추가 피해를 적용합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

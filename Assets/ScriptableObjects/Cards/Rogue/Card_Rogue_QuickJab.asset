@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 102
   effectValue: 3
   secondaryValue: 0
-  effectDescription: "{value} \uD53C\uD574\uB97C 2\uD68C \uC785\uD78C\uB2E4."
+  effectDescription: "대상에게 {value} 피해를 2회 적용합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

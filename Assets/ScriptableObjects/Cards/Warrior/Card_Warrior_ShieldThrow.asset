@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 107
   effectValue: 0
   secondaryValue: 0
-  effectDescription: "가진 방어도 전부를 소모하여 대상에게 소모한 방어도만큼의 피해를 입힙니다."
+  effectDescription: "보유한 방어도를 모두 소모하고, 소모한 방어도만큼 대상에게 피해를 적용합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 400
   effectValue: 3
   secondaryValue: 0
-  effectDescription: "\uC801\uC5D0\uAC8C \uB3C5 {value} \uBD80\uC5EC."
+  effectDescription: "대상에게 독 {value}를 부여합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 11400000, guid: 03970def3e819c049997aa4e30a6389a, type: 2}
   isExhaust: 0

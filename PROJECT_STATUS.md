@@ -1,3 +1,303 @@
+### 2026-05-15 (Codex - 사용 카드 퇴장 DOTween 연출 추가)
+
+#### 이번 작업 요약
+- 사용 확정된 카드가 더 이상 중앙 타겟으로 단순 이동하지 않도록 카드 퇴장 연출을 교체했다.
+- 일반 카드는 사용자가 클릭한 위치에서 시작해 화면 오른쪽 하단으로 빨려 들어가듯 이동/축소/회전하도록 `BattleCardView.PlayCardUseAnimation(...)`을 추가했다.
+- 소멸 카드는 클릭 위치에서 확대 후 회전·축소·페이드아웃되며 사라지도록 별도 DOTween 연출을 추가했다.
+- `BattleUIManager`가 카드 사용 확정 시점의 `Input.mousePosition`을 캡처하고, 카드의 `IsExhaust` 여부에 따라 일반/소멸 연출을 선택하도록 연결했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleCardView.cs`
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `BattleCardView.cs`, `BattleUIManager.cs` Unity `validate_script standard`: 에러 0개
+- 기존 GC 관련 경고 1개씩만 확인됨.
+- Unity 스크립트 컴파일 완료. 최종 콘솔에 컴파일 에러 없음.
+
+#### 다음 작업
+- PlayMode에서 일반 카드와 소멸 카드 사용 시 클릭 위치 기준으로 퇴장 연출이 시작되는지 확인한다.
+- 우하단 흡입 목표 지점이 실제 덱/버림 카드 UI 위치와 맞지 않으면, 별도 RectTransform 필드로 목표 위치를 노출해 조정한다.
+
+#### 주의사항
+- 기존 `PlayCardAnimation(Vector3, ...)`은 호환을 위해 남겨두었고, 실제 카드 사용 흐름은 새 `PlayCardUseAnimation(...)`을 사용한다.
+
+---
+
+### 2026-05-15 (Codex - 연쇄 피해 애니메이션 타이밍 개선)
+
+#### 이번 작업 요약
+- 방어/버프 카드가 다른 카드 효과로 적에게 피해를 줄 때 피해가 즉시 적용되고, 플레이어 DOTween 반격 모션은 뒤늦게 재생되던 문제를 수정했다.
+- `BattleManager`에 연쇄 피해 지연 큐를 추가해, UI 연출 중에는 연쇄 피해를 즉시 적용하지 않고 `BattleTriggeredDamageRequest`로 보관하도록 했다.
+- `BattleUIManager`가 카드 효과 처리 후 보류된 연쇄 피해를 하나씩 꺼내 `BattleHudView.PlayTriggeredAttackAnim(...)`의 타격 피크에서 실제 피해를 적용하도록 변경했다.
+- 연쇄 피해가 여러 번 발생하거나, 피해 보상 효과가 다시 연쇄 피해를 만드는 경우에도 큐를 이어서 처리하도록 했다.
+- `BattleVfxController`가 연쇄 피해 적용 이벤트를 받아 적 위치에 히트 VFX를 표시하도록 했다.
+
+#### 변경 파일
+- `Assets/Scripts/Battle/BattleTriggeredDamageRequest.cs`
+- `Assets/Scripts/Battle/BattleManager.cs`
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `Assets/Scripts/UI/BattleHudView.cs`
+- `Assets/Scripts/Battle/BattleVfxController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- 변경 스크립트 5개 Unity `validate_script standard`: 신규 에러 0개
+- 새 스크립트 추가 후 Unity `force refresh` 및 컴파일 완료. 최종 콘솔에 컴파일 에러 없음.
+- `Assembly-CSharp-Editor` 전체 EditMode 테스트 42개 실행: 기존과 동일한 7개 실패가 남아 있음.
+  - 전투 턴/상태 기대값 6건
+  - 상점 구매 기대값 1건
+- 이번 연쇄 피해 애니메이션 변경으로 인한 추가 컴파일 오류는 확인되지 않았다.
+
+#### 다음 작업
+- PlayMode에서 `가시 방벽` 사용 후 방어 카드(`전투 준비`, `방어`, `불굴` 등)를 사용해, 반격 모션 피크와 적 피해/히트 VFX가 함께 발생하는지 확인한다.
+- `혼돈 시전`처럼 다른 카드를 실제로 자동 사용시키는 카드의 연속 카드 사용 애니메이션은 별도 단계에서 카드별 시퀀싱이 필요하다.
+
+#### 주의사항
+- 기본 전투 로직 테스트 경로에서는 기존처럼 즉시 피해가 적용된다. 지연 큐는 `BattleUIManager`가 카드 사용 연출 중 명시적으로 켰을 때만 사용된다.
+
+---
+
+### 2026-05-15 (Codex - 카드 설명 문체 통일)
+
+#### 이번 작업 요약
+- `Assets/ScriptableObjects/Cards` 아래 현재 카드 63장의 `effectDescription`을 모두 점검했다.
+- 카드 설명의 문체를 `적용합니다`, `획득합니다`, `부여합니다`, `드로우합니다`, `소멸합니다` 중심으로 통일했다.
+- `입힌다`, `획득.`, `부여.`, `드로우.`처럼 섞여 있던 해라체/명사형 종결을 모두 제거했다.
+- 각 설명 문장의 종결이 `합니다` 또는 `입니다`로 끝나는지 자동 검사했다.
+
+#### 변경 파일
+- `Assets/ScriptableObjects/Cards/Mage/*.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/*.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/*.asset`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- 카드 에셋 63개 확인 완료.
+- `effectDescription` 문장 종결 검사 결과: `Total=63`, `Bad=0`
+- Unity asset refresh 완료.
+
+#### 다음 작업
+- 카드 UI에서 긴 설명(`그림자 난타`, `독 폭발`, `마나 장벽` 등)이 카드 텍스트 영역 안에 자연스럽게 들어가는지 PlayMode에서 시각 확인한다.
+
+#### 주의사항
+- 이번 수정은 카드 설명 텍스트만 변경했으며, 카드 효과 수치와 전투 로직은 변경하지 않았다.
+
+---
+
+### 2026-05-15 (Codex - 디버프 카드 플레이어 이미지 이탈 수정)
+
+#### 이번 작업 요약
+- 디버프/상태이상 계열 카드 사용 시 플레이어 이미지의 X좌표가 `-1600` 수준으로 튀는 현상을 조사했다.
+- 해당 계열은 `BattleHudView.PlayCardUsedAnimation()`에서 `PlayerStatusThrowAnim()` 경로를 타며, 기존 플레이어 카드 사용 연출들이 UI `RectTransform.localPosition` 계열 DOTween 이동을 사용하던 것이 원인으로 판단됐다.
+- `PlayerAvatar`가 Canvas 안의 UI 이미지이므로 모든 플레이어 카드 사용 모션을 `anchoredPosition`/`DOAnchorPos` 기준으로 변경했다.
+- 이미 튄 위치가 휴식 위치로 캐시되는 상황을 막기 위해 비정상적으로 큰 anchored position은 `Vector2.zero`로 복구하는 방어 로직을 추가했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleHudView.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `BattleHudView.cs` Unity `validate_script standard`: 에러 0개
+- Unity 스크립트 컴파일 요청 및 ready 상태 확인 완료.
+- `rg` 확인 결과 `BattleHudView.cs`의 플레이어 카드 사용 모션에는 더 이상 `DOLocalMove`/`localPosition` 경로가 남아있지 않다.
+- `Assembly-CSharp-Editor` 전체 EditMode 테스트 실행 결과, 이번 UI 변경과 별개로 기존 전투 규칙/상점 기대값 불일치 7건이 확인됐다. 플레이어 이미지 이동 패치 자체의 컴파일 오류는 없다.
+
+#### 다음 작업
+- PlayMode에서 독/약화/취약/빙결/도발 등 디버프 카드 사용 후 `PlayerAvatar`의 anchored position이 매번 원점으로 복구되는지 시각 확인한다.
+- 별도 전투 로직 회귀로 보이는 EditMode 실패 7건은 카드 효과/턴 진행 규칙 변경 내역과 테스트 기대값 중 어느 쪽을 맞출지 분리 검토한다.
+
+#### 주의사항
+- 이번 수정은 플레이어 HUD 이미지의 UI 좌표계만 정리했으며, 카드 효과 수치나 상태이상 처리 로직은 변경하지 않았다.
+
+---
+
+### 2026-05-15 (Codex - 유성우/연타 공격 플레이어 모션 안정화)
+
+#### 이번 작업 요약
+- 공격 카드 중 플레이어 DOTween 모션이 과하게 누적되어 원위치하지 않는 원인을 조사했다.
+- 가장 유력한 카드로 `Card_Mage_MeteorShower.asset`의 `유성우`를 확인했다. 이 카드는 `MultiHitAttack`이고 `secondaryValue=15`라, 기존 연타 모션 계열에서 가장 과한 후보였다.
+- `BattleHudView`의 플레이어 모션들이 현재 위치를 기준점으로 삼던 구조를 수정해, 전투 시작 시 캐시한 휴식 위치(`playerRestLocalPos`)를 기준으로 전진/후퇴 후 반드시 복귀하도록 변경했다.
+- `유성우`처럼 타격 수가 매우 많은 `MultiHitAttack`은 반복 돌진 대신 짧은 시전 펄스 + 색상 플래시만 재생하도록 완화했다.
+- 일반 연타 모션의 전진 거리와 반복 시간을 줄이고, 버서커 돌진 거리도 완화했다.
+- 새 카드 애니메이션 시작 시 플레이어 이미지의 스케일과 색상을 `Vector3.one`/`Color.white`로 정규화해 이전 DOTween 잔여 상태가 누적되지 않도록 했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleHudView.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `BattleHudView.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 컴파일 요청 완료.
+- 관련 EditMode 테스트 3개 통과:
+  - `MageMeteorShower_HitsFifteenTimes`
+  - `MagePowerSurge_GainsStrengthForEachDamagingHit`
+  - `RogueShadowBarrage_HitsThreeTimes_NoCritWithZeroDodge`
+- 최종 콘솔에는 MCP-FOR-UNITY 클라이언트 종료 로그와 Unity Test Framework cleanup 경고만 확인되었고, 이번 변경 관련 컴파일 에러는 없다.
+
+#### 다음 작업
+- PlayMode에서 `유성우`, `불꽃 난사`, `힘의 쇄도`, `그림자 난타`, `광전사의 일격`을 사용해 플레이어 이미지가 매번 원위치로 돌아오는지 시각 확인한다.
+
+#### 주의사항
+- 이번 수정은 플레이어 HUD 이미지 모션만 조정했으며, 카드 효과 수치와 적 피해 처리에는 영향을 주지 않는다.
+
+---
+
+### 2026-05-15 (Codex - 드로우 카드 손패 즉시 반영 및 사용 카드 재등장 방지)
+
+#### 이번 작업 요약
+- 카드 사용 후 손패 UI 갱신을 특정 `effectType` 목록으로 추정하던 방식을 제거했다.
+- 이제 카드 사용 애니메이션이 끝나면 현재 런타임 손패를 항상 `BattleHandView.RefreshHand(...)`로 동기화한다.
+- `수비 전술`처럼 별도 카드가 이후 방어 획득을 통해 드로우를 발생시키는 간접 드로우도 턴 종료 전 즉시 손패에 반영된다.
+- 사용한 드로우 카드가 다시 손패에 돌아온 것처럼 보이는 문제를 막기 위해, `BattleManager.PlayCard(...)`에서 카드를 손패에서 먼저 제거한 뒤 효과를 처리하고 모든 드로우/무료 카드 트리거 이후 버림/소멸/덱 복귀 목적지로 보내도록 순서를 변경했다.
+- 이를 위해 `BattleCardPiles`에 손패 제거와 목적지 추가용 명시 메서드(`RemoveHandCard`, `AddToDiscard`, `AddToExhaust`, `AddToDrawPile`)를 추가했다.
+- 이전 작업에서 `Status_Strength` 표시명을 `힘`으로 바꾼 내용에 맞춰 `BattleManagerEditModeTests.StatusEffectAssets_HaveKoreanNamesAndDescriptions`의 기대값도 갱신했다.
+- 추가 확인 결과 방어/드로우 카드는 모두 `CardUseMode.PlayArea` 경로를 타며, 카드 날아감 애니메이션 완료와 플레이어 HUD 애니메이션 피크의 효과 발동 콜백이 서로 다른 타이밍에 실행된다.
+- `BattleUIManager.TryPlaySelectedCard()`에서 카드 날아감 애니메이션이 먼저 끝나도 효과 처리 완료 전에는 손패를 동기화하지 않도록 `cardEffectResolved/cardFlyCompleted` 플래그를 추가했다.
+- `playerHud` 참조가 없을 때 `playerHud?.PlayCardUsedAnimation(...)` 때문에 카드 효과 콜백이 아예 실행되지 않을 수 있는 경로도 제거하고, HUD가 없으면 즉시 `ResolveCardEffect()`를 호출하도록 보강했다.
+
+#### 변경 파일
+- `Assets/Scripts/Battle/BattleCardPiles.cs`
+- `Assets/Scripts/Battle/BattleManager.cs`
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `Assets/Tests/Editor/BattleManagerEditModeTests.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `BattleCardPiles.cs`, `BattleManager.cs`, `BattleUIManager.cs`, `BattleManagerEditModeTests.cs` Unity `validate_script standard`: 에러 0개.
+- `BattleUIManager.cs`에는 기존 GC 관련 경고 1개만 남아 있다.
+- 관련 EditMode 테스트 통과:
+  - `BattlePreparation_DrawsCardsAndGainsBlock`
+  - `DefensiveTactics_DrawsWhenBlockIsGained`
+  - `MageChaosCasting_PlaysOtherCardsFromHand`
+  - `StatusEffectAssets_HaveKoreanNamesAndDescriptions` (이전 검증)
+- Unity 스크립트 컴파일 요청 완료.
+- 최종 콘솔에는 MCP-FOR-UNITY 클라이언트 종료 로그만 확인되었고, 이번 변경 관련 컴파일 에러는 없다.
+
+#### 다음 작업
+- PlayMode에서 `전투 준비`, `전사의 절규`, `집중`, `재빠른 뽑기`, `수비 전술 + 방어 카드`를 사용해 드로우된 카드가 즉시 손패에 등장하는지 시각 확인한다.
+
+#### 주의사항
+- 카드 사용 후 매번 손패를 동기화하므로, 단순 공격/방어 카드도 애니메이션 완료 시점에 위치가 한 번 재정렬된다. 기존 카드 뷰는 재사용되므로 일반 사용감에는 영향이 작을 것으로 예상한다.
+- `AttackAndShuffleBackToDeck` 카드만 효과 처리와 트리거가 끝난 뒤 덱에 다시 섞인다. 일반 드로우 카드가 자기 자신을 같은 사용 처리 중 다시 뽑는 상황은 피하도록 했다.
+
+---
+
+### 2026-05-15 (Codex - 카드 설명 시트 반영 및 힘 명칭 통일)
+
+#### 이번 작업 요약
+- Google Sheets `gid=1298972056` CSV를 확인해 현재 프로젝트 카드와 명확히 대응되는 카드 설명을 반영했다.
+- 시트의 `assetName/cardName`이 대부분 비어 있어, 기존 카드 파일명과 직업/등급/비용/타입/효과 수치 조합으로 대응 가능한 항목만 갱신했다.
+- 기존 카드 설명에 남아 있던 `강화` 표기를 `힘`으로 교체했다.
+- `Status_Strength` 표시 이름과 상태 툴팁/적 인텐트 fallback 표기도 `힘`으로 통일했다.
+
+#### 변경 파일
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_ArcaneDiscount.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_ElementBoost.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_InfernoBlast.asset`
+- `Assets/ScriptableObjects/Cards/Mage/Card_Mage_PowerSurge.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_Afterimage.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_EnergyBurst.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_NimbleStrike.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_PoisonBurst.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_PoisonNeedle.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_QuickHands.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_ShadowBarrage.asset`
+- `Assets/ScriptableObjects/Cards/Rogue/Card_Rogue_SwiftDraw.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_AdversityResolve.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_CounterStance.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_IronWill.asset`
+- `Assets/ScriptableObjects/Cards/Warrior/Card_Warrior_ShieldThrow.asset`
+- `Assets/ScriptableObjects/StatusEffects/Status_Strength.asset`
+- `Assets/Scripts/Data/CardData.cs`
+- `Assets/Scripts/Data/EnemyData.cs`
+- `Assets/Scripts/Data/StatusEffectData.cs`
+- `Assets/Scripts/UI/BattleHudView.cs`
+- `Assets/Scripts/UI/StatusTooltipPanel.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `rg "강화" Assets/ScriptableObjects Assets/Scripts` 결과 없음.
+- `CardData.cs`, `StatusEffectData.cs`, `EnemyData.cs`, `StatusTooltipPanel.cs`, `BattleHudView.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 에셋 리프레시 및 스크립트 컴파일 요청 완료.
+- 콘솔의 남은 항목은 MCP-FOR-UNITY 클라이언트 종료 로그뿐이며, 이번 변경 관련 컴파일 에러는 확인되지 않았다.
+
+#### 다음 작업
+- PlayMode에서 카드 툴팁/손패/상점 프리뷰의 설명 줄바꿈과 `힘` 상태이상 표기가 의도대로 보이는지 시각 확인한다.
+- 시트의 나머지 카드 행을 더 정확히 자동 동기화하려면 `assetName` 또는 `cardName` 열을 모든 행에 채워 두는 것이 좋다.
+
+#### 주의사항
+- 작업 전부터 씬, 전투 스크립트, 일부 서드파티 material 등 다른 변경 파일이 이미 존재했다. 이번 작업에서는 카드 설명/힘 명칭 관련 파일만 수정했다.
+
+---
+
+### 2026-05-14 (Claude Code - 전사 배틀 테스트 및 플레이어 행동 애니메이션 시스템 구축)
+
+#### 이번 작업 요약
+
+**1. 전사 덱 적용 경로 파악 및 수정**
+- 배틀씬 진입 시 덱 데이터 우선순위: `GameDataManager.starterDeck` (AdventureScene에 하드코딩) → `GameDataManager.Deck` → `BattleManager.startingDeck`
+- `Job_Warrior.asset`·`BattleTest.unity` 수정으로는 반영 안 됨을 확인하고 `AdventureScene.unity`의 `GameDataManager.starterDeck`을 전사 카드 21장으로 교체
+- `BattleTest.unity`의 `BattleManager.startingDeck`도 21장으로 동기화 (직접 실행 대응)
+
+**2. 이번 턴 특수 카드 버그 수정 (`BattleManager.cs`, `BattleHudView.cs`)**
+- **분노/맹공 HUD 미표시**: 첫 공격 전 `TurnAttackDamageBonus=0`이어서 아이콘 안 보임 → `Mathf.Max(TurnAttackDamageBonus, AttackBonusGainedPerAttack)`으로 수정
+- **수비 전술 과다 드로우**: `blockAmount × 1`장 드로우 → 이벤트 단위 1장으로 수정 (`CardsDrawnPerBlockGain` 그대로 사용)
+- 가시 방벽 + 응전 태세 무한 연쇄는 의도된 사항으로 원상복구
+
+**3. 플레이어 행동 애니메이션 시스템 구축 (`BattleHudView.cs`, `BattleUIManager.cs`)**
+- `PlayCardUsedAnimation(CardData, Action onImpact)`: 카드 effectType 기반으로 7종 모션 분기
+  - 공격: 오른쪽 75px 돌진 → 바운스 복귀
+  - 다중타격: 3회 빠른 돌진 반복
+  - 버서커: 붉은 섬광 + 95px 대폭 돌진
+  - 방어: 뒤로 후퇴 + 파란 빛 + 스케일 팽창
+  - 힘/버프: 황금 광채 + 스케일 팽창
+  - 상태이상 투척: 소폭 전진 + 보라 빛
+  - 드로우/유틸리티: 위로 점프 + 하늘색 빛
+
+**4. 카드 효과-애니메이션 타이밍 동기화 (`BattleManager.cs`, `BattleUIManager.cs`)**
+- `BattleManager.CanPlayCard()` 추가: 효과 미적용 사전 검증 메서드
+- `TryPlaySelectedCard()` 재구성:
+  - `CanPlayCard` 사전 검증 → 애니메이션 시작 → `onImpact`(피크)에서 `PlayCard` 호출
+  - 공격 피크(0.14s), 방어 피크(0.10s), 버프 피크(0.15s) 등 각 타이밍에서 효과 발동
+  - 카드 날아가는 애니메이션과 플레이어 모션 동시 재생
+
+**5. 트리거 피해 반격 모션 추가 (`BattleHudView.cs`, `BattleUIManager.cs`)**
+- `PlayTriggeredAttackAnim()`: 방어/버프 카드 피크에서 적 HP 감소 감지 시 자동 호출
+  - 주황빛 섬광 + 60px 돌진 → 복귀 (가시 방벽 등 연쇄 피해 반격 연출)
+- 위치 캐시: `playerRestLocalPos` / `playerRestPosCached`로 휴식 위치 기준 정확한 돌진
+
+**6. 드로우 애니메이션 중복 제거 (`BattleUIManager.cs`)**
+- `CardEffectDrawsCards(CardData)` 헬퍼 추가: effectType 기반 명시적 판단
+  - `DrawCards`, `DefenseAndDraw`, `DrawAndDefense`, `DrawCardWhenBlockGained`, `DrawCardWhenPlayingFreeCards`, `DrawCardsGainDodgeOnFreeDraw`, `PlayHandRandomly` 7종만 `RefreshHand` 호출
+  - 나머지 카드는 `DetachCardView`가 처리 → 불필요한 드로우 애니메이션 미발생
+
+#### 변경 파일
+- `Assets/Scenes/AdventureScene.unity` — GameDataManager.starterDeck 전사 21장
+- `Assets/Scenes/BattleTest.unity` — BattleManager.startingDeck 전사 21장
+- `Assets/ScriptableObjects/Jobs/Job_Warrior.asset` — starterCards 전사 21장
+- `Assets/Scripts/Battle/BattleManager.cs` — CanPlayCard 추가, 수비 전술 드로우 수정, 분노 HUD 수정
+- `Assets/Scripts/UI/BattleHudView.cs` — 플레이어 행동 7종 애니메이션 + PlayTriggeredAttackAnim + 위치 캐시
+- `Assets/Scripts/UI/BattleUIManager.cs` — TryPlaySelectedCard 재구성, CardEffectDrawsCards 추가
+
+#### 검증 결과
+- 컴파일 에러 0개 확인 (각 단계 MCP read_console 검증)
+- PlayMode 시각 확인 미완료 (Unity Editor 직접 실행 필요)
+
+#### 다음 작업 후보
+- 플레이어 애니메이션 타이밍(피크 0.10~0.15s) 및 돌진 거리 PlayMode 확인 후 조정
+- `DrawCardWhenBlockGained`(수비 전술) 사용 시 드로우 여부 확인 (activating이 아닌 set-up 카드)
+- 전투 테스트 완료 후 마법사/도적 덱도 동일하게 설정
+- EditMode 전투 테스트 6개 실패 (BattleManager 코루틴화 이후) 수정 필요
+
+#### 주의사항
+- `CardEffectDrawsCards`에 없는 effectType이 드로우를 발생시키면 손패 갱신 누락. 새 카드 효과 추가 시 목록 업데이트 필요.
+- `PlayTriggeredAttackAnim`은 HP 비교 기반이므로 적이 이미 죽었을 때(HP=0)는 발동하지 않을 수 있음.
+- 분노 HUD: `AttackBonusGainedPerAttack`이 첫 공격 전에도 표시되므로 누적값과 구분 주의.
+
+---
+
 ### 2026-05-14 (Antigravity - 상점 UI 레이아웃 최적화 및 테스트 수정)
 
 #### 이번 작업 요약

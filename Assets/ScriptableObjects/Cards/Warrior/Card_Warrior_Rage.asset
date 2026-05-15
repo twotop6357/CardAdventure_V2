@@ -20,8 +20,7 @@ MonoBehaviour:
   effectType: 300
   effectValue: 2
   secondaryValue: 0
-  effectDescription: "\uC774\uBC88 \uD134\uC5D0 \uACF5\uACA9 \uCE74\uB4DC\uB97C \uC0AC\uC6A9\uD560
-    \uB54C\uB9C8\uB2E4 \uD798 {value}\uC744 \uC5BB\uB294\uB2E4."
+  effectDescription: "이번 턴에 공격 카드를 사용할 때마다 힘 {value}를 획득합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

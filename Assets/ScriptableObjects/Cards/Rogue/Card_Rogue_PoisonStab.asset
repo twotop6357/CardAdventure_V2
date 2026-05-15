@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 105
   effectValue: 5
   secondaryValue: 2
-  effectDescription: "{value} \uD53C\uD574 \uD6C4 \uC801\uC5D0\uAC8C \uB3C5 {value2} \uBD80\uC5EC."
+  effectDescription: "대상에게 {value} 피해를 적용하고 독 {value2}를 부여합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 11400000, guid: 03970def3e819c049997aa4e30a6389a, type: 2}
   isExhaust: 0

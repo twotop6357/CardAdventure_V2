@@ -131,7 +131,7 @@ namespace CardAdventure
             StatusEffectType.Poison => "독",
             StatusEffectType.Weak => "약화",
             StatusEffectType.Vulnerable => "취약",
-            StatusEffectType.Strength => "강화",
+            StatusEffectType.Strength => "힘",
             StatusEffectType.Regeneration => "재생",
             StatusEffectType.Burn => "화상",
             _ => "상태이상"

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Mage_ElementBoost
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "\uC6D0\uC18C \uAC15\uD654"
+  cardName: "\uC6D0\uC18C 힘"
   energyCost: 2
   cardType: 2
   cardClass: 2
@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 303
   effectValue: 2
   secondaryValue: 0
-  effectDescription: "\uAC15\uD654 {value}\uB97C \uD68D\uB4DD\uD55C\uB2E4. (\uC18C\uBA78)"
+  effectDescription: "힘 {value}를 획득합니다. 사용 후 소멸합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 1

@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 321
   effectValue: 5
   secondaryValue: 5
-  effectDescription: "대상에게 독을 {value} 부여합니다. 이후 독 중첩을 모두 제거하며 {value} + 제거된 독 중첩 만큼의 피해를 입힙니다."
+  effectDescription: "대상에게 독 {value}를 부여합니다. 이후 대상의 독 중첩을 모두 제거하고 {value} + 제거한 독 중첩만큼 피해를 적용합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

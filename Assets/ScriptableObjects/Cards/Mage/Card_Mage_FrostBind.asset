@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 312
   effectValue: 0
   secondaryValue: 0
-  effectDescription: "대상을 얼려 다음 턴에 아무런 행동도 취할 수 없게 합니다."
+  effectDescription: "대상을 얼려 다음 턴에 행동할 수 없게 합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

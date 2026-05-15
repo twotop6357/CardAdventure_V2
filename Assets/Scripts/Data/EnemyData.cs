@@ -11,7 +11,7 @@ namespace CardAdventure
     {
         Attack,         // 플레이어에게 데미지
         Defend,         // 방어도(Block) 획득
-        Buff,           // 자신에게 강화 부여
+        Buff,           // 자신에게 힘 부여
         DebuffPlayer,   // 플레이어에게 상태이상 부여
         HealSelf        // 자신 HP 회복
     }
@@ -54,7 +54,7 @@ namespace CardAdventure
                 EnemyActionType.Defend => $"방어 {value}",
                 EnemyActionType.Buff => statusEffect != null
                     ? $"{statusEffect.effectName} {statusEffectStacks} 적용"
-                    : "강화",
+                    : "힘",
                 EnemyActionType.DebuffPlayer => statusEffect != null
                     ? $"{statusEffect.effectName} {statusEffectStacks} 부여"
                     : "약화",

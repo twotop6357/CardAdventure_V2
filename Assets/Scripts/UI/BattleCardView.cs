@@ -546,6 +546,98 @@ namespace CardAdventure
             transform.DOScale(0f, 0.35f).SetEase(Ease.InBack);
         }
 
+        public void PlayCardUseAnimation(Vector2 clickScreenPosition, bool exhaust, System.Action onComplete = null)
+        {
+            CancelPreviewCoroutine();
+            DOTween.Kill(transform, complete: false);
+            isPointerFollowing = false;
+
+            transform.SetAsLastSibling();
+            transform.localRotation = Quaternion.identity;
+            transform.localScale = Vector3.one;
+            SetPositionToScreenPoint(clickScreenPosition);
+
+            if (exhaust)
+            {
+                PlayExhaustAnimation(onComplete);
+                return;
+            }
+
+            PlayDiscardSuctionAnimation(onComplete);
+        }
+
+        private void PlayDiscardSuctionAnimation(System.Action onComplete)
+        {
+            Vector2 targetScreenPoint = new Vector2(Screen.width - 96f, 88f);
+            const float duration = 0.42f;
+
+            Sequence sequence = DOTween.Sequence()
+                .Append(transform.DOScale(1.08f, 0.08f).SetEase(Ease.OutQuad))
+                .Append(transform.DOScale(0.12f, duration).SetEase(Ease.InBack))
+                .Join(transform.DORotate(new Vector3(0f, 0f, -28f), duration).SetEase(Ease.InQuad))
+                .OnComplete(() =>
+                {
+                    onComplete?.Invoke();
+                    Destroy(gameObject);
+                });
+
+            Tween moveTween = CreateScreenPointMoveTween(targetScreenPoint, duration);
+            if (moveTween != null)
+            {
+                sequence.Join(moveTween.SetEase(Ease.InCubic));
+            }
+        }
+
+        private void PlayExhaustAnimation(System.Action onComplete)
+        {
+            CanvasGroup canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
+
+            canvasGroup.alpha = 1f;
+
+            DOTween.Sequence()
+                .Append(transform.DOScale(1.18f, 0.1f).SetEase(Ease.OutBack))
+                .Join(transform.DORotate(new Vector3(0f, 0f, 10f), 0.1f).SetEase(Ease.OutQuad))
+                .Append(transform.DOScale(0f, 0.26f).SetEase(Ease.InBack))
+                .Join(transform.DORotate(new Vector3(0f, 0f, 180f), 0.26f).SetEase(Ease.InQuad))
+                .Join(canvasGroup.DOFade(0f, 0.24f).SetEase(Ease.InQuad))
+                .OnComplete(() =>
+                {
+                    onComplete?.Invoke();
+                    Destroy(gameObject);
+                });
+        }
+
+        private Tween CreateScreenPointMoveTween(Vector2 screenPoint, float duration)
+        {
+            if (rootCanvas == null)
+            {
+                return transform.DOMove(screenPoint, duration);
+            }
+
+            if (rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                return transform.DOMove(screenPoint, duration);
+            }
+
+            Camera cam = rootCanvas.worldCamera != null ? rootCanvas.worldCamera : Camera.main;
+            RectTransform canvasRect = rootCanvas.GetComponent<RectTransform>();
+            if (canvasRect != null
+                && RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    canvasRect,
+                    screenPoint,
+                    cam,
+                    out Vector2 localPoint))
+            {
+                return transform.DOLocalMove(localPoint, duration);
+            }
+
+            return transform.DOMove(screenPoint, duration);
+        }
+
         private void OnDisable()
         {
             CancelPreviewCoroutine();

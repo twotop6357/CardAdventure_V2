@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 322
   effectValue: 2
   secondaryValue: 0
-  effectDescription: "대상에게 피해를 {value} 입힙니다. 사용 후 이 카드를 덱에 다시 섞습니다."
+  effectDescription: "대상에게 {value} 피해를 적용합니다. 사용 후 이 카드를 덱에 추가하고 셔플합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

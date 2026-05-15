@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 400
   effectValue: 2
   secondaryValue: 0
-  effectDescription: "\uC801\uC5D0\uAC8C \uC57D\uD654 {value}\uD134 \uBD80\uC5EC."
+  effectDescription: "대상에게 약화 {value}턴을 부여합니다."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 11400000, guid: b47562738c8deec47897cd7ad2c7737d, type: 2}
   isExhaust: 0
