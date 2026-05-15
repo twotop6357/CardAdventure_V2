@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Rogue_Evade
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "\uD68C\uD53C"
+  cardName: "회피"
   energyCost: 1
-  cardType: 1
+  cardType: 2
   cardClass: 3
   grade: 0
-  effectType: 200
-  effectValue: 8
+  effectType: 401
+  effectValue: 2
   secondaryValue: 0
-  effectDescription: "방어도 {value}를 획득합니다. 사용 후 소멸합니다."
+  effectDescription: "회피 {value} 스택을 획득합니다."
   cardIcon: {fileID: 0}
-  statusEffect: {fileID: 0}
-  isExhaust: 1
+  statusEffect: {fileID: 11400000, guid: e209c1587f5d9ec468d92524cb2bc1e4, type: 2}
+  isExhaust: 0
   isStarterCard: 0

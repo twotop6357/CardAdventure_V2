@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a39853eb9f2fef04c82d49f38acfc753, type: 3}
   m_Name: Status_Dodge
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.StatusEffectData
-  effectName: "\uD68C\uD53C"
+  effectName: "회피"
   effectType: 6
-  description: "\uD68C\uD53C \uC2A4\uD0DD 1\uAC1C\uB2F9 \uCE58\uBA85\uD0C0 \uD655\uB960
-    1%\uB97C \uC81C\uACF5\uD569\uB2C8\uB2E4."
+  description: "스택의 % 확률로 적의 공격을 회피합니다. 회피 성공 시 스택이 절반으로 감소합니다."
   defaultStacks: 1
   duration: 0
   icon: {fileID: -6392185959211822404, guid: 605f01367444dc04eabe2f2633fdcc47, type: 3}

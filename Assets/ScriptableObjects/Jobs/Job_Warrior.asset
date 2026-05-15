@@ -32,25 +32,15 @@ MonoBehaviour:
   playerIdleVisualScaleMultiplier: 0.267
   starterCards:
   - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
+  - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
+  - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
+  - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
+  - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
   - {fileID: 11400000, guid: 98ba4d22a9d25314fafe6e95fddaef96, type: 2}
-  - {fileID: 11400000, guid: cfc7e656a4784c8f84c954e8922e92cc, type: 2}
-  - {fileID: 11400000, guid: 42decda60b964ec8b8fe80824be93e68, type: 2}
-  - {fileID: 11400000, guid: 0a00a80b6e7148a0987dfaddbce91182, type: 2}
-  - {fileID: 11400000, guid: 2c93476f7fea4ae0a23c740dcaa5a414, type: 2}
-  - {fileID: 11400000, guid: 96e1e70686000cd4581eb959cc710cac, type: 2}
-  - {fileID: 11400000, guid: 46bfe6d6ccb44835ac69320c5a1bfc68, type: 2}
-  - {fileID: 11400000, guid: bc6b91fe15dcaa9478ad9813c95f081c, type: 2}
-  - {fileID: 11400000, guid: ca5833677ca868c40bfb5fdb9af73f5a, type: 2}
-  - {fileID: 11400000, guid: fb2484886d6146eb933ec01bc8af222c, type: 2}
-  - {fileID: 11400000, guid: 774c1899c4e9d1c4a9a6f7e3b11d172b, type: 2}
-  - {fileID: 11400000, guid: 806f7c41ebe96ee40b110beb1ec7029b, type: 2}
-  - {fileID: 11400000, guid: 0fe93263156a02248ae3a646d1c82b99, type: 2}
+  - {fileID: 11400000, guid: 98ba4d22a9d25314fafe6e95fddaef96, type: 2}
+  - {fileID: 11400000, guid: 98ba4d22a9d25314fafe6e95fddaef96, type: 2}
+  - {fileID: 11400000, guid: 98ba4d22a9d25314fafe6e95fddaef96, type: 2}
   - {fileID: 11400000, guid: 46e08f0f5539169449c9d3d51bd21197, type: 2}
-  - {fileID: 11400000, guid: 5334623dd31a13e4db1f39a77917b295, type: 2}
-  - {fileID: 11400000, guid: 83bf6570a00992b4db8ea7db67c65e54, type: 2}
-  - {fileID: 11400000, guid: 9bd51562c90c2c34a8a0ce0e53fb7c10, type: 2}
   - {fileID: 11400000, guid: 0d030dd1e422f4148a36659e08b6fc89, type: 2}
-  - {fileID: 11400000, guid: ab3aa3794fe535b43b6d19042a8cfd71, type: 2}
-  - {fileID: 11400000, guid: 0f47da540ad24d8ab772da9b1f44a4e6, type: 2}
   baseMaxHp: 60
   baseMaxEnergy: 3

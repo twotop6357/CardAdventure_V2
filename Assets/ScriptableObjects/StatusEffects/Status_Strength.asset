@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.StatusEffectData
   effectName: "힘"
   effectType: 3
-  description: "\uACF5\uACA9 \uD53C\uD574\uC5D0 \uC911\uCCA9 \uC218\uB9CC\uD07C \uCD94\uAC00
-    \uD53C\uD574\uB97C \uB354\uD569\uB2C8\uB2E4."
+  description: "공격 피해에 중첩 수만큼 추가 피해를 더합니다. 매 턴 1씩 감소합니다."
   defaultStacks: 1
   duration: 0
   icon: {fileID: -8307069055350043731, guid: c6e9eabffb0bdd247bf31ed7b350a1c1, type: 3}

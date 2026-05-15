@@ -168,13 +168,35 @@ namespace CardAdventure
         {
             for (int i = statuses.Count - 1; i >= 0; i--)
             {
-                statuses[i].TickDuration();
+                if (statuses[i].HasTimedDuration)
+                {
+                    statuses[i].TickDuration();
+                }
+                else if (statuses[i].EffectType != StatusEffectType.Dodge)
+                {
+                    // 스택 기반 효과(독, 화상, 힘 등)는 매 턴 1스택 감소
+                    // 회피(Dodge)는 회피 성공 시에만 절반 감소 — 여기서 제외
+                    statuses[i].ConsumeStacks(1);
+                }
 
                 if (statuses[i].IsExpired)
                 {
                     statuses.RemoveAt(i);
                 }
             }
+        }
+
+        /// <summary>지정 상태이상 스택을 절반으로 감소시킨다 (회피 성공 시 호출).</summary>
+        public void HalveStatusStacks(StatusEffectType effectType)
+        {
+            BattleStatusInstance status = statuses.Find(s => s.EffectType == effectType);
+            if (status == null) return;
+
+            int newStacks = status.Stacks / 2;
+            if (newStacks <= 0)
+                statuses.Remove(status);
+            else
+                status.ConsumeStacks(status.Stacks - newStacks);
         }
     }
 }

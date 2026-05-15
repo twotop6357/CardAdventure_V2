@@ -40,6 +40,10 @@ namespace CardAdventure
         [SerializeField] private Sprite          healIntentSprite;
         [SerializeField] private Sprite          unknownIntentSprite;
 
+        [Header("상태이상 아이콘 라이브러리")]
+        [Tooltip("Data 없이 생성된 상태이상에 아이콘을 제공하기 위한 전체 목록")]
+        [SerializeField] private StatusEffectData[] statusDataLibrary;
+
         [Header("스프라이트")]
         [SerializeField] private Image           enemyImage;
 
@@ -141,14 +145,20 @@ namespace CardAdventure
             _                           => unknownIntentSprite,
         };
 
+        private StatusEffectData FindStatusData(StatusEffectType type)
+        {
+            if (statusDataLibrary == null) return null;
+            foreach (StatusEffectData d in statusDataLibrary)
+                if (d != null && d.effectType == type) return d;
+            return null;
+        }
+
         private void RefreshStatusIcons(BattleCombatantState combatant)
         {
             if (statusContainer == null) return;
 
             foreach (Transform child in statusContainer)
-            {
                 Destroy(child.gameObject);
-            }
 
             if (statusIconPrefab == null || combatant == null) return;
 
@@ -156,7 +166,7 @@ namespace CardAdventure
             {
                 if (status.IsExpired) continue;
                 BattleStatusIconView icon = Instantiate(statusIconPrefab, statusContainer);
-                icon.Bind(status);
+                icon.Bind(status, FindStatusData(status.EffectType));
             }
         }
 
@@ -231,6 +241,19 @@ namespace CardAdventure
                     .Append(enemyImage.DOColor(Color.red,   flashDuration))
                     .Append(enemyImage.DOColor(Color.white, flashDuration));
             }
+        }
+
+        /// <summary>
+        /// 상태이상이 부여될 때 타격 직후 해당 상태이상 색상으로 펄스 애니메이션을 재생한다.
+        /// </summary>
+        public void PlayStatusAppliedAnim(Color statusColor)
+        {
+            if (enemyImage == null) return;
+
+            DOTween.Sequence()
+                .AppendInterval(flashDuration * 2f)   // 피격 플래시가 끝날 무렵에 시작
+                .Append(enemyImage.DOColor(statusColor,  0.15f).SetEase(Ease.OutQuad))
+                .Append(enemyImage.DOColor(Color.white,  0.25f).SetEase(Ease.InQuad));
         }
     }
 }

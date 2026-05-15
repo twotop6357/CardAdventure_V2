@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -20,8 +20,9 @@ MonoBehaviour:
   effectType: 301
   effectValue: 7
   secondaryValue: 0
-  effectDescription: "방어도 {value}를 획득하고 대상에게 약화 1턴을 부여합니다."
+  effectDescription: "\uBC29\uC5B4\uB3C4 {value}\uB97C \uD68D\uB4DD\uD558\uACE0 \uB300\uC0C1\uC5D0\uAC8C
+    \uC57D\uD654 1\uD134\uC744 \uBD80\uC5EC\uD569\uB2C8\uB2E4."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 11400000, guid: b47562738c8deec47897cd7ad2c7737d, type: 2}
   isExhaust: 0
-  isStarterCard: 0
+  isStarterCard: 1

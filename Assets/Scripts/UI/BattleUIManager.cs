@@ -136,23 +136,25 @@ namespace CardAdventure
 
         private void SubscribeEvents()
         {
-            battleManager.BattleStarted           += OnBattleStarted;
-            battleManager.StateChanged            += OnStateChanged;
-            battleManager.EnemyIntentSelected     += OnEnemyIntentSelected;
-            battleManager.TurnStartStatusResolved += OnTurnStartStatusResolved;
-            battleManager.BattleEnded             += OnBattleEnded;
-            battleManager.EnemyActionExecuting    += OnEnemyActionExecuting;
+            battleManager.BattleStarted              += OnBattleStarted;
+            battleManager.StateChanged               += OnStateChanged;
+            battleManager.EnemyIntentSelected        += OnEnemyIntentSelected;
+            battleManager.TurnStartStatusResolved    += OnTurnStartStatusResolved;
+            battleManager.BattleEnded                += OnBattleEnded;
+            battleManager.EnemyActionExecuting       += OnEnemyActionExecuting;
+            battleManager.EnemyStatusEffectApplied   += OnEnemyStatusEffectApplied;
         }
 
         private void UnsubscribeEvents()
         {
             if (battleManager == null) return;
-            battleManager.BattleStarted           -= OnBattleStarted;
-            battleManager.StateChanged            -= OnStateChanged;
-            battleManager.EnemyIntentSelected     -= OnEnemyIntentSelected;
-            battleManager.TurnStartStatusResolved -= OnTurnStartStatusResolved;
-            battleManager.BattleEnded             -= OnBattleEnded;
-            battleManager.EnemyActionExecuting    -= OnEnemyActionExecuting;
+            battleManager.BattleStarted              -= OnBattleStarted;
+            battleManager.StateChanged               -= OnStateChanged;
+            battleManager.EnemyIntentSelected        -= OnEnemyIntentSelected;
+            battleManager.TurnStartStatusResolved    -= OnTurnStartStatusResolved;
+            battleManager.BattleEnded                -= OnBattleEnded;
+            battleManager.EnemyActionExecuting       -= OnEnemyActionExecuting;
+            battleManager.EnemyStatusEffectApplied   -= OnEnemyStatusEffectApplied;
         }
 
         // ── 이벤트 핸들러 ──────────────────────────────────────────
@@ -220,6 +222,24 @@ namespace CardAdventure
         {
             enemyView?.PlayActionAnimation(action.actionType);
         }
+
+        private void OnEnemyStatusEffectApplied(BattleManager manager, StatusEffectType type, StatusEffectData data)
+        {
+            Color color = data != null ? data.displayColor : GetStatusFallbackColor(type);
+            enemyView?.PlayStatusAppliedAnim(color);
+        }
+
+        private static Color GetStatusFallbackColor(StatusEffectType type) => type switch
+        {
+            StatusEffectType.Poison       => new Color(0.35f, 0.75f, 0.25f),
+            StatusEffectType.Burn         => new Color(1f,    0.35f, 0.08f),
+            StatusEffectType.Weak         => new Color(0.60f, 0.60f, 0.90f),
+            StatusEffectType.Vulnerable   => new Color(0.98f, 0.44f, 0.09f),
+            StatusEffectType.Strength     => new Color(0.95f, 0.30f, 0.27f),
+            StatusEffectType.Regeneration => new Color(0.30f, 0.69f, 0.31f),
+            StatusEffectType.Dodge        => new Color(0.20f, 0.75f, 0.95f),
+            _                             => Color.gray,
+        };
 
         private void OnTurnStartStatusResolved(BattleManager manager,
             BattleCombatantState combatant, BattleStatusTurnResult result)
@@ -404,17 +424,22 @@ namespace CardAdventure
 
             Vector2 cardUseScreenPoint = Input.mousePosition;
 
-            if (useMode == CardUseMode.PlayArea)
-                played.EndPointerFollow(restoreToHand: false);
-
             // ── 사전 검증 (효과 미적용) ──────────────────────────────
+            // EndPointerFollow 전에 먼저 검증한다.
+            // 실패 시 restoreToHand: true 로 원위치 복귀 — ReattachCardView 불필요.
             if (!battleManager.CanPlayCard(card))
             {
-                handView?.ReattachCardView(played, card);
+                if (useMode == CardUseMode.PlayArea)
+                    played.EndPointerFollow(restoreToHand: true);
+                played.SetSelected(false);
+                handView?.ClearSelection();
                 if (battleManager.Player != null && !battleManager.Player.CanPayEnergy(card))
                     ShakeCard(played);
                 return;
             }
+
+            if (useMode == CardUseMode.PlayArea)
+                played.EndPointerFollow(restoreToHand: false);
 
             handView?.DetachCardView(played);
             isCardAnimating = true;
@@ -473,6 +498,14 @@ namespace CardAdventure
 
             void ResolveTriggeredDamageRequests(List<BattleTriggeredDamageRequest> requests, int index)
             {
+                // 전투가 끝났으면(적 사망 등) 남은 요청을 모두 건너뜀
+                if (battleManager.Phase != BattlePhase.PlayerTurn)
+                {
+                    battleManager.SetTriggeredDamageDeferred(false);
+                    FinishCardEffectResolution();
+                    return;
+                }
+
                 if (index >= requests.Count)
                 {
                     List<BattleTriggeredDamageRequest> chainedRequests =
@@ -490,9 +523,20 @@ namespace CardAdventure
                 }
 
                 BattleTriggeredDamageRequest request = requests[index];
-                playerHud.PlayTriggeredAttackAnim(
-                    () => battleManager.ResolveTriggeredDamage(request),
-                    () => ResolveTriggeredDamageRequests(requests, index + 1));
+
+                // 다단 히트는 전용 서브히트 애니메이션, 연쇄 피해(가시 방벽 등)는 반격 애니메이션
+                if (request.IsMultiHit && playerHud != null)
+                {
+                    playerHud.PlayMultiHitSubAnim(
+                        () => battleManager.ResolveTriggeredDamage(request),
+                        () => ResolveTriggeredDamageRequests(requests, index + 1));
+                }
+                else
+                {
+                    playerHud.PlayTriggeredAttackAnim(
+                        () => battleManager.ResolveTriggeredDamage(request),
+                        () => ResolveTriggeredDamageRequests(requests, index + 1));
+                }
             }
 
             void FinishCardEffectResolution()

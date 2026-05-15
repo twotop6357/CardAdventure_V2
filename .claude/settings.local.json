@@ -25,7 +25,8 @@
       "Bash(Select-String \"guid\")",
       "Bash(Get-ChildItem -Path \"C:\\\\UnityProjects\\\\CardAdventure\\\\Assets\" -Directory)",
       "Bash(Select-Object Name)",
-      "mcp__UnityMCP__manage_asset"
+      "mcp__UnityMCP__manage_asset",
+      "Bash(git checkout *)"
     ]
   }
 }

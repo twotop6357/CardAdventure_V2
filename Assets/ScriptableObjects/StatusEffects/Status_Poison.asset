@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.StatusEffectData
   effectName: "독"
   effectType: 0
-  description: "대상 턴 시작 시 중첩 수만큼 방어막을 무시하고 HP를 잃습니다."
+  description: "대상 턴 시작 시 중첩 수만큼 방어막을 무시하고 HP를 잃습니다. 매 턴 1씩 감소합니다."
   defaultStacks: 2
   duration: 0
   icon: {fileID: -4347532159779508366, guid: abe70adbd7a464b4a9cf9d5873d5cb4f, type: 3}

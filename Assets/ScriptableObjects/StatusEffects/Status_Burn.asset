@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.StatusEffectData
   effectName: "화상"
   effectType: 5
-  description: "대상 턴 시작 시 중첩 수만큼 방어막을 무시하고 화상 피해를 입습니다."
+  description: "대상 턴 시작 시 중첩 수만큼 방어막을 무시하고 화상 피해를 입습니다. 매 턴 1씩 감소합니다."
   defaultStacks: 1
   duration: 0
   icon: {fileID: -2155852121259104947, guid: 273a1b3676518aa47994bf50f0f2049c, type: 3}

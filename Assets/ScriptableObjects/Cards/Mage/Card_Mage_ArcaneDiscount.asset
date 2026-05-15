@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Mage_ArcaneDiscount
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "비전 할인"
+  cardName: "마력 절약"
   energyCost: 0
   cardType: 2
   cardClass: 2

@@ -33,13 +33,26 @@ MonoBehaviour:
   playerIdleVisualScaleMultiplier: 0.85
   invertVisualFlip: 1
   starterCards:
+  - {fileID: 11400000, guid: 23d1e9c5e6f1f004782b619774df4e54, type: 2}
+  - {fileID: 11400000, guid: 0d09817cef3848f4877e6ae3ad4a855b, type: 2}
+  - {fileID: 11400000, guid: 468662111f43779478365d160f2eae72, type: 2}
+  - {fileID: 11400000, guid: 3186fbc0cf4b4f6bb0004a9eb7528189, type: 2}
   - {fileID: 11400000, guid: 7c11354cb7434bf3b5a7d1a7db7cc4d7, type: 2}
-  - {fileID: 11400000, guid: 7c11354cb7434bf3b5a7d1a7db7cc4d7, type: 2}
-  - {fileID: 11400000, guid: 7c11354cb7434bf3b5a7d1a7db7cc4d7, type: 2}
-  - {fileID: 11400000, guid: 96a1e928b2c040c9bb8ed896c40d5106, type: 2}
-  - {fileID: 11400000, guid: 9039c770855044418f22f952218ab6c2, type: 2}
-  - {fileID: 11400000, guid: 9039c770855044418f22f952218ab6c2, type: 2}
-  - {fileID: 11400000, guid: a20e3ef74a16405cb339e708d280821b, type: 2}
   - {fileID: 11400000, guid: 06ffce17a93d4e0da8132e356089f925, type: 2}
+  - {fileID: 11400000, guid: 442a6c2097d413f439399a044fa8ddd9, type: 2}
+  - {fileID: 11400000, guid: 96a1e928b2c040c9bb8ed896c40d5106, type: 2}
+  - {fileID: 11400000, guid: d04bb6c6f3e82f44385434b2ddb306a1, type: 2}
+  - {fileID: 11400000, guid: 6f1f93868e9d4392aef4b4bd74a7ef25, type: 2}
+  - {fileID: 11400000, guid: 9039c770855044418f22f952218ab6c2, type: 2}
+  - {fileID: 11400000, guid: 06f8bc59ce687634ab3939d17a85fbad, type: 2}
+  - {fileID: 11400000, guid: a20e3ef74a16405cb339e708d280821b, type: 2}
+  - {fileID: 11400000, guid: caf3fad6822d414439684cad9d1c35aa, type: 2}
+  - {fileID: 11400000, guid: a18599c99929c1e4a8e0784e6bcc3b42, type: 2}
+  - {fileID: 11400000, guid: c9f0a81dddf9a614c830a2f962f336f2, type: 2}
+  - {fileID: 11400000, guid: f366be4230024dabaae85048913701f9, type: 2}
+  - {fileID: 11400000, guid: 9379395f64ec04242b004455cd5365ba, type: 2}
+  - {fileID: 11400000, guid: d01964b343e0cac43818ba5f526ea5e9, type: 2}
+  - {fileID: 11400000, guid: 6227b9bffed503f42aff5faa3e6a41a3, type: 2}
+  - {fileID: 11400000, guid: 742af8dfa3da4deab49887cce069cb8d, type: 2}
   baseMaxHp: 40
   baseMaxEnergy: 3

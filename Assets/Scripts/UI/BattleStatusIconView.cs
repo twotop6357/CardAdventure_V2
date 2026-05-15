@@ -25,6 +25,7 @@ namespace CardAdventure
         [SerializeField] private Color defaultStatusColor = Color.gray;
 
         private BattleStatusInstance boundStatus;
+        private StatusEffectData     resolvedData;  // Bind 시 결정된 최종 데이터 (툴팁 전달용)
 
         private void Awake()
         {
@@ -49,33 +50,38 @@ namespace CardAdventure
                 iconImage.color = tint;
         }
 
-        public void Bind(BattleStatusInstance status)
+        /// <param name="fallback">status.Data가 null일 때 아이콘/색상/툴팁을 제공할 대체 데이터.</param>
+        public void Bind(BattleStatusInstance status, StatusEffectData fallback = null)
         {
             if (status == null) return;
-            boundStatus = status;
+            boundStatus  = status;
+            resolvedData = status.Data ?? fallback;
+
+            StatusEffectData resolved = resolvedData;
 
             if (iconImage != null)
             {
-                if (status.Data != null && status.Data.icon != null)
+                if (resolved?.icon != null)
                 {
-                    iconImage.sprite = status.Data.icon;
-                    iconImage.color = Color.white;
+                    iconImage.sprite = resolved.icon;
+                    iconImage.color  = Color.white;
                 }
                 else
                 {
-                    iconImage.color = GetStatusColor(status.EffectType);
+                    iconImage.sprite = null;
+                    iconImage.color  = GetStatusColor(status.EffectType);
                 }
             }
 
             if (stacksText != null)
             {
-                stacksText.text = status.Stacks > 1 ? status.Stacks.ToString() : "";
+                stacksText.text  = status.Stacks > 1 ? status.Stacks.ToString() : "";
                 stacksText.color = Color.black;
             }
 
             if (durationText != null)
             {
-                durationText.text = status.HasTimedDuration ? status.RemainingDuration.ToString() : "";
+                durationText.text  = status.HasTimedDuration ? status.RemainingDuration.ToString() : "";
                 durationText.color = Color.black;
             }
         }
@@ -83,9 +89,7 @@ namespace CardAdventure
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (boundStatus == null) return;
-            
-            Debug.Log($"[StatusIcon] Pointer Enter: {boundStatus.EffectType}");
-            StatusTooltipPanel.Instance?.Show(boundStatus, eventData.position);
+            StatusTooltipPanel.Instance?.Show(boundStatus, resolvedData, eventData.position);
         }
 
         public void OnPointerExit(PointerEventData eventData)

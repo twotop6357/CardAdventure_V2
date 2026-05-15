@@ -28,6 +28,11 @@ namespace CardAdventure
         [SerializeField] private GameObject fxRegen;
         [SerializeField] private GameObject fxDodge;
 
+        // ── 회피 성공 이펙트 ─────────────────────────────────────
+        [Header("회피 성공 이펙트")]
+        [Tooltip("플레이어가 적 공격을 회피했을 때 플레이어 위치에 재생")]
+        [SerializeField] private GameObject fxDodgeSuccess;
+
         // ── 턴 시작 틱 이펙트 ────────────────────────────────────
         [Header("턴 시작 틱 이펙트")]
         [Tooltip("독·화상 틱 피해")]
@@ -73,6 +78,7 @@ namespace CardAdventure
             bm.PlayerTriggeredDamageResolved += HandlePlayerTriggeredDamageResolved;
             bm.TurnStartStatusResolved   += HandleTurnStartStatus;
             bm.StateChanged              += HandleStateChanged;
+            bm.DodgeSucceeded            += HandleDodgeSucceeded;
         }
 
         private void OnDisable()
@@ -83,6 +89,7 @@ namespace CardAdventure
             bm.PlayerTriggeredDamageResolved -= HandlePlayerTriggeredDamageResolved;
             bm.TurnStartStatusResolved   -= HandleTurnStartStatus;
             bm.StateChanged              -= HandleStateChanged;
+            bm.DodgeSucceeded            -= HandleDodgeSucceeded;
         }
 
         // ════════════════════════════════════════════════════════
@@ -90,6 +97,12 @@ namespace CardAdventure
         // ════════════════════════════════════════════════════════
 
         private void HandleBattleStarted(BattleManager m) => SnapshotHp(m);
+
+        private void HandleDodgeSucceeded(BattleManager m)
+        {
+            Spawn(fxDodgeSuccess, GetWorldPos(playerAvatarRect));
+            prevPlayerHp = m.Player?.Combatant.CurrentHp ?? prevPlayerHp;
+        }
 
         private void HandleCardPlayed(BattleManager m, BattleRuntimeCard card)
         {

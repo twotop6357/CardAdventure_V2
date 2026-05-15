@@ -42,6 +42,10 @@ namespace CardAdventure
         public event Action<BattleManager, BattlePhase> BattleEnded;
         /// <summary>적이 실제로 행동하기 직전 발생. UI 애니메이션 재생에 사용한다.</summary>
         public event Action<BattleManager, EnemyAction> EnemyActionExecuting;
+        /// <summary>플레이어가 적 공격을 회피했을 때 발생.</summary>
+        public event Action<BattleManager> DodgeSucceeded;
+        /// <summary>플레이어 카드 효과로 적에게 상태이상이 부여될 때 발생 (StatusEffectData는 null일 수 있음).</summary>
+        public event Action<BattleManager, StatusEffectType, StatusEffectData> EnemyStatusEffectApplied;
 
         private readonly List<BattleTriggeredDamageRequest> pendingTriggeredDamageRequests =
             new List<BattleTriggeredDamageRequest>();
@@ -212,15 +216,19 @@ namespace CardAdventure
 
         public int ResolveTriggeredDamage(BattleTriggeredDamageRequest request)
         {
+            if (Enemy == null || Enemy.Combatant.IsDefeated) return 0;
+
             int damageDealt = DealPlayerDamageToEnemy(
                 request.BaseDamage,
                 request.IncludeAttackBonuses,
                 request.TriggerDamageRewards);
 
+            // 히트당 상태이상 획득 (MultiHitAndGainStrength 등)
+            if (request.HasPlayerStatusGain && damageDealt > 0 && Player != null)
+                Player.Combatant.ApplyStatus(request.PlayerGainStatus, request.PlayerGainStatusStacks, 0);
+
             if (damageDealt > 0)
-            {
                 PlayerTriggeredDamageResolved?.Invoke(this, damageDealt);
-            }
 
             ResolveBattleEndOrNotify();
             return damageDealt;
@@ -383,19 +391,15 @@ namespace CardAdventure
                 case CardEffectType.Taunt:
                     AddPlayerBlock(data.effectValue);
                     if (data.statusEffect != null)
-                    {
-                        Enemy.Combatant.ApplyStatus(data.statusEffect, Mathf.Max(1, data.statusEffect.defaultStacks));
-                    }
+                        ApplyAndNotifyEnemyStatus(data.statusEffect, Mathf.Max(1, data.statusEffect.defaultStacks));
                     else
-                    {
-                        Enemy.Combatant.ApplyStatus(StatusEffectType.Weak, 1, 1);
-                    }
+                        ApplyAndNotifyEnemyStatus(StatusEffectType.Weak, 1, 1);
                     break;
 
                 // ── 상태이상 부여 ─────────────────────────────────
                 case CardEffectType.ApplyStatusToEnemy:
                     if (data.statusEffect != null)
-                        Enemy.Combatant.ApplyStatus(data.statusEffect,
+                        ApplyAndNotifyEnemyStatus(data.statusEffect,
                             Mathf.Max(1, data.effectValue > 0 ? data.effectValue : data.statusEffect.defaultStacks));
                     else
                         Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}': ApplyStatusToEnemy인데 statusEffect가 없습니다.");
@@ -412,8 +416,8 @@ namespace CardAdventure
                 // ── 공격 확장 ─────────────────────────────────────
                 case CardEffectType.DoubleStrike:
                 {
-                    DealPlayerDamageToEnemy(data.effectValue, true, true);
-                    DealPlayerDamageToEnemy(data.effectValue, true, true);
+                    for (int i = 0; i < 2; i++)
+                        DealOrQueueTriggeredDamage(data.effectValue, true, true, isMultiHit: true);
                     break;
                 }
                 case CardEffectType.BerserkerAttack:
@@ -435,7 +439,7 @@ namespace CardAdventure
                     if (data.statusEffect != null)
                     {
                         int stacks = data.secondaryValue > 0 ? data.secondaryValue : data.statusEffect.defaultStacks;
-                        Enemy.Combatant.ApplyStatus(data.statusEffect, Mathf.Max(1, stacks));
+                        ApplyAndNotifyEnemyStatus(data.statusEffect, Mathf.Max(1, stacks));
                     }
                     else
                         Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}': AttackAndApplyStatus인데 statusEffect가 없습니다.");
@@ -460,7 +464,7 @@ namespace CardAdventure
                     if (data.statusEffect != null)
                     {
                         int stacks = data.effectValue > 0 ? data.effectValue : data.statusEffect.defaultStacks;
-                        Enemy.Combatant.ApplyStatus(data.statusEffect, Mathf.Max(1, stacks));
+                        ApplyAndNotifyEnemyStatus(data.statusEffect, Mathf.Max(1, stacks));
                     }
                     else
                         Debug.LogWarning($"[BattleManager] 카드 '{data.cardName}': DamageAndApplyStatus인데 statusEffect가 없습니다.");
@@ -470,31 +474,18 @@ namespace CardAdventure
                 {
                     int hitCount = Mathf.Max(1, data.secondaryValue);
                     for (int i = 0; i < hitCount; i++)
-                    {
-                        DealPlayerDamageToEnemy(data.effectValue, true, true);
-                        if (Enemy.Combatant.IsDefeated)
-                        {
-                            break;
-                        }
-                    }
+                        DealOrQueueTriggeredDamage(data.effectValue, true, true, isMultiHit: true);
                     break;
                 }
                 case CardEffectType.MultiHitAndGainStrength:
                 {
                     const int hitCount = 3;
+                    int strengthPerHit = Mathf.Max(1, data.secondaryValue);
                     for (int i = 0; i < hitCount; i++)
-                    {
-                        int damageDealt = DealPlayerDamageToEnemy(data.effectValue, true, true);
-                        if (damageDealt > 0)
-                        {
-                            Player.Combatant.ApplyStatus(StatusEffectType.Strength, Mathf.Max(1, data.secondaryValue), 0);
-                        }
-
-                        if (Enemy.Combatant.IsDefeated)
-                        {
-                            break;
-                        }
-                    }
+                        DealOrQueueTriggeredDamage(data.effectValue, true, true,
+                            isMultiHit: true,
+                            playerGainStatus: StatusEffectType.Strength,
+                            playerGainStatusStacks: strengthPerHit);
                     break;
                 }
 
@@ -536,7 +527,7 @@ namespace CardAdventure
                     Player.AddCardsDrawnPerBlockGainForTurn(Mathf.Max(1, data.effectValue));
                     break;
                 case CardEffectType.GrantEnemyStrengthAndRetaliateNext:
-                    Enemy.Combatant.ApplyStatus(StatusEffectType.Strength, Mathf.Max(1, data.effectValue), 0);
+                    ApplyAndNotifyEnemyStatus(StatusEffectType.Strength, Mathf.Max(1, data.effectValue), 0);
                     Player.PrepareGainStrengthFromNextEnemyDamage();
                     break;
                 case CardEffectType.GainEnergyThisTurn:
@@ -582,12 +573,11 @@ namespace CardAdventure
                     float critChance = Mathf.Clamp01(dodgeStacks * 0.01f);
                     for (int i = 0; i < 3; i++)
                     {
+                        // 크리티컬 여부를 큐잉 시점에 미리 결정해 저장
                         int hitDamage = data.effectValue;
                         if (UnityEngine.Random.value < critChance)
                             hitDamage = Mathf.RoundToInt(hitDamage * data.secondaryValue);
-                        DealPlayerDamageToEnemy(hitDamage, true, true);
-                        if (Enemy.Combatant.IsDefeated)
-                            break;
+                        DealOrQueueTriggeredDamage(hitDamage, true, true, isMultiHit: true);
                     }
                     break;
                 }
@@ -599,7 +589,7 @@ namespace CardAdventure
                     break;
                 case CardEffectType.PoisonAndDetonateAllPoison:
                 {
-                    Enemy.Combatant.ApplyStatus(StatusEffectType.Poison, Mathf.Max(1, data.effectValue), 0);
+                    ApplyAndNotifyEnemyStatus(StatusEffectType.Poison, Mathf.Max(1, data.effectValue), 0);
                     int removedPoison = Enemy.Combatant.RemoveStatus(StatusEffectType.Poison);
                     int detonationDamage = data.effectValue + removedPoison;
                     DealPlayerDamageToEnemy(detonationDamage, false, true);
@@ -693,25 +683,44 @@ namespace CardAdventure
             }
 
             if (triggerDamageRewards && damageDealt > 0 && Player.PoisonAppliedPerDamageDealt > 0)
-            {
-                Enemy.Combatant.ApplyStatus(StatusEffectType.Poison, Player.PoisonAppliedPerDamageDealt, 0);
-            }
+                ApplyAndNotifyEnemyStatus(StatusEffectType.Poison, Player.PoisonAppliedPerDamageDealt, 0);
 
             return damageDealt;
         }
 
-        private void DealOrQueueTriggeredDamage(int baseDamage, bool includeAttackBonuses, bool triggerDamageRewards)
+        /// <summary>적에게 StatusEffectData 기반 상태이상을 부여하고 이벤트를 발생시킨다.</summary>
+        private void ApplyAndNotifyEnemyStatus(StatusEffectData data, int stacks)
+        {
+            if (data == null || stacks <= 0) return;
+            Enemy.Combatant.ApplyStatus(data, stacks);
+            EnemyStatusEffectApplied?.Invoke(this, data.effectType, data);
+        }
+
+        /// <summary>적에게 타입 기반 상태이상을 부여하고 이벤트를 발생시킨다.</summary>
+        private void ApplyAndNotifyEnemyStatus(StatusEffectType type, int stacks, int duration = 0)
+        {
+            if (stacks <= 0) return;
+            Enemy.Combatant.ApplyStatus(type, stacks, duration);
+            EnemyStatusEffectApplied?.Invoke(this, type, null);
+        }
+
+        private void DealOrQueueTriggeredDamage(
+            int baseDamage, bool includeAttackBonuses, bool triggerDamageRewards,
+            bool isMultiHit = false,
+            StatusEffectType playerGainStatus = default,
+            int playerGainStatusStacks = 0)
         {
             if (deferTriggeredDamage)
             {
                 pendingTriggeredDamageRequests.Add(new BattleTriggeredDamageRequest(
-                    baseDamage,
-                    includeAttackBonuses,
-                    triggerDamageRewards));
+                    baseDamage, includeAttackBonuses, triggerDamageRewards,
+                    isMultiHit, playerGainStatus, playerGainStatusStacks));
                 return;
             }
 
-            DealPlayerDamageToEnemy(baseDamage, includeAttackBonuses, triggerDamageRewards);
+            int dealt = DealPlayerDamageToEnemy(baseDamage, includeAttackBonuses, triggerDamageRewards);
+            if (playerGainStatusStacks > 0 && dealt > 0 && Player != null)
+                Player.Combatant.ApplyStatus(playerGainStatus, playerGainStatusStacks, 0);
         }
 
         private void PlayOtherHandCardsRandomly(BattleRuntimeCard sourceCard)
@@ -790,9 +799,24 @@ namespace CardAdventure
             switch (action.actionType)
             {
                 case EnemyActionType.Attack:
-                    int damageTaken = Player.Combatant.ReceiveDamage(GetEnemyAttackDamage(action.value));
-                    Player.ResolveGainStrengthFromEnemyDamage(damageTaken);
+                {
+                    int attackDamage = GetEnemyAttackDamage(action.value);
+                    int dodgeStacks  = Player.Combatant.GetStatusStacks(StatusEffectType.Dodge);
+                    float dodgeChance = Mathf.Clamp01(dodgeStacks * 0.01f);
+
+                    if (dodgeStacks > 0 && UnityEngine.Random.value < dodgeChance)
+                    {
+                        // 회피 성공: 피해 무효, 스택 절반으로 감소
+                        Player.Combatant.HalveStatusStacks(StatusEffectType.Dodge);
+                        DodgeSucceeded?.Invoke(this);
+                    }
+                    else
+                    {
+                        int damageTaken = Player.Combatant.ReceiveDamage(attackDamage);
+                        Player.ResolveGainStrengthFromEnemyDamage(damageTaken);
+                    }
                     break;
+                }
                 case EnemyActionType.Defend:
                     Enemy.Combatant.AddBlock(action.value);
                     break;

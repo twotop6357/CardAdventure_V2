@@ -38,6 +38,10 @@ namespace CardAdventure
         [Tooltip("분노 등 이번 턴 일시적 공격 보너스를 표시할 때 아이콘 기준으로 사용할 상태 에셋 (Status_Strength.asset 할당)")]
         [SerializeField] private StatusEffectData turnStrengthStatusData;
 
+        [Header("상태이상 아이콘 라이브러리")]
+        [Tooltip("Data 없이 생성된 상태이상(힘·회피·독 등)에 아이콘/설명을 제공하기 위한 전체 목록")]
+        [SerializeField] private StatusEffectData[] statusDataLibrary;
+
         [Header("피격 연출")]
         [SerializeField] private float shakeDuration  = 0.3f;
         [SerializeField] private float shakeStrength  = 18f;
@@ -343,37 +347,48 @@ namespace CardAdventure
                 .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.18f).SetEase(Ease.OutQuad));
         }
 
-        // 다중타격: 첫 타격 피크에서 효과 발동 → 연타 → 복귀
+        // 다중타격: 시전 제스처(스케일 펄스)만 재생하고 onImpact 호출.
+        // 실제 각 히트의 전진/복귀는 PlayMultiHitSubAnim이 담당한다.
         private void PlayerMultiHitAnim(CardData data, System.Action onImpact = null)
         {
-            Vector2 rest = GetPlayerRestAnchoredPosition();
+            DOTween.Sequence()
+                .Append(playerImage.rectTransform.DOScale(Vector3.one * 1.12f, 0.07f).SetEase(Ease.OutBack))
+                .Append(playerImage.rectTransform.DOScale(Vector3.one, 0.09f).SetEase(Ease.OutQuad))
+                .AppendCallback(() => onImpact?.Invoke());
+            DOTween.Sequence()
+                .Append(playerImage.DOColor(new Color(1f, 0.6f, 0.2f), 0.06f))
+                .Append(playerImage.DOColor(Color.white, 0.12f));
+        }
 
-            if (data != null
-                && data.effectType == CardEffectType.MultiHitAttack
-                && data.secondaryValue >= 10)
+        /// <summary>
+        /// 다단 히트 시퀀스의 서브히트 1회 애니메이션.
+        /// BattleUIManager 가 IsMultiHit 요청마다 호출한다.
+        /// </summary>
+        public void PlayMultiHitSubAnim(System.Action onImpact = null, System.Action onComplete = null)
+        {
+            if (playerImage == null)
             {
-                // 유성우처럼 타격 수가 매우 많은 카드는 플레이어가 앞으로 반복 돌진하지 않고
-                // 짧은 시전 펄스만 재생해 원위치 이탈을 방지한다.
-                DOTween.Sequence()
-                    .Append(playerImage.rectTransform.DOAnchorPosY(rest.y + 12f, 0.08f).SetEase(Ease.OutQuad))
-                    .Join(playerImage.rectTransform.DOScale(Vector3.one * 1.08f, 0.08f).SetEase(Ease.OutQuad))
-                    .AppendCallback(() => onImpact?.Invoke())
-                    .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.14f).SetEase(Ease.OutQuad))
-                    .Join(playerImage.rectTransform.DOScale(Vector3.one, 0.14f).SetEase(Ease.OutQuad));
-                DOTween.Sequence()
-                    .Append(playerImage.DOColor(new Color(0.9f, 0.45f, 1f), 0.08f))
-                    .Append(playerImage.DOColor(Color.white, 0.18f));
+                onImpact?.Invoke();
+                onComplete?.Invoke();
                 return;
             }
 
-            float d = 36f;
+            DOTween.Kill(playerImage.rectTransform, complete: false);
+            DOTween.Kill(playerImage, complete: false);
+
+            Vector2 rest = GetPlayerRestAnchoredPosition();
+            // 이전 트윈이 중간에 끊겨도 깨끗하게 시작
+            playerImage.rectTransform.anchoredPosition = rest;
+            playerImage.color = Color.white;
+
             DOTween.Sequence()
-                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + d,        0.07f).SetEase(Ease.OutQuint))
+                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + 38f, 0.08f).SetEase(Ease.OutQuint))
                 .AppendCallback(() => onImpact?.Invoke())
-                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + d * 0.35f, 0.04f))
-                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + d,        0.07f).SetEase(Ease.OutQuint))
-                .Append(playerImage.rectTransform.DOAnchorPosX(rest.x + d * 0.35f, 0.04f))
-                .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.14f).SetEase(Ease.OutQuad));
+                .Append(playerImage.rectTransform.DOAnchorPos(rest, 0.13f).SetEase(Ease.OutQuad))
+                .OnComplete(() => onComplete?.Invoke());
+            DOTween.Sequence()
+                .Append(playerImage.DOColor(new Color(1f, 0.55f, 0.15f), 0.07f))
+                .Append(playerImage.DOColor(Color.white, 0.15f));
         }
 
         // 버서커: 전진 피크에서 효과 발동 → 복귀
@@ -491,6 +506,14 @@ namespace CardAdventure
             return Mathf.Abs(position.x) > SuspiciousAvatarOffset || Mathf.Abs(position.y) > SuspiciousAvatarOffset;
         }
 
+        private StatusEffectData FindStatusData(StatusEffectType type)
+        {
+            if (statusDataLibrary == null) return null;
+            foreach (StatusEffectData d in statusDataLibrary)
+                if (d != null && d.effectType == type) return d;
+            return null;
+        }
+
         private void RefreshStatusIcons(BattleCombatantState combatant, int turnAttackBonus = 0)
         {
             if (statusContainer == null) return;
@@ -504,21 +527,23 @@ namespace CardAdventure
             {
                 if (status.IsExpired) continue;
                 BattleStatusIconView icon = Instantiate(statusIconPrefab, statusContainer);
-                icon.Bind(status);
+                icon.Bind(status, FindStatusData(status.EffectType));
             }
 
             // 이번 턴 공격 보너스(분노 등): Strength 아이콘 + 황금 틴트
             if (turnAttackBonus > 0)
             {
                 BattleStatusIconView icon = Instantiate(statusIconPrefab, statusContainer);
-                if (turnStrengthStatusData != null)
+                StatusEffectData strengthData = turnStrengthStatusData ?? FindStatusData(StatusEffectType.Strength);
+                if (strengthData != null)
                 {
-                    icon.Bind(new BattleStatusInstance(turnStrengthStatusData, turnAttackBonus));
-                    icon.SetIconTint(new Color(1f, 0.85f, 0.1f, 1f)); // 황금색 틴트
+                    icon.Bind(new BattleStatusInstance(strengthData, turnAttackBonus));
+                    icon.SetIconTint(new Color(1f, 0.85f, 0.1f, 1f));
                 }
                 else
                 {
-                    icon.Bind(new BattleStatusInstance(StatusEffectType.Strength, turnAttackBonus, 0));
+                    icon.Bind(new BattleStatusInstance(StatusEffectType.Strength, turnAttackBonus, 0),
+                              FindStatusData(StatusEffectType.Strength));
                 }
             }
         }

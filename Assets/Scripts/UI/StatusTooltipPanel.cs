@@ -48,17 +48,20 @@ namespace CardAdventure
         }
 
         public void Show(BattleStatusInstance status, Vector2 screenPosition)
+            => Show(status, null, screenPosition);
+
+        public void Show(BattleStatusInstance status, StatusEffectData resolvedData, Vector2 screenPosition)
         {
             if (status == null) return;
 
-            Bind(status);
+            Bind(status, resolvedData);
             UpdatePosition(screenPosition);
 
             gameObject.SetActive(true);
             if (canvasGroup != null)
             {
                 DOTween.Kill(canvasGroup);
-                canvasGroup.alpha = 1f; // 불투명하게 즉시 표시
+                canvasGroup.alpha = 1f;
             }
         }
 
@@ -99,13 +102,16 @@ namespace CardAdventure
             }
         }
 
-        private void Bind(BattleStatusInstance status)
+        private void Bind(BattleStatusInstance status, StatusEffectData resolved = null)
         {
+            // status.Data 우선, 없으면 외부에서 전달된 resolved(라이브러리 조회 결과) 사용
+            StatusEffectData data = status.Data ?? resolved;
+
             if (nameText != null)
-                nameText.text = status.Data != null ? status.Data.effectName : GetTypeName(status.EffectType);
+                nameText.text = data != null ? data.effectName : GetTypeName(status.EffectType);
 
             if (descriptionText != null)
-                descriptionText.text = status.Data != null ? status.Data.description : GetTypeDesc(status.EffectType);
+                descriptionText.text = data != null ? data.description : GetTypeDesc(status.EffectType);
 
             if (stacksText != null)
                 stacksText.text = status.Stacks > 0 ? $"강도: {status.Stacks}" : "";
@@ -114,15 +120,16 @@ namespace CardAdventure
                 durationText.text = status.HasTimedDuration ? $"{status.RemainingDuration}턴" : "영구";
 
             if (iconBackground != null)
-                iconBackground.color = status.Data != null ? status.Data.displayColor : Color.gray;
+                iconBackground.color = data != null ? data.displayColor : Color.gray;
 
             if (iconImage != null)
             {
-                iconImage.enabled = status.Data != null && status.Data.icon != null;
-                if (iconImage.enabled)
+                bool hasIcon = data?.icon != null;
+                iconImage.enabled = hasIcon;
+                if (hasIcon)
                 {
-                    iconImage.sprite = status.Data.icon;
-                    iconImage.color = Color.white;
+                    iconImage.sprite = data.icon;
+                    iconImage.color  = Color.white;
                 }
             }
         }
