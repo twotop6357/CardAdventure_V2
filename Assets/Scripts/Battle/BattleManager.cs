@@ -52,6 +52,10 @@ namespace CardAdventure
 
         private bool deferTriggeredDamage;
 
+        // ── 전투 기록 ──────────────────────────────────────────────
+        public List<BattleTurnSummary> TurnLog { get; private set; } = new List<BattleTurnSummary>();
+        private BattleTurnSummary currentTurnSummary;
+
         public BattlePlayerState Player { get; private set; }
 
         public BattleEnemyState Enemy { get; private set; }
@@ -149,6 +153,8 @@ namespace CardAdventure
             Player = new BattlePlayerState(playerName, playerMaxHp, startingDeck);
             Enemy = new BattleEnemyState(enemyData);
             PlayerTurnCount = 0;
+            TurnLog = new List<BattleTurnSummary>();
+            currentTurnSummary = null;
 
             Player.DrawStartingHand();
             BattleStarted?.Invoke(this);
@@ -170,6 +176,8 @@ namespace CardAdventure
 
             Phase = BattlePhase.PlayerTurn;
             PlayerTurnCount++;
+            currentTurnSummary = new BattleTurnSummary { TurnNumber = PlayerTurnCount };
+            TurnLog.Add(currentTurnSummary);
             Player.StartTurn();
             ResolveTurnStartStatuses(Player.Combatant);
 
@@ -286,6 +294,7 @@ namespace CardAdventure
 
             ApplyCardEffect(card);
             Player.ConsumeFirstAttackFreeIfNeeded(card);
+            currentTurnSummary?.CardsUsed.Add(card.Data.cardName);
 
             if (cardWasFree)
             {
@@ -331,7 +340,13 @@ namespace CardAdventure
             yield return new WaitForSeconds(0.35f);
 
             EnemyAction action = Enemy.CurrentIntent ?? Enemy.SelectIntent();
-            if (!Enemy.ConsumeSkipNextAction())
+            bool skipped = Enemy.ConsumeSkipNextAction();
+            if (skipped && currentTurnSummary != null)
+            {
+                currentTurnSummary.EnemySkipped = true;
+                currentTurnSummary.EnemyActionDesc = "행동 없음 (동결됨)";
+            }
+            if (!skipped)
             {
                 // UI가 행동 예고 애니메이션을 재생할 수 있도록 이벤트 발행
                 EnemyActionExecuting?.Invoke(this, action);
@@ -676,6 +691,7 @@ namespace CardAdventure
             int hpBeforeDamage = Enemy.Combatant.CurrentHp;
             Enemy.Combatant.ReceiveDamage(damage);
             int damageDealt = Mathf.Max(0, hpBeforeDamage - Enemy.Combatant.CurrentHp);
+            if (currentTurnSummary != null) currentTurnSummary.DamageDealtToEnemy += damageDealt;
 
             if (triggerDamageRewards && damageDealt > 0 && Player.BlockGainedPerDamageDealt > 0)
             {
@@ -796,6 +812,9 @@ namespace CardAdventure
                 return;
             }
 
+            if (currentTurnSummary != null)
+                currentTurnSummary.EnemyActionDesc = action.GetIntentDescription();
+
             switch (action.actionType)
             {
                 case EnemyActionType.Attack:
@@ -809,11 +828,13 @@ namespace CardAdventure
                         // 회피 성공: 피해 무효, 스택 절반으로 감소
                         Player.Combatant.HalveStatusStacks(StatusEffectType.Dodge);
                         DodgeSucceeded?.Invoke(this);
+                        if (currentTurnSummary != null) currentTurnSummary.PlayerDodged = true;
                     }
                     else
                     {
                         int damageTaken = Player.Combatant.ReceiveDamage(attackDamage);
                         Player.ResolveGainStrengthFromEnemyDamage(damageTaken);
+                        if (currentTurnSummary != null) currentTurnSummary.DamageTakenByPlayer += damageTaken;
                     }
                     break;
                 }

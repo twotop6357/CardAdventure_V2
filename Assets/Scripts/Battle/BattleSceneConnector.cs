@@ -15,6 +15,10 @@ namespace CardAdventure
         [Tooltip("GameDataManager가 없을 때 사용할 기본 적 데이터")]
         [SerializeField] private EnemyData fallbackEnemy;
 
+        [Header("전투 보상 UI")]
+        [Tooltip("승리 후 카드 보상 선택 UI. 설정 시 승리 결과 패널 대신 이 UI가 표시됩니다.")]
+        [SerializeField] private BattleRewardUIController rewardUI;
+
         private BattleManager battleManager;
 
         private void Awake()
@@ -116,9 +120,16 @@ namespace CardAdventure
             if (phase == BattlePhase.Won)
             {
                 int remainingHp = manager.Player?.Combatant?.CurrentHp ?? 0;
-                // 보상 카드는 추후 보상 UI에서 처리 — 여기선 null
-                Invoke(nameof(ReturnToAdventure), 1.5f); // 결과 패널 잠시 표시
                 _remainingHp = remainingHp;
+
+                if (rewardUI != null)
+                {
+                    rewardUI.Show(manager);
+                }
+                else
+                {
+                    Invoke(nameof(ReturnToAdventure), 1.5f);
+                }
             }
             else if (phase == BattlePhase.Lost)
             {

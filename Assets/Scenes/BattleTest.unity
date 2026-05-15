@@ -2214,6 +2214,7 @@ MonoBehaviour:
   resultPanel: {fileID: 462364369}
   resultText: {fileID: 1537937066}
   resultRestartButton: {fileID: 1785349330}
+  rewardUI: {fileID: 1573733680}
   fadeMask: {fileID: 427778114}
   fadeInDuration: 0.5
   turnAnnouncementText: {fileID: 1524851260}
@@ -5271,6 +5272,7 @@ GameObject:
   - component: {fileID: 1573733677}
   - component: {fileID: 1573733678}
   - component: {fileID: 1573733679}
+  - component: {fileID: 1573733680}
   m_Layer: 0
   m_Name: BattleManager
   m_TagString: Untagged
@@ -5337,6 +5339,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.BattleSceneConnector
   fallbackEnemy: {fileID: 11400000, guid: 74b00d41a37c4d499a6d708cc8de6c0a, type: 2}
+  rewardUI: {fileID: 1573733680}
 --- !u!114 &1573733678
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5402,6 +5405,86 @@ MonoBehaviour:
   enemyAreaRect: {fileID: 1469800659}
   effectScale: 3
   effectLifetime: 2
+--- !u!114 &1573733680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1573733674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20eb794ee8058c04eb4357e518f81df1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.BattleRewardUIController
+  rewardCardPool:
+  - {fileID: 11400000, guid: 23d1e9c5e6f1f004782b619774df4e54, type: 2}
+  - {fileID: 11400000, guid: 0d09817cef3848f4877e6ae3ad4a855b, type: 2}
+  - {fileID: 11400000, guid: 468662111f43779478365d160f2eae72, type: 2}
+  - {fileID: 11400000, guid: 3186fbc0cf4b4f6bb0004a9eb7528189, type: 2}
+  - {fileID: 11400000, guid: 7c11354cb7434bf3b5a7d1a7db7cc4d7, type: 2}
+  - {fileID: 11400000, guid: 06ffce17a93d4e0da8132e356089f925, type: 2}
+  - {fileID: 11400000, guid: 442a6c2097d413f439399a044fa8ddd9, type: 2}
+  - {fileID: 11400000, guid: 96a1e928b2c040c9bb8ed896c40d5106, type: 2}
+  - {fileID: 11400000, guid: d04bb6c6f3e82f44385434b2ddb306a1, type: 2}
+  - {fileID: 11400000, guid: 6f1f93868e9d4392aef4b4bd74a7ef25, type: 2}
+  - {fileID: 11400000, guid: 9039c770855044418f22f952218ab6c2, type: 2}
+  - {fileID: 11400000, guid: 06f8bc59ce687634ab3939d17a85fbad, type: 2}
+  - {fileID: 11400000, guid: a20e3ef74a16405cb339e708d280821b, type: 2}
+  - {fileID: 11400000, guid: caf3fad6822d414439684cad9d1c35aa, type: 2}
+  - {fileID: 11400000, guid: a18599c99929c1e4a8e0784e6bcc3b42, type: 2}
+  - {fileID: 11400000, guid: c9f0a81dddf9a614c830a2f962f336f2, type: 2}
+  - {fileID: 11400000, guid: f366be4230024dabaae85048913701f9, type: 2}
+  - {fileID: 11400000, guid: 9379395f64ec04242b004455cd5365ba, type: 2}
+  - {fileID: 11400000, guid: d01964b343e0cac43818ba5f526ea5e9, type: 2}
+  - {fileID: 11400000, guid: 6227b9bffed503f42aff5faa3e6a41a3, type: 2}
+  - {fileID: 11400000, guid: 742af8dfa3da4deab49887cce069cb8d, type: 2}
+  - {fileID: 11400000, guid: 3f0db49b5d3117e4bad22e0df9f6255f, type: 2}
+  - {fileID: 11400000, guid: 1f8803005edf4c719566c9b903806924, type: 2}
+  - {fileID: 11400000, guid: 68b5f6facd424856bbaa32232a947eb6, type: 2}
+  - {fileID: 11400000, guid: 6672fa80424bc814b9fe17b30d7088a2, type: 2}
+  - {fileID: 11400000, guid: 041368bf873b40fc85d4eea8577bc0da, type: 2}
+  - {fileID: 11400000, guid: ab4a8a07d5d1b1d4e81ea42eb2eac5f8, type: 2}
+  - {fileID: 11400000, guid: 1f1530c7d275469bafce2365fc06a044, type: 2}
+  - {fileID: 11400000, guid: b4902f0d3629417489e05399c96c665d, type: 2}
+  - {fileID: 11400000, guid: 91359783efc6407db1edde790e3241b5, type: 2}
+  - {fileID: 11400000, guid: dde58b1f138349948eead1356626fd7e, type: 2}
+  - {fileID: 11400000, guid: a0735e53a54a13a42b7c97a48422bd0e, type: 2}
+  - {fileID: 11400000, guid: 492f599913917c24c91a43af35d014db, type: 2}
+  - {fileID: 11400000, guid: 9fd5414c16c04bb7b9ad3ccd3db4525b, type: 2}
+  - {fileID: 11400000, guid: 949f0c831b7a4c9419abef014ae1e160, type: 2}
+  - {fileID: 11400000, guid: ac22e6405a9242f8878fcde931df74e3, type: 2}
+  - {fileID: 11400000, guid: 089ac27ab21fd1740958326a64a1a634, type: 2}
+  - {fileID: 11400000, guid: db31c1fc45b84061866da157cdf1101d, type: 2}
+  - {fileID: 11400000, guid: dcb2e9d98ba784c42a2705a0200ac305, type: 2}
+  - {fileID: 11400000, guid: bc86e22ef81d41f8a091fc15d8a099f0, type: 2}
+  - {fileID: 11400000, guid: e140bb15b8496024db858f51e9429230, type: 2}
+  - {fileID: 11400000, guid: 50518db8d19c17c4785ab633a5ca0be1, type: 2}
+  - {fileID: 11400000, guid: ab3aa3794fe535b43b6d19042a8cfd71, type: 2}
+  - {fileID: 11400000, guid: 806f7c41ebe96ee40b110beb1ec7029b, type: 2}
+  - {fileID: 11400000, guid: 5334623dd31a13e4db1f39a77917b295, type: 2}
+  - {fileID: 11400000, guid: 0f47da540ad24d8ab772da9b1f44a4e6, type: 2}
+  - {fileID: 11400000, guid: 774c1899c4e9d1c4a9a6f7e3b11d172b, type: 2}
+  - {fileID: 11400000, guid: 42decda60b964ec8b8fe80824be93e68, type: 2}
+  - {fileID: 11400000, guid: 0fe93263156a02248ae3a646d1c82b99, type: 2}
+  - {fileID: 11400000, guid: 98ba4d22a9d25314fafe6e95fddaef96, type: 2}
+  - {fileID: 11400000, guid: 0d030dd1e422f4148a36659e08b6fc89, type: 2}
+  - {fileID: 11400000, guid: cfc7e656a4784c8f84c954e8922e92cc, type: 2}
+  - {fileID: 11400000, guid: 0a00a80b6e7148a0987dfaddbce91182, type: 2}
+  - {fileID: 11400000, guid: 83bf6570a00992b4db8ea7db67c65e54, type: 2}
+  - {fileID: 11400000, guid: 2c93476f7fea4ae0a23c740dcaa5a414, type: 2}
+  - {fileID: 11400000, guid: 96e1e70686000cd4581eb959cc710cac, type: 2}
+  - {fileID: 11400000, guid: 46bfe6d6ccb44835ac69320c5a1bfc68, type: 2}
+  - {fileID: 11400000, guid: 9bd51562c90c2c34a8a0ce0e53fb7c10, type: 2}
+  - {fileID: 11400000, guid: bc6b91fe15dcaa9478ad9813c95f081c, type: 2}
+  - {fileID: 11400000, guid: 46e08f0f5539169449c9d3d51bd21197, type: 2}
+  - {fileID: 11400000, guid: 27d6b84530ca0154a9180b90141d1f15, type: 2}
+  - {fileID: 11400000, guid: ca5833677ca868c40bfb5fdb9af73f5a, type: 2}
+  - {fileID: 11400000, guid: fb2484886d6146eb933ec01bc8af222c, type: 2}
+  rewardCardCount: 3
+  cardViewPrefab: {fileID: 7143928651094735881, guid: 73dff06e9893fb74dba05f85eb427751,
+    type: 3}
+  spriteLibrary: {fileID: 11400000, guid: c1d2e3f4a5b6074839201047586abcde, type: 2}
 --- !u!1 &1576124426
 GameObject:
   m_ObjectHideFlags: 0

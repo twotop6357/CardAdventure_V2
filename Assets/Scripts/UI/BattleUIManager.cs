@@ -36,6 +36,10 @@ namespace CardAdventure
         [SerializeField] private TextMeshProUGUI resultText;
         [SerializeField] private Button          resultRestartButton;
 
+        [Header("전투 보상 UI")]
+        [Tooltip("설정 시 승리 결과 패널을 표시하지 않고 보상 UI에 위임합니다.")]
+        [SerializeField] private BattleRewardUIController rewardUI;
+
         [Header("페이드")]
         [SerializeField] private CanvasGroup fadeMask;
         [SerializeField] private float       fadeInDuration = 0.5f;
@@ -261,7 +265,9 @@ namespace CardAdventure
 
             if (endTurnButton != null) endTurnButton.gameObject.SetActive(false);
 
-            if (resultPanel != null)
+            // 승리 시 보상 UI가 있으면 결과 패널 표시 건너뜀
+            bool showResult = !(phase == BattlePhase.Won && rewardUI != null);
+            if (resultPanel != null && showResult)
             {
                 resultPanel.SetActive(true);
                 if (resultText != null)
