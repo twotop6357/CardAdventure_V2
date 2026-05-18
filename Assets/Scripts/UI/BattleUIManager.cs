@@ -69,6 +69,14 @@ namespace CardAdventure
         }
         private bool           isCardAnimating;   // 카드 사용 애니메이션 진행 중 여부
 
+        // ── 드래그 앤 드롭 카드 플레이 상태 ────────────────────────
+        private bool           isDragging;
+        private BattleCardView draggedCardView;
+        private CardUseMode    dragUseMode;
+        private bool           dragTargetArrowShown;
+        private Vector3        dragStartCardPosition;
+
+
         // ── 라이프사이클 ───────────────────────────────────────────
 
         private void Awake()
@@ -102,6 +110,13 @@ namespace CardAdventure
         private void OnDestroy()
         {
             UnsubscribeEvents();
+            if (handView != null)
+            {
+                handView.CardSelected -= OnHandCardSelected;
+                handView.CardBeginDrag -= OnCardBeginDrag;
+                handView.CardDrag -= OnCardDrag;
+                handView.CardEndDrag -= OnCardEndDrag;
+            }
         }
 
         // ── 매 프레임: 타게팅 입력 처리 ──────────────────────────
@@ -289,7 +304,12 @@ namespace CardAdventure
                 resultRestartButton.onClick.AddListener(OnRestartClicked);
 
             if (handView != null)
+            {
                 handView.CardSelected += OnHandCardSelected;
+                handView.CardBeginDrag += OnCardBeginDrag;
+                handView.CardDrag += OnCardDrag;
+                handView.CardEndDrag += OnCardEndDrag;
+            }
         }
 
         // ── 버튼 핸들러 ────────────────────────────────────────────
@@ -345,6 +365,115 @@ namespace CardAdventure
                 cardView.BeginPointerFollow(rootCanvas);
             }
         }
+
+        // ── 드래그 앤 드롭 카드 플레이 ─────────────────────────────
+
+        private void OnCardBeginDrag(BattleCardView cv, UnityEngine.EventSystems.PointerEventData eventData)
+        {
+            if (battleManager == null || battleManager.Phase != BattlePhase.PlayerTurn) return;
+            if (isCardAnimating) return;
+
+            // 기존 클릭-선택 방식 취소 (드래그와 충돌 방지)
+            if (pendingCardView != null)
+            {
+                CancelTargeting();
+            }
+
+            isDragging = true;
+            draggedCardView = cv;
+            dragUseMode = GetCardUseMode(cv.RuntimeCard);
+            dragTargetArrowShown = false;
+            dragStartCardPosition = cv.transform.position;
+
+            // 카드가 마우스 포인터를 따라다니도록 설정
+            cv.BeginPointerFollow(rootCanvas);
+        }
+
+        private void OnCardDrag(BattleCardView cv, UnityEngine.EventSystems.PointerEventData eventData)
+        {
+            if (!isDragging || draggedCardView != cv) return;
+
+            if (dragUseMode == CardUseMode.SingleTarget)
+            {
+                bool isAboveHand = handView == null || handView.IsScreenPointAboveHand(Input.mousePosition, rootCanvas);
+
+                if (isAboveHand)
+                {
+                    if (!dragTargetArrowShown)
+                    {
+                        dragTargetArrowShown = true;
+                        if (targetArrow != null)
+                        {
+                            targetArrow.Show(dragStartCardPosition);
+                        }
+                    }
+                }
+                else
+                {
+                    if (dragTargetArrowShown)
+                    {
+                        dragTargetArrowShown = false;
+                        targetArrow?.Hide();
+                    }
+                }
+            }
+        }
+
+        private void OnCardEndDrag(BattleCardView cv, UnityEngine.EventSystems.PointerEventData eventData)
+        {
+            if (!isDragging || draggedCardView != cv) return;
+
+            isDragging = false;
+            draggedCardView = null;
+
+            if (dragTargetArrowShown)
+            {
+                dragTargetArrowShown = false;
+                targetArrow?.Hide();
+            }
+
+            bool isAboveHand = handView == null || handView.IsScreenPointAboveHand(Input.mousePosition, rootCanvas);
+
+            if (!isAboveHand)
+            {
+                // 손패 영역 내에서 놓은 경우 사용 취소하고 원래 자리로 복원
+                cv.EndPointerFollow(restoreToHand: true);
+                cv.SetSelected(false);
+                handView?.ClearSelection();
+                return;
+            }
+
+            // 손패 위 영역에서 드래그 해제됨 -> 사용 시도
+            if (dragUseMode == CardUseMode.SingleTarget)
+            {
+                if (IsPointerOverEnemy())
+                {
+                    // 적 위에서 놓았으므로 카드 사용 실행
+                    pendingCardView = cv;
+                    pendingUseMode = dragUseMode;
+                    pendingStartedFrame = Time.frameCount;
+
+                    TryPlaySelectedCard();
+                }
+                else
+                {
+                    // 적 위가 아니면 사용 취소하고 원래 자리로 복원
+                    cv.EndPointerFollow(restoreToHand: true);
+                    cv.SetSelected(false);
+                    handView?.ClearSelection();
+                }
+            }
+            else if (dragUseMode == CardUseMode.PlayArea)
+            {
+                // 영역형 카드는 손패 영역 위에서 놓으면 무조건 사용 실행
+                pendingCardView = cv;
+                pendingUseMode = dragUseMode;
+                pendingStartedFrame = Time.frameCount;
+
+                TryPlaySelectedCard();
+            }
+        }
+
 
         private CardUseMode GetCardUseMode(BattleRuntimeCard card)
         {
@@ -435,8 +564,7 @@ namespace CardAdventure
             // 실패 시 restoreToHand: true 로 원위치 복귀 — ReattachCardView 불필요.
             if (!battleManager.CanPlayCard(card))
             {
-                if (useMode == CardUseMode.PlayArea)
-                    played.EndPointerFollow(restoreToHand: true);
+                played.EndPointerFollow(restoreToHand: true);
                 played.SetSelected(false);
                 handView?.ClearSelection();
                 if (battleManager.Player != null && !battleManager.Player.CanPayEnergy(card))
@@ -444,8 +572,7 @@ namespace CardAdventure
                 return;
             }
 
-            if (useMode == CardUseMode.PlayArea)
-                played.EndPointerFollow(restoreToHand: false);
+            played.EndPointerFollow(restoreToHand: false);
 
             handView?.DetachCardView(played);
             isCardAnimating = true;

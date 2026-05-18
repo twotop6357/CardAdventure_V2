@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace CardAdventure
 {
@@ -48,6 +49,10 @@ namespace CardAdventure
 
         /// <summary>카드가 클릭(선택)되었을 때 통지. BattleUIManager가 구독한다.</summary>
         public event System.Action<BattleCardView> CardSelected;
+
+        public event System.Action<BattleCardView, PointerEventData> CardBeginDrag;
+        public event System.Action<BattleCardView, PointerEventData> CardDrag;
+        public event System.Action<BattleCardView, PointerEventData> CardEndDrag;
 
         // ── 공개 메서드 ────────────────────────────────────────────
 
@@ -114,6 +119,9 @@ namespace CardAdventure
                         cv.SetSpriteLibrary(spriteLibrary);
                     cv.Bind(rc, interactable);
                     cv.Clicked += OnCardClicked;
+                    cv.BeginDragged += OnCardBeginDrag;
+                    cv.Dragged += OnCardDrag;
+                    cv.EndDragged += OnCardEndDrag;
                     newCardViews.Add(cv);
                     newBoundCards.Add(rc);
 
@@ -156,6 +164,9 @@ namespace CardAdventure
             if (cv == null) return;
 
             cv.Clicked -= OnCardClicked;
+            cv.BeginDragged -= OnCardBeginDrag;
+            cv.Dragged -= OnCardDrag;
+            cv.EndDragged -= OnCardEndDrag;
 
             int idx = cardViews.IndexOf(cv);
             if (idx >= 0)
@@ -184,6 +195,9 @@ namespace CardAdventure
 
             cv.transform.SetParent(handContainer, worldPositionStays: true);
             cv.Clicked += OnCardClicked;
+            cv.BeginDragged += OnCardBeginDrag;
+            cv.Dragged += OnCardDrag;
+            cv.EndDragged += OnCardEndDrag;
             cv.Bind(runtimeCard, isInteractable);
             cardViews.Add(cv);
             boundRuntimeCards.Add(runtimeCard);
@@ -249,6 +263,24 @@ namespace CardAdventure
             selectedCardView = cv;
             cv.SetSelected(true);
             CardSelected?.Invoke(cv);
+        }
+
+        private void OnCardBeginDrag(BattleCardView cv, PointerEventData eventData)
+        {
+            if (!isInteractable) return;
+            CardBeginDrag?.Invoke(cv, eventData);
+        }
+
+        private void OnCardDrag(BattleCardView cv, PointerEventData eventData)
+        {
+            if (!isInteractable) return;
+            CardDrag?.Invoke(cv, eventData);
+        }
+
+        private void OnCardEndDrag(BattleCardView cv, PointerEventData eventData)
+        {
+            if (!isInteractable) return;
+            CardEndDrag?.Invoke(cv, eventData);
         }
 
         /// <summary>

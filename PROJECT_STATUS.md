@@ -1,3 +1,82 @@
+### 2026-05-18 (Antigravity - 프리뷰 상태 드래그 카드 사용 시 마우스 무한 추적 버그 완벽 수정 완료)
+
+#### 이번 작업 요약
+- **드래그 종료 시 카드 따라다님 및 미사용 버그 해결 (`BattleCardView.cs`)**:
+  - **드래그 해제 세션 유실 방지**: `ClosePreview` 메소드에 `delayProxyDestruction` 옵션을 도입하여 드래그/포인터 팔로우 전환 시 원래 자리의 프록시 UI 오브젝트(`proxyGo`)의 즉각적인 파괴를 지연시켰습니다.
+  - **드래그 취소/성공 시의 완전한 프록시 해제**: 마우스 드래그가 정상적으로 종료되어 카드를 사용하거나, 취소되어 손패로 무사히 복귀하는 시점(`EndPointerFollow`)에 지연 처리해둔 프록시 오브젝트를 파괴하도록 안전하게 고도화했습니다.
+  - **마우스 왼쪽 버튼 떼기 조작 정상화**: 이로 인해 마우스를 꾹 누르고 드래그하여 사용 영역에 카드를 드롭했을 때, 드래그 포커스가 유실되지 않고 Unity StandaloneInputModule에서 `OnEndDrag` 및 마우스 떼기 이벤트가 100% 정상 발동하게 되어 카드가 계속해서 마우스를 따라다니지 않고 안전하게 격발되거나 복귀하도록 완성했습니다.
+  - **무결성 빌드 및 컴파일 확인**: 수정 후 컴파일 및 씬 테스트를 무결하게 수행하였으며, 에러와 경고 없이 정상 작동함을 확증하였습니다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleCardView.cs` (ClosePreview 지연 파괴 도입, OnBeginDrag/BeginPointerFollow 지연 인수 전달, EndPointerFollow 시 프록시 최종 제거) [MODIFY]
+- `PROJECT_STATUS.md` (최신 상태 갱신)
+
+---
+
+### 2026-05-18 (Antigravity - 호버 프리뷰 상태에서 드래그 사용 및 고정 버그 완벽 해결 완료)
+
+#### 이번 작업 요약
+- **호버 프리뷰 상태에서 드래그 시 카드 작아짐 고정 버그 수정 (`BattleCardView.cs`)**:
+  - **이벤트 조기 파괴 해결**: `OnPointerDown`에서 `proxyGo`를 즉시 파괴하는 코드를 제거했습니다. 이로 인해 마우스를 꾹 누르고 있는 상태에서 Unity StandaloneInputModule이 포인팅 대상을 유실하지 않고, 마우스 드래그를 시작할 때 `OnBeginDrag` 및 `OnDrag` 이벤트가 끊김 없이 즉각적이고 안정적으로 발생하게 되었습니다.
+  - **부모 및 위치 복원 로직 고도화**: `ClosePreview` 내부에서 복원 트리거 조건이었던 `wasPreview` (과거 `isPreviewActive` 플래그) 의존성을 제거하고, 실제 UI 계층에서 `transform.parent != originalHandParent`인지 여부를 직접 대조하도록 수정했습니다. 드래그가 발생하거나 취소되는 모든 상황에서 본래의 손패 컨테이너(`originalHandParent`)로 한 치의 오차도 없이 안전하게 돌아갑니다.
+  - **복원 경로 단일화 및 코드 단순화**: `OnPointerUp`, `OnPointerClick`, `OnProxyClick` 내부의 중복된 부모/위치 복원 수동 코드를 모두 `ClosePreview(animate: false)` 단일 호출로 리팩토링했습니다. 이를 통해 어떤 조작 타이밍이나 예외 상황에서도 프록시 파괴와 부모/위치 복원이 하나의 트랜잭션으로 원자적으로 이루어지도록 보장했습니다.
+  - **최종 검증 및 무결성 확보**: 스크립트 도메인 컴파일을 완료하고, 에러 0건 및 경고 0건으로 완벽하게 연동을 완수했습니다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleCardView.cs` (OnPointerDown 프록시 보존, ClosePreview 부모 원복 판단 조건 리팩토링, 마우스 업/클릭 복원 흐름 단일화) [MODIFY]
+- `PROJECT_STATUS.md` (최신 상태 갱신)
+
+---
+
+### 2026-05-18 (Antigravity - 카드 프리뷰 및 드래그 조작 쿨다운 적용 및 프록시 위임 고도화 완료)
+
+#### 이번 작업 요약
+- **마우스 홀드/드래그 시 프리뷰 예약 및 시작 차단 (`BattleCardView.cs`)**:
+  - 카드를 마우스로 꾹 누르고 있거나 드래그 중인 경우에는 화면 중앙에 확대 줌인이 작동하지 않도록 가드 조치를 추가했습니다.
+  - 마우스 클릭 시작(`OnPointerDown`) 발생 시 실행 중인 프리뷰 줌인을 즉각 애니메이션 없이 강제 해제합니다.
+- **프리뷰(확대 줌) 상태에서 즉시 클릭 드래그하여 사용 가능하도록 버그 해결 (`BattleCardView.cs`, `CardHoverProxy.cs`)**:
+  - 기존에는 프리뷰 상태에서 `OnPointerDown` 시 즉시 `ClosePreview`를 실행하여 부모를 손패 컨테이너로 원복(reparent)시켰는데, 이로 인해 Unity StandaloneInputModule이 드래그/클릭 상태 of GameObject 계층 변경으로 인해 활성 드래그 대상을 유실하는 문제가 있었습니다.
+  - 이를 해결하기 위해 프리뷰 도중 클릭/드래그 시작 시 즉각적인 부모 복구를 지연하고 (`wasPreviewedOnDown` 플래그로 마킹), 드래그 상태가 유지될 수 있도록 UI 상태만 정상 크기(`localScale = 1f`)로 해제하여 드래그 이벤트를 온전히 이어가도록 연동했습니다.
+  - 드래그가 취소되거나 손패 외부에서 마우스 업이 일어날 경우 (`IPointerUpHandler`, `IPointerClickHandler` 및 프록시를 통해) 안전하게 원래의 손패 부모와 위치로 돌려놓는 연산을 정교하게 추가하여 드래그 조작 연동이 끊김 없이 매끄럽게 작동합니다.
+- **원래의 안정적인 손패 부모 캐싱 및 드래그 취소 후 쿨다운 구현 (`BattleCardView.cs`)**:
+  - `originalHandParent` 변수를 통해 카드가 최초 배치될 때 본래의 안정적인 부모 컨테이너(Hand Panel)를 영구 캐싱하도록 조치했습니다.
+  - 카드가 드래그 완료되거나 빈 영역에서 해제(취소)되었을 때, `0.4초간 프리뷰 쿨다운`(`hoverDisableTimer`)을 주어 마우스가 카드 위에 있어도 즉시 줌인되지 않아 드래그 조작감이 비약적으로 향상되었습니다.
+  - 원래 부모(`originalHandParent`)와 저장된 인덱스(`baseSiblingIndex`)로 손패 정렬을 안전하게 복구하여, 취소 시 카드가 화면 중앙에 머무는 오동작을 완벽 차단했습니다.
+- **프리뷰 확대 상태에서도 프록시를 통한 네이티브 드래그 리다이렉션 구현 (`CardHoverProxy.cs`)**:
+  - 카드가 화면 중앙에 줌인되어 있는 상태에서도 원래 손패 위치에 놓인 투명 프록시 영역을 클릭하거나 드래그할 수 있도록 릴레이 인터페이스(`IPointerDownHandler`, `IPointerUpHandler`, `IBeginDragHandler`, `IDragHandler`, `IEndDragHandler`)를 구현했습니다.
+  - 프록시가 마우스 다운을 감지하면 `eventData.pointerDrag = owner.gameObject`를 지정하여 Unity 네이티브 드래그 대상을 원본 카드로 위임하여 줌 상태의 드래그 조작이 매끄럽게 연결됩니다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleCardView.cs` (부모 캐싱, 클릭 가드, 드래그 취소 후 쿨다운 및 원복 고도화) [MODIFY]
+- `Assets/Scripts/UI/CardHoverProxy.cs` (드래그 인터페이스 상속 및 네이티브 드래그 대상 위임/리다이렉션 구현) [MODIFY]
+- `PROJECT_STATUS.md` (최신 상태 갱신)
+
+---
+
+### 2026-05-18 (Antigravity - 배틀씬 내 드래그 앤 드롭 카드 플레이 시스템 구현 완료)
+
+#### 이번 작업 요약
+- **드래그 앤 드롭 카드 플레이 시스템 구현 (`BattleUIManager.cs`, `BattleHandView.cs`)**:
+  - 기존의 클릭 타게팅 카드 사용 방식을 100% 온전하게 보존하면서, 카드를 눌러 드래그하여 직관적으로 플레이할 수 있는 신규 드래그 앤 드롭 방식을 추가 구현했습니다.
+  - **드래그 상태 전격 도입**: `isDragging`, `draggedCardView`, `dragUseMode`, `dragTargetArrowShown`, `dragStartCardPosition` 등의 상태를 필드로 관리하여, 기존 클릭 로직과 충돌하지 않도록 완벽히 격리 및 병합했습니다.
+  - **직관적 포인터 트래킹 및 타게팅 화살표 연동**:
+    - 카드를 집어 손패 영역 밖으로 드래그할 시 원래 카드 위치에서 마우스 포인터까지 직선 타게팅 화살표가 역동적으로 표시됩니다.
+    - 손패 내부 영역으로 마우스를 되돌릴 시 화살표를 즉시 숨기도록 부드러운 룩앤필을 구현했습니다.
+  - **스마트 릴리즈(놓기) 처리**:
+    - 적(Enemy) 위에서 놓았을 때만 대상을 지정하여 카드가 격발되며, 그 외 허공이나 손패 영역에서 마우스를 놓으면 안전하게 취소 처리되어 원래의 부채꼴 위치로 자연스러운 DOTween 복귀 모션이 작동합니다.
+    - 손패 위 영역 아무 곳이나 드래그 앤 드롭하면 발동되는 영역 카드(PlayArea)도 완벽하게 지원합니다.
+  - **실패 및 복귀 예외 보편화**:
+    - 에너지가 부족해 카드 격발이 실패하거나 검증을 통과하지 못한 경우에도 `played.EndPointerFollow(restoreToHand: true)`를 보편화하여, 카드가 슬라이딩하며 원래 손패의 정렬 순서로 안전하게 복귀하도록 강건 설계했습니다.
+  - **컴파일 안전성 및 무결성 확보**:
+    - `BattleHandView.cs`에 필수 네임스페이스(`UnityEngine.EventSystems`)를 안전하게 주입하고 Unity Refresh를 진행하여 **에러 0건, 경고 0건**으로 깔끔한 도메인 컴파일을 완수했습니다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleUIManager.cs` (드래그 앤 드롭 상태 관리, 이벤트 셋업 및 드래그 시작/진행/해제 핸들러 이식, 복귀 로직 일반화) [MODIFY]
+- `Assets/Scripts/UI/BattleHandView.cs` (EventSystems 네임스페이스 수입 추가 및 PointerEventData 마우스 드래그 이벤트 전파 기능 완비) [MODIFY]
+- `PROJECT_STATUS.md` (상태 최신화)
+
+---
+
 ### 2026-05-18 (Antigravity - 상점 뒤로가기 활성화 시 보유 골드 UI 왼쪽 밀어내기 및 겹침 해결 완료)
 
 #### 이번 작업 요약

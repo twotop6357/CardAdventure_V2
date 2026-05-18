@@ -20,7 +20,8 @@ namespace CardAdventure
     /// 4. 클릭은 중앙 카드와 원래 위치(프록시) 양쪽 모두 유효하다.
     /// </summary>
     public class BattleCardView : MonoBehaviour,
-        IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+        IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler,
+        IPointerDownHandler, IPointerUpHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         // ── Inspector ──────────────────────────────────────────────
         [Header("UI 참조 (자동 탐색 — 비워도 됨)")]
@@ -52,12 +53,15 @@ namespace CardAdventure
         private BattleRuntimeCard runtimeCard;
         private bool              isSelected;
         private bool              isInteractable;
+        private bool              wasPreviewedOnDown; // 프리뷰 도중 마우스 다운 여부 트래킹
 
         // 기준 상태 (SaveBasePosition에서 기록)
         private Vector3    baseLocalPosition;
         private Quaternion baseLocalRotation;
         private int        baseSiblingIndex;
         private Vector2    baseSize;
+        private Transform  originalHandParent;    // 원래 손패 부모 컨테이너 캐시
+        private float      hoverDisableTimer = 0f; // 드래그 취소 후 호버링 지연 쿨다운 타이머
 
         // 프리뷰 상태
         private bool      isPreviewActive;
@@ -79,6 +83,12 @@ namespace CardAdventure
 
         /// <summary>카드 클릭 이벤트. BattleHandView가 구독한다.</summary>
         public event System.Action<BattleCardView> Clicked;
+
+        public event System.Action<BattleCardView, PointerEventData> BeginDragged;
+        public event System.Action<BattleCardView, PointerEventData> Dragged;
+        public event System.Action<BattleCardView, PointerEventData> EndDragged;
+
+        private bool wasDragged;
 
         public BattleRuntimeCard RuntimeCard => runtimeCard;
         public bool IsPointerFollowing => isPointerFollowing;
@@ -122,6 +132,11 @@ namespace CardAdventure
 
         private void Update()
         {
+            if (hoverDisableTimer > 0f)
+            {
+                hoverDisableTimer -= Time.deltaTime;
+            }
+
             if (isPointerFollowing)
             {
                 SetPositionToScreenPoint(Input.mousePosition);
@@ -181,6 +196,7 @@ namespace CardAdventure
             baseLocalPosition = transform.localPosition;
             baseLocalRotation = transform.localRotation;
             baseSiblingIndex  = transform.GetSiblingIndex();
+            originalHandParent = transform.parent;
 
             RectTransform rt = transform as RectTransform;
             baseSize = rt != null ? rt.sizeDelta : new Vector2(200f, 300f);
@@ -191,6 +207,7 @@ namespace CardAdventure
             baseLocalPosition = localPosition;
             baseLocalRotation = localRotation;
             baseSiblingIndex  = siblingIndex;
+            originalHandParent = transform.parent;
 
             RectTransform rt = transform as RectTransform;
             baseSize = rt != null ? rt.sizeDelta : new Vector2(200f, 300f);
@@ -257,7 +274,9 @@ namespace CardAdventure
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (isPreviewActive || isTransitioning) return;
-            if (!isInteractable || isSelected) return;
+            if (!isInteractable || isSelected || isPointerFollowing) return;
+            if (hoverDisableTimer > 0f) return;
+            if (Input.GetMouseButton(0)) return;
 
             if (activeHoverView != null && activeHoverView != this)
             {
@@ -289,12 +308,75 @@ namespace CardAdventure
             }
         }
 
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            wasDragged = false;
+            wasPreviewedOnDown = false;
+            if (isPreviewActive || previewCoroutine != null)
+            {
+                CancelPreviewCoroutine();
+                if (isPreviewActive)
+                {
+                    wasPreviewedOnDown = true;
+                    isPreviewActive = false;
+                    isTransitioning = false;
+
+                    if (activeHoverView == this)
+                    {
+                        activeHoverView = null;
+                    }
+
+                    DOTween.Kill(transform, complete: true);
+                    transform.localScale = Vector3.one;
+                }
+            }
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (wasPreviewedOnDown && !wasDragged && !isPointerFollowing)
+            {
+                wasPreviewedOnDown = false;
+                ClosePreview(animate: false);
+            }
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (!isInteractable) return;
+            wasDragged = true;
+            CancelPreviewCoroutine();
+            if (wasPreviewedOnDown)
+            {
+                wasPreviewedOnDown = false;
+            }
+            ClosePreview(animate: false, delayProxyDestruction: true);
+            BeginDragged?.Invoke(this, eventData);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (!isInteractable) return;
+            Dragged?.Invoke(this, eventData);
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (!isInteractable) return;
+            EndDragged?.Invoke(this, eventData);
+        }
+
         public void OnPointerClick(PointerEventData eventData)
         {
+            if (wasDragged) return;
             if (isPointerFollowing) return;
             if (!isInteractable) return;
 
             CancelPreviewCoroutine();
+            if (wasPreviewedOnDown)
+            {
+                wasPreviewedOnDown = false;
+            }
             ClosePreview(animate: false);
             Clicked?.Invoke(this);
         }
@@ -305,6 +387,10 @@ namespace CardAdventure
             if (!isInteractable) return;
 
             CancelPreviewCoroutine();
+            if (wasPreviewedOnDown)
+            {
+                wasPreviewedOnDown = false;
+            }
             ClosePreview(animate: false);
             Clicked?.Invoke(this);
         }
@@ -335,7 +421,7 @@ namespace CardAdventure
         public void BeginPointerFollow(Canvas targetCanvas)
         {
             CancelPreviewCoroutine();
-            ClosePreview(animate: false);
+            ClosePreview(animate: false, delayProxyDestruction: true);
             DOTween.Kill(transform, complete: false);
 
             if (!isPointerFollowing)
@@ -392,13 +478,26 @@ namespace CardAdventure
             DOTween.Kill(transform, complete: false);
             isPointerFollowing = false;
 
-            if (restoreToHand && pointerFollowOriginalParent != null)
+            // 지연되었던 프리뷰 프록시를 이 시점에 확실히 파괴
+            if (proxyGo != null)
             {
-                transform.SetParent(pointerFollowOriginalParent, worldPositionStays: false);
-                transform.SetSiblingIndex(pointerFollowOriginalSiblingIndex);
-                transform.localPosition = baseLocalPosition;
-                transform.localRotation = baseLocalRotation;
-                transform.localScale = Vector3.one;
+                Destroy(proxyGo);
+                proxyGo = null;
+                proxyRt = null;
+            }
+
+            if (restoreToHand)
+            {
+                hoverDisableTimer = 0.4f; // 드래그 완료/취소 후 즉시 프리뷰 줌이 켜지는 현상 방지 쿨다운
+                Transform targetParent = originalHandParent != null ? originalHandParent : pointerFollowOriginalParent;
+                if (targetParent != null)
+                {
+                    transform.SetParent(targetParent, worldPositionStays: false);
+                    transform.SetSiblingIndex(baseSiblingIndex);
+                    transform.localPosition = baseLocalPosition;
+                    transform.localRotation = baseLocalRotation;
+                    transform.localScale = Vector3.one;
+                }
             }
 
             pointerFollowOriginalParent = null;
@@ -410,6 +509,12 @@ namespace CardAdventure
         private IEnumerator PreviewRoutine()
         {
             yield return new WaitForSeconds(previewDelay);
+
+            if (Input.GetMouseButton(0) || isSelected || isPointerFollowing || !isInteractable || hoverDisableTimer > 0f)
+            {
+                previewCoroutine = null;
+                yield break;
+            }
 
             isPreviewActive = true;
             isTransitioning = true;
@@ -442,11 +547,12 @@ namespace CardAdventure
 
         private void SpawnProxy()
         {
-            if (previewOriginalParent == null) return;
+            Transform targetParent = originalHandParent != null ? originalHandParent : previewOriginalParent;
+            if (targetParent == null) return;
 
             proxyGo = new GameObject("CardPreviewProxy");
-            proxyGo.transform.SetParent(previewOriginalParent, worldPositionStays: false);
-            proxyGo.transform.SetSiblingIndex(previewOriginalSiblingIndex);
+            proxyGo.transform.SetParent(targetParent, worldPositionStays: false);
+            proxyGo.transform.SetSiblingIndex(baseSiblingIndex);
 
             proxyRt               = proxyGo.AddComponent<RectTransform>();
             proxyRt.localPosition = baseLocalPosition;
@@ -475,14 +581,13 @@ namespace CardAdventure
         /// <summary>
         /// 프리뷰를 닫고 원래 부모·위치·회전·스케일·프록시를 모두 복원/제거한다.
         /// </summary>
-        private void ClosePreview(bool animate)
+        private void ClosePreview(bool animate, bool delayProxyDestruction = false)
         {
-            bool wasPreview = isPreviewActive;
             isPreviewActive = false;
             isTransitioning = false;
 
-            // 프록시 제거
-            if (proxyGo != null)
+            // 프록시 제거 (드래그/포인터 팔로우 전환 시 EventSystem 포커스 유지를 위해 파괴 지연 지원)
+            if (proxyGo != null && !delayProxyDestruction)
             {
                 Destroy(proxyGo);
                 proxyGo = null;
@@ -490,12 +595,13 @@ namespace CardAdventure
             }
 
             // 원래 부모로 복귀
-            if (wasPreview && previewOriginalParent != null)
+            Transform targetParent = originalHandParent != null ? originalHandParent : previewOriginalParent;
+            if (targetParent != null && transform.parent != targetParent)
             {
-                transform.SetParent(previewOriginalParent, worldPositionStays: true);
-                transform.SetSiblingIndex(previewOriginalSiblingIndex);
-                previewOriginalParent = null;
+                transform.SetParent(targetParent, worldPositionStays: false);
+                transform.SetSiblingIndex(baseSiblingIndex);
             }
+            previewOriginalParent = null;
 
             DOTween.Kill(transform, complete: true);
 
