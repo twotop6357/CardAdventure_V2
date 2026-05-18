@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using TMPro;
-using TheraBytes.BetterUi;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -411,33 +409,20 @@ namespace CardAdventure
             closeButton = CreateButton("CloseButton", headerRect, "닫기", ClassicPixelUiTheme.WindowBlack, new Color(0.16f, 0.04f, 0.04f, 1f));
             SetRect(closeButton.GetComponent<RectTransform>(), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-34f, 0f), new Vector2(78f, 42f), new Vector2(1f, 0.5f));
 
-            GameObject container = new GameObject("OfferContainer", typeof(RectTransform), typeof(BetterGridLayoutGroup));
+            GameObject container = new GameObject("OfferContainer", typeof(RectTransform), typeof(GridLayoutGroup));
             container.transform.SetParent(panelRoot, false);
             RectTransform containerRect = container.GetComponent<RectTransform>();
             SetStretchOffsets(containerRect, new Vector2(34f, 82f), new Vector2(-34f, -124f));
             offerContainer = container.transform;
 
-            BetterGridLayoutGroup grid = container.GetComponent<BetterGridLayoutGroup>();
-            
-            // Safe initialization for BetterUI properties in Edit Mode/Immediate setup
-            var settingsField = typeof(BetterGridLayoutGroup).GetField("settingsFallback", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (settingsField != null && settingsField.GetValue(grid) == null)
-            {
-                var settings = new BetterGridLayoutGroup.Settings(grid) { ScreenConfigName = "Fallback" };
-                settingsField.SetValue(grid, settings);
-            }
-
-            // Use base GridLayoutGroup properties to avoid triggering BetterUI's Set logic before initialization
-            GridLayoutGroup baseGrid = grid;
-            baseGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            baseGrid.constraintCount = 3;
-            baseGrid.childAlignment = TextAnchor.MiddleCenter;
-            baseGrid.startAxis = GridLayoutGroup.Axis.Horizontal;
-            baseGrid.spacing = new Vector2(25f, 25f);
-
-            grid.Fit = true;
-            grid.KeepCellAspectRatio = true;
-            grid.CellSizer.OptimizedSize = new Vector2(1200f, 1600f);
+            GridLayoutGroup grid = container.GetComponent<GridLayoutGroup>();
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 3;
+            grid.childAlignment = TextAnchor.MiddleCenter;
+            grid.startAxis = GridLayoutGroup.Axis.Horizontal;
+            grid.spacing = new Vector2(28f, 12f);
+            grid.cellSize = new Vector2(292f, 400f);
+            grid.padding = new RectOffset(0, 0, 4, 4);
 
             GameObject footer = CreateImage("Footer", panelRoot, ClassicPixelUiTheme.InnerBlack);
             SetStretchOffsets(footer.GetComponent<RectTransform>(), Vector2.zero, new Vector2(0f, -572f));
@@ -459,21 +444,21 @@ namespace CardAdventure
         {
             GameObject root = CreateImage($"Offer_{index + 1}", offerContainer, ClassicPixelUiTheme.WindowBlack);
             AddPanelOutline(root, ClassicPixelUiTheme.Gold, new Vector2(2f, -2f));
-            root.AddComponent<LayoutElement>().preferredWidth = 310f;
-            root.GetComponent<RectTransform>().sizeDelta = new Vector2(310f, 414f);
+            // sizeDelta는 GridLayoutGroup.cellSize가 결정 (Vector2.zero = 자동)
+            root.GetComponent<RectTransform>().sizeDelta = Vector2.zero;
 
-            GameObject previewFrame = CreateImage("CardPreviewFrame", root.transform, ClassicPixelUiTheme.InnerBlack);
-            SetStretchOffsets(previewFrame.GetComponent<RectTransform>(), new Vector2(18f, 104f), new Vector2(-18f, -20f));
-            BattleCardView cardPreview = CreateCardPreview(previewFrame.transform);
+            // 카드를 root에 직접 배치 — 프리팹 원본 비율 유지, localScale로 크기 조정
+            // 셀(292x400), 가격 52px, 패딩 8px×2 → 카드 가용 276×332
+            // 카드 원본 200×300 → scale = min(276/200, 332/300) = 1.107
+            BattleCardView cardPreview = CreateCardPreview(root.transform);
             Button cardButton = ConfigureCardPreviewButton(cardPreview, index);
 
             TextMeshProUGUI price = CreateText("Price", root.transform, string.Empty, 22, TextAlignmentOptions.Center);
-            // Centered slightly higher from bottom since button is removed
             SetRect(price.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 24f), new Vector2(0f, 40f), new Vector2(0.5f, 0f));
             price.fontStyle = FontStyles.Bold;
             price.color = ClassicPixelUiTheme.Energy;
 
-            return new OfferView(root, previewFrame.transform, cardPreview, cardButton, price);
+            return new OfferView(root, root.transform, cardPreview, cardButton, price);
         }
 
         private BattleCardView RecreateCardPreview(OfferView offerView, int offerIndex)
@@ -521,19 +506,7 @@ namespace CardAdventure
                 preview = fallback.AddComponent<BattleCardView>();
             }
 
-            RectTransform rect = preview.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.5f);
-            rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = Vector2.zero;
-            rect.localRotation = Quaternion.identity;
-
-            if (rect.sizeDelta == Vector2.zero)
-            {
-                rect.sizeDelta = new Vector2(160f, 220f);
-            }
-
-            preview.transform.localScale = Vector3.one;
+            ApplyCardPreviewTransform(preview);
             preview.enabled = false;
 
             return preview;
@@ -614,38 +587,39 @@ namespace CardAdventure
             }
         }
 
-        private void ResetCardPreviewTransform(BattleCardView preview)
+        // 카드 프리팹을 원본 비율 그대로 유지하며 셀 크기에 맞게 배치
+        // 셀 292x400, 가격 52px, 패딩 8px*2 → 가용 276x332 / 원본 200x300
+        // scale = min(276/200, 332/300) = min(1.38, 1.107) = 1.107
+        private const float k_CardPreviewScale = 1.107f;
+
+        // 가격 영역 높이의 절반만큼 Y 위로 오프셋하여 카드를 카드 영역 중앙에 배치
+        private const float k_CardPriceOffset = 26f; // 52px / 2
+
+        private void ApplyCardPreviewTransform(BattleCardView preview)
         {
             RectTransform rect = preview.GetComponent<RectTransform>();
-            if (rect == null)
-            {
-                return;
-            }
+            if (rect == null) return;
 
+            // 원본 sizeDelta 유지 (프리팹 그대로) — anchor는 중앙 고정
             rect.anchorMin = new Vector2(0.5f, 0.5f);
             rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.anchoredPosition = Vector2.zero;
+            // 가격 영역만큼 위로 오프셋해서 카드 영역 중앙 정렬
+            rect.anchoredPosition = new Vector2(0f, k_CardPriceOffset);
             rect.localRotation = Quaternion.identity;
-            rect.localScale = Vector3.one;
+            // scale 적용 — 텍스트/아이콘 등 모든 자식이 함께 커짐
+            rect.localScale = new Vector3(k_CardPreviewScale, k_CardPreviewScale, 1f);
+        }
 
-            if (rect.sizeDelta == Vector2.zero)
-            {
-                rect.sizeDelta = new Vector2(160f, 220f);
-            }
+        private void ResetCardPreviewTransform(BattleCardView preview)
+        {
+            ApplyCardPreviewTransform(preview);
         }
 
         private void ForceShopLayout()
         {
             if (offerContainer is RectTransform offerRect)
             {
-                // Force BetterUI to recalculate its cell size immediately
-                var betterGrid = offerRect.GetComponent<BetterGridLayoutGroup>();
-                if (betterGrid != null)
-                {
-                    betterGrid.CalculateCellSize();
-                }
-
                 Canvas.ForceUpdateCanvases();
                 LayoutRebuilder.ForceRebuildLayoutImmediate(offerRect);
             }
@@ -707,7 +681,7 @@ namespace CardAdventure
         private Button CreateButton(string objectName, Transform parent, string label, Color normalColor, Color highlightedColor)
         {
             GameObject go = CreateImage(objectName, parent, normalColor);
-            AddPanelOutline(go, ClassicPixelUiTheme.Gold, new Vector2(1.5f, -1.5f));
+            // Outline removed in favor of ApplyShopButton
             Button button = go.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = normalColor;
@@ -718,7 +692,7 @@ namespace CardAdventure
 
             TextMeshProUGUI text = CreateText("Label", go.transform, label, 20, TextAlignmentOptions.Center);
             Stretch(text.rectTransform);
-            ClassicPixelUiTheme.ApplyButton(button);
+            ClassicPixelUiTheme.ApplyShopButton(button, ClassicPixelUiTheme.ShopPanelAccent.Gold);
             return button;
         }
 

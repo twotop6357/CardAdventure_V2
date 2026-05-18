@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using TMPro;
 using CardAdventure.UI;
+using CardAdventure.Editor;
 
 namespace CardAdventure.EditorTools
 {
@@ -78,7 +79,14 @@ namespace CardAdventure.EditorTools
             savePanel.transform.SetParent(canvasObj.transform, false);
             savePanel.SetActive(false);
             RectTransform saveRect = savePanel.AddComponent<RectTransform>();
+            saveRect.anchorMin = Vector2.zero;
+            saveRect.anchorMax = Vector2.one;
+            saveRect.sizeDelta = Vector2.zero;
             saveRect.anchoredPosition = Vector2.zero;
+
+            Image savePanelBg = savePanel.AddComponent<Image>();
+            savePanelBg.color = new Color(0.1f, 0.1f, 0.1f, 0.95f);
+
             VerticalLayoutGroup svlg = savePanel.AddComponent<VerticalLayoutGroup>();
             svlg.childAlignment = TextAnchor.MiddleCenter;
             svlg.spacing = 30;
@@ -96,6 +104,11 @@ namespace CardAdventure.EditorTools
             GameObject settingsPanel = new GameObject("SettingsPanel");
             settingsPanel.transform.SetParent(canvasObj.transform, false);
             settingsPanel.SetActive(false);
+            RectTransform setRect = settingsPanel.AddComponent<RectTransform>();
+            setRect.sizeDelta = new Vector2(800, 500);
+            Image setImg = settingsPanel.AddComponent<Image>();
+            setImg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+            
             VerticalLayoutGroup setVlg = settingsPanel.AddComponent<VerticalLayoutGroup>();
             setVlg.childAlignment = TextAnchor.MiddleCenter;
             setVlg.spacing = 40;
@@ -128,7 +141,9 @@ namespace CardAdventure.EditorTools
             if (!AssetDatabase.IsValidFolder("Assets/Scenes")) AssetDatabase.CreateFolder("Assets", "Scenes");
             EditorSceneManager.SaveScene(newScene, "Assets/Scenes/LobbyScene.unity");
             
-            Debug.Log("[Setup] LobbyScene 생성 완료.");
+            ShopStyleUiTool.ApplyToOpenScene();
+
+            Debug.Log("[Setup] LobbyScene 생성 및 상점 스타일 적용 완료.");
         }
 
         [MenuItem("CardAdventure/Setup/2. Setup InGame Menu")]
@@ -206,9 +221,20 @@ namespace CardAdventure.EditorTools
             GameObject savePanel = new GameObject("SaveSlotPanel");
             savePanel.transform.SetParent(menuContainer.transform, false);
             savePanel.SetActive(false);
+            RectTransform saveRect = savePanel.AddComponent<RectTransform>();
+            saveRect.anchorMin = Vector2.zero;
+            saveRect.anchorMax = Vector2.one;
+            saveRect.sizeDelta = Vector2.zero;
+            saveRect.anchoredPosition = Vector2.zero;
+
+            Image savePanelBg = savePanel.AddComponent<Image>();
+            savePanelBg.color = new Color(0.1f, 0.1f, 0.1f, 0.95f);
+
             VerticalLayoutGroup svlg = savePanel.AddComponent<VerticalLayoutGroup>();
             svlg.childAlignment = TextAnchor.MiddleCenter;
             svlg.spacing = 30;
+            svlg.childControlHeight = false;
+            svlg.childControlWidth = false;
 
             SaveSlotView[] slots = new SaveSlotView[3];
             for (int i = 0; i < 3; i++)
@@ -221,6 +247,11 @@ namespace CardAdventure.EditorTools
             GameObject settingsPanel = new GameObject("SettingsPanel");
             settingsPanel.transform.SetParent(menuContainer.transform, false);
             settingsPanel.SetActive(false);
+            RectTransform setRect = settingsPanel.AddComponent<RectTransform>();
+            setRect.sizeDelta = new Vector2(800, 500);
+            Image setImg = settingsPanel.AddComponent<Image>();
+            setImg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+
             VerticalLayoutGroup setVlg = settingsPanel.AddComponent<VerticalLayoutGroup>();
             setVlg.childAlignment = TextAnchor.MiddleCenter;
             setVlg.spacing = 40;
@@ -259,7 +290,10 @@ namespace CardAdventure.EditorTools
             ctrl.settingsController = setCtrl;
 
             EditorSceneManager.MarkSceneDirty(scene);
-            Debug.Log("[Setup] InGameMenu 추가 완료.");
+            
+            ShopStyleUiTool.ApplyToOpenScene();
+
+            Debug.Log("[Setup] InGameMenu 추가 및 상점 스타일 적용 완료.");
         }
 
         private static Button CreateButton(Transform parent, string name, string text)
@@ -300,23 +334,38 @@ namespace CardAdventure.EditorTools
             GameObject numObj = new GameObject("NumberText");
             numObj.transform.SetParent(slotObj.transform, false);
             TextMeshProUGUI numTmp = numObj.AddComponent<TextMeshProUGUI>();
-            numTmp.fontSize = 24;
+            numTmp.fontSize = 28;
             numTmp.alignment = TextAlignmentOptions.TopLeft;
-            numObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(10, -10);
+            RectTransform numRt = numObj.GetComponent<RectTransform>();
+            numRt.anchorMin = new Vector2(0, 1);
+            numRt.anchorMax = new Vector2(0, 1);
+            numRt.pivot = new Vector2(0, 1);
+            numRt.sizeDelta = new Vector2(200, 40);
+            numRt.anchoredPosition = new Vector2(20, -10);
 
             GameObject dateObj = new GameObject("DateText");
             dateObj.transform.SetParent(slotObj.transform, false);
             TextMeshProUGUI dateTmp = dateObj.AddComponent<TextMeshProUGUI>();
             dateTmp.fontSize = 24;
             dateTmp.alignment = TextAlignmentOptions.TopRight;
-            dateObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(-10, -10);
+            RectTransform dateRt = dateObj.GetComponent<RectTransform>();
+            dateRt.anchorMin = new Vector2(1, 1);
+            dateRt.anchorMax = new Vector2(1, 1);
+            dateRt.pivot = new Vector2(1, 1);
+            dateRt.sizeDelta = new Vector2(400, 40);
+            dateRt.anchoredPosition = new Vector2(-20, -10);
 
             GameObject infoObj = new GameObject("InfoText");
             infoObj.transform.SetParent(slotObj.transform, false);
             TextMeshProUGUI infoTmp = infoObj.AddComponent<TextMeshProUGUI>();
             infoTmp.fontSize = 36;
             infoTmp.alignment = TextAlignmentOptions.Center;
-            infoObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 0);
+            RectTransform infoRt = infoObj.GetComponent<RectTransform>();
+            infoRt.anchorMin = new Vector2(0.5f, 0.5f);
+            infoRt.anchorMax = new Vector2(0.5f, 0.5f);
+            infoRt.pivot = new Vector2(0.5f, 0.5f);
+            infoRt.sizeDelta = new Vector2(560, 80);
+            infoRt.anchoredPosition = new Vector2(0, -15);
 
             SaveSlotView view = slotObj.AddComponent<SaveSlotView>();
             view.slotNumberText = numTmp;

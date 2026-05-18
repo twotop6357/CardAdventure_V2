@@ -136,13 +136,26 @@ namespace CardAdventure.UI
             else
             {
                 // 기본적으로 슬롯 0에 저장하는 예시 (UI가 없을 경우)
+                CapturePlayerPosition();
                 SaveManager.SaveGame(0);
                 Debug.Log("게임 저장 완료 (슬롯 0)");
             }
         }
 
+        private void CapturePlayerPosition()
+        {
+            PlayerController player = FindFirstObjectByType<PlayerController>();
+            if (player != null && GameDataManager.Instance != null)
+            {
+                GameDataManager.Instance.HasSavedPosition = true;
+                GameDataManager.Instance.SavedPosition = player.transform.position;
+                GameDataManager.Instance.SavedFacingDirection = player.FacingDirection;
+            }
+        }
+
         private void OnSaveSlotClicked(int slotIndex)
         {
+            CapturePlayerPosition();
             SaveManager.SaveGame(slotIndex);
             Debug.Log($"게임 저장 완료 (슬롯 {slotIndex})");
 

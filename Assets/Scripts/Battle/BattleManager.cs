@@ -56,6 +56,9 @@ namespace CardAdventure
         public List<BattleTurnSummary> TurnLog { get; private set; } = new List<BattleTurnSummary>();
         private BattleTurnSummary currentTurnSummary;
 
+        /// <summary>가장 최근 발생한 대미지가 치명타(Crit)인지 여부.</summary>
+        public bool IsLastDamageCritical { get; set; }
+
         public BattlePlayerState Player { get; private set; }
 
         public BattleEnemyState Enemy { get; private set; }
@@ -74,6 +77,12 @@ namespace CardAdventure
 
         private void Start()
         {
+            // 데미지 텍스트 팝업 제어기 자동 장착
+            if (gameObject.GetComponent<BattleDamageTextController>() == null)
+            {
+                gameObject.AddComponent<BattleDamageTextController>();
+            }
+
             AutoConfigureFromGameData();
 
             if (startOnAwake)
@@ -591,7 +600,10 @@ namespace CardAdventure
                         // 크리티컬 여부를 큐잉 시점에 미리 결정해 저장
                         int hitDamage = data.effectValue;
                         if (UnityEngine.Random.value < critChance)
+                        {
                             hitDamage = Mathf.RoundToInt(hitDamage * data.secondaryValue);
+                            IsLastDamageCritical = true; // 치명타 플래그 세팅!
+                        }
                         DealOrQueueTriggeredDamage(hitDamage, true, true, isMultiHit: true);
                     }
                     break;

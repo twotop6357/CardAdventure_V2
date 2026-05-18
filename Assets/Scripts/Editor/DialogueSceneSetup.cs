@@ -162,7 +162,7 @@ namespace CardAdventure.Editor
             bgRt.offsetMax        = new Vector2(-10f, -6f);
 
             Image bgImg = bg.AddComponent<Image>();
-            ClassicPixelUiTheme.ApplyPanel(bgImg, true);
+            ClassicPixelUiTheme.ApplyShopPanel(bgImg, ClassicPixelUiTheme.ShopPanelAccent.Blue, false);
 
             // ── PortraitFrame ─────────────────────────────────
             GameObject portraitFrame = new GameObject("PortraitFrame");
@@ -175,7 +175,7 @@ namespace CardAdventure.Editor
             portraitFrameRt.sizeDelta = new Vector2(126f, 126f);
 
             Image portraitFrameImg = portraitFrame.AddComponent<Image>();
-            ClassicPixelUiTheme.ApplyPanel(portraitFrameImg);
+            ClassicPixelUiTheme.ApplyShopPanel(portraitFrameImg, ClassicPixelUiTheme.ShopPanelAccent.Gold, false);
 
             GameObject portraitImageGo = new GameObject("PortraitImage");
             portraitImageGo.transform.SetParent(portraitFrame.transform, false);
@@ -199,7 +199,7 @@ namespace CardAdventure.Editor
             nameBoxRt.sizeDelta        = new Vector2(120f, 28f);
 
             Image nameBoxImg = nameBox.AddComponent<Image>();
-            ClassicPixelUiTheme.ApplyPanel(nameBoxImg, true);
+            ClassicPixelUiTheme.ApplyShopPanel(nameBoxImg, ClassicPixelUiTheme.ShopPanelAccent.Blue, false);
 
             // NameText
             GameObject nameTextGo = new GameObject("NameText");

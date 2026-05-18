@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace CardAdventure
 {
@@ -45,16 +46,6 @@ namespace CardAdventure
         [Header("직업 설명 및 스탯 텍스트")]
         [SerializeField] private TextMeshProUGUI jobDescriptionText;
         [SerializeField] private TextMeshProUGUI jobStatsText;
-
-        // ── 선택 화살표 인디케이터 ────────────────────────────────
-        [Header("선택 인디케이터")]
-        [SerializeField] private RectTransform jobArrowIndicator;
-
-        [Header("인디케이터 이동 속도")]
-        [SerializeField] private float indicatorMoveDuration = 0.12f;
-
-        // DOTween 트윈 ID
-        private const string k_ArrowTweenId = "JobArrowIndicator";
 
         // ── 결정 / 취소 버튼 ──────────────────────────────────────
         [Header("결정 / 취소 버튼")]
@@ -113,7 +104,6 @@ namespace CardAdventure
         private void OnDestroy()
         {
             if (panelRoot != null) DOTween.Kill(panelRoot);
-            DOTween.Kill(k_ArrowTweenId);
             IsAnyOpen = false;
             SetPlayerMovement(true);
         }
@@ -351,84 +341,31 @@ namespace CardAdventure
             RefreshStats();
         }
 
-        /// <summary>직업 버튼 선택 표시 — 화살표 인디케이터를 선택 버튼 왼쪽으로 DOTween 이동</summary>
+        /// <summary>직업 버튼 선택 표시 — EventSystem을 통해 버튼을 Select하여 하이라이트 표시</summary>
         private void RefreshJobButtonHighlights()
         {
-            if (jobArrowIndicator == null) return;
-            // 2단계(버튼 선택)에서는 이 메서드가 인디케이터를 건드리지 않음
+            // 2단계(버튼 선택)에서는 이 메서드가 포커스를 건드리지 않음
             if (isInButtonPhase) return;
             if (displayedJobs.Count == 0) return;
             if (jobButtons == null || selectedJobIndex >= jobButtons.Count) return;
 
             var selectedBtn = jobButtons[selectedJobIndex];
-            if (selectedBtn == null) return;
-
-            var btnRt = selectedBtn.GetComponent<RectTransform>();
-            if (btnRt == null) return;
-
-            Vector3 target = CalcIndicatorLocalPos(btnRt);
-            MoveIndicatorTo(target);
+            if (selectedBtn != null)
+            {
+                selectedBtn.Select();
+            }
         }
 
-        /// <summary>결정/취소 버튼 포커스 — 화살표 인디케이터를 해당 버튼 왼쪽으로 DOTween 이동</summary>
+        /// <summary>결정/취소 버튼 포커스 — EventSystem을 통해 버튼을 Select하여 하이라이트 표시</summary>
         private void RefreshButtonPhaseHighlights()
         {
-            if (jobArrowIndicator == null) return;
             if (!isInButtonPhase) return;
 
             Button targetBtn = confirmFocused ? yesButton : noButton;
-            if (targetBtn == null) return;
-
-            var btnRt = targetBtn.GetComponent<RectTransform>();
-            if (btnRt == null) return;
-
-            Vector3 target = CalcIndicatorLocalPos(btnRt);
-            MoveIndicatorTo(target);
-        }
-
-        /// <summary>
-        /// RectTransform(btnRt)의 월드 중심을 jobArrowIndicator의 부모 로컬 공간으로 변환하여
-        /// 버튼 왼쪽에 화살표를 배치할 목표 localPosition을 반환한다.
-        /// </summary>
-        private Vector3 CalcIndicatorLocalPos(RectTransform btnRt)
-        {
-            var parentRt = jobArrowIndicator.parent as RectTransform;
-            if (parentRt == null) return Vector3.zero;
-
-            // 버튼 월드 중심 → 인디케이터 부모 로컬 좌표
-            Vector3 worldCenter = btnRt.TransformPoint(btnRt.rect.center);
-            Vector3 localCenter = parentRt.InverseTransformPoint(worldCenter);
-
-            float arrowHalfW = jobArrowIndicator.sizeDelta.x * 0.5f;
-            float btnHalfW   = btnRt.rect.width * 0.5f;
-
-            return new Vector3(
-                localCenter.x - btnHalfW - arrowHalfW - 6f,
-                localCenter.y,
-                0f
-            );
-        }
-
-        /// <summary>인디케이터를 DOTween으로 목표 위치까지 이동 (처음 표시 시 즉시 배치)</summary>
-        private void MoveIndicatorTo(Vector3 targetLocalPos)
-        {
-            if (jobArrowIndicator == null) return;
-
-            DOTween.Kill(k_ArrowTweenId);
-
-            if (!jobArrowIndicator.gameObject.activeSelf)
+            if (targetBtn != null)
             {
-                // 처음 표시할 때는 즉시 배치
-                jobArrowIndicator.localPosition = targetLocalPos;
-                jobArrowIndicator.gameObject.SetActive(true);
-                return;
+                targetBtn.Select();
             }
-
-            jobArrowIndicator
-                .DOLocalMove(targetLocalPos, indicatorMoveDuration)
-                .SetEase(Ease.OutCubic)
-                .SetId(k_ArrowTweenId)
-                .SetUpdate(true);
         }
 
         private void RefreshPreview()

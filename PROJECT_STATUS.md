@@ -1,17 +1,80 @@
+### 2026-05-18 (Antigravity - 10 이상 대미지 날아다님 현상 개선 & 부드러운 1회 좌우 왕복 연출 고도화)
+
+#### 이번 작업 요약
+- **10 이상 대미지 및 치명타 연출의 비주얼 피로도 완벽 경감**:
+  - 개별 문자 단위가 부르르 떨려서 날아다니는 듯한 시각적 피로도를 주는 TextAnimator의 `<shake>` 리치 텍스트 태그를 제거했습니다.
+  - DOTween의 `DOShakePosition` 진동도 제거하고, **텍스트 전체가 좌우로 한 번 약하고 고급스럽게 슥- 왕복(0.28초)**하는 커스텀 DOTween 슬라이드 연출(`DOMoveX`)을 정교하게 구현했습니다.
+  - 이로써 대미지 수치가 산만하게 튀거나 흩어지지 않고, 제자리에서 한 번 "슥-삭" 가볍게 튕긴 후 차분히 둥실 떠오르며 사라지도록 수정되어 최상의 픽셀 타격감과 시각적 단정함을 완성했습니다.
+- **방어도(Block) 파쇄 대미지 및 다단 히트 수직 정렬 시스템 완비**:
+  - HP 대미지 전의 방어도 파쇄를 실시간 자동 추적하여 `"-{amount} Block"`의 파란색/하늘색 텍스트를 출력합니다.
+  - 동시에 여러 개의 팝업이 뜨더라도 Y축 오프셋을 역산하는 수직 배치 구조(`activeList.Count * 0.32f`)를 통해 텍스트들이 서로 완전히 겹치지 않고 정렬되게 흩어지도록 구현 완료했습니다.
+
+#### 변경 파일
+- `Assets/Scripts/Battle/BattleDamageTextPopup.cs` (DOShakePosition 대신 정교한 1회 좌우 왕복 DOMoveX 시퀀스로 리팩토링) [MODIFY]
+- `Assets/Scripts/Battle/BattleDamageTextController.cs` (대미지/회피 텍스트의 <shake> 리치 텍스트 태그 완전 제거) [MODIFY]
+- `PROJECT_STATUS.md` (최종 텍스트 연출 조정 반영)
+
+---
+
+### 2026-05-18 (Antigravity - 게임 해상도 16:9 고정 설정 및 레터박스 연동 완료)
+
+#### 이번 작업 요약
+- **16:9 해상도 고정 및 레터박스 자동 연동 (`AspectRatioEnforcer.cs` 신규)**:
+  - 런타임에 모니터 해상도 및 모바일/PC 창 모드 해상도와 무관하게 게임 종횡비를 **16:9로 완벽히 강제 고정**하는 `AspectRatioEnforcer` 스크립트를 구현하여 `Assets/Scripts/Core/` 폴더에 탑재했습니다.
+  - 이 스크립트는 `[RuntimeInitializeOnLoadMethod]` 속성을 사용하여 씬에 수동으로 오브젝트를 올리지 않아도 **게임 시작 시 전역 백그라운드에 자동으로 인스턴스화**되도록 설계되어 프로젝트 관리가 극도로 깔끔합니다.
+  - 16:9가 아닌 해상도(예: 16:10, 4:3, 21:9 울트라와이드 등)에서는 실시간으로 계산된 뷰포트 비율에 맞춰 화면 찌그러짐이나 왜곡이 발생하지 않도록 메인 카메라를 보정하며, 보정 외 영역은 투명하게 비우는 대신 동적으로 생성된 전용 카메라(`BackgroundBlackCamera`, depth -100)를 사용해 완벽하고 깔끔한 **검은색 레터박스(위아래)/필러박스(좌우)**로 영역을 깨끗하게 지워줍니다.
+  - 창 모드 실행 시 모니터 높이에 비례하여 기본 16:9 해상도로 우선 셋팅하는 로직을 추가하여 창 크기 뒤틀림에 유연하게 대처합니다.
+- **유니티 PlayerSettings 16:9 해상도 제어 도구 추가 (`GameResolutionSetup.cs` 신규)**:
+  - 사용자가 에디터 상에서 클릭하여 원터치로 빌드 시 16:9 기준 해상도를 Full HD(1920x1080) 기본값으로 설정하고 화면 크기 조절 옵션을 조율해 빌드할 수 있는 유니티 에디터 스크립트를 `Assets/Scripts/Editor/` 폴더에 배치했습니다.
+  - 유니티 상단 메뉴 `CardAdventure/Resolution/Enforce 16-9 Aspect Ratio in PlayerSettings`를 추가하여 빌드 기본값 설정이 유니티 에디터 내부에서도 안전하게 이뤄지도록 하였습니다.
+
+#### 변경 파일
+- `Assets/Scripts/Core/AspectRatioEnforcer.cs` (런타임 16:9 고정 및 자동 레터박스 카메라 보정) [NEW]
+- `Assets/Scripts/Editor/GameResolutionSetup.cs` (PlayerSettings 1920x1080 16:9 자동 강제 빌드 유틸리티) [NEW]
+- `PROJECT_STATUS.md` (상태 최신화)
+
+---
+
+### 2026-05-18 (Antigravity - 배틀씬 어두운 필터 원인 해결: DamageFlash 기본 알파 버그 수정)
+
+#### 이번 작업 요약
+- 배틀씬 전체가 어둡고 탁하게 보이던 결정적인 원인인 `DamageFlash` 오버레이 UI의 기본 알파값 버그를 찾아내 수정했습니다.
+- `Assets/Scenes/BattleTest.unity` 씬 파일 내에서 전체 화면을 덮는 `DamageFlash` (ID: 101764) 오브젝트의 `UnityEngine.UI.Image` 컴포넌트(`fileID: 1191266819`)의 기본 `m_Color`가 `{r: 0, g: 0, b: 0, a: 0.62}`로 잘못 지정되어 있었습니다.
+- 이 때문에 씬 로드 시 62% 불투명도의 검은 장막이 드려져 화면이 탁해 보였습니다. 이를 완전 투명한 상태인 `{r: 1, g: 0, b: 0, a: 0}`으로 변경하여 배틀씬 전체를 맑고 밝게 원상복구했습니다.
+- 앞선 `BattlefieldShade` 비활성화 및 `CrowBattleBackground.png` 복구(색상 틴트 `1, 1, 1, 1` 완전 복원) 조치와 연계되어 배틀씬이 원래의 선명하고 아름다운 2D 비주얼로 온전히 출력되는 것을 확인했습니다.
+
+---
+
+### 2026-05-18 (Antigravity - 상점/대화 UI 상점 스타일 일괄 적용 후속 작업 및 컴파일 에러 해결)
+
+#### 이번 작업 요약
+- `ShopUIController`에서 `CreateButton`이 불필요하게 `ClassicPixelFrame`을 부착하던 문제를 수정하기 위해 `ClassicPixelUiTheme.ApplyShopButton`을 직접 호출하도록 코드를 수정했습니다.
+- 상점 UI에 불필요한 테두리(`AddPanelOutline`) 생성 로직을 제거하여 ShopStyleUiTool이 의도한 `ShopPanelAccent` 색상에 맞춘 단일 테두리 구조로 변경했습니다.
+- 스크립트 수정 과정에서 발생한 줄바꿈(\r\n) 문자열 깨짐 및 관련 컴파일 에러(CS1010, CS1002)를 깔끔하게 정리하여 Unity 리프레시 및 정상 컴파일을 확인했습니다.
+- 에디터 상단 메뉴 `CardAdventure/UI/Apply Shop Style To Project`를 재실행하여 현재 활성 씬(로비 등)의 UI 객체에 변경 사항을 온전히 반영했습니다.
+
+#### 다음 할 일 (Next Steps) / 사용자 액션 필요
+- 플레이 모드에서 상점(Shop) UI 및 대화창(Dialogue) UI의 버튼과 패널 텍스처, 그리고 테두리(Gold/Blue Outline)가 제대로 렌더링되는지 시각적으로 확인해 주세요.
+- 문제 발생 시 다시 보고해 주세요.
+
+---
+
 ### 2026-05-18 (Antigravity - 로비 씬 구성 및 세이브 연동 완료)
 
 #### 이번 작업 요약
 - `SaveData`, `SaveManager`, `GameDatabase`, `GameDatabaseBuilder` 구현
 - `GameDataManager`에 SaveData 호환(로드/저장) 로직 구현 (`CreateSaveData`, `LoadFromSaveData`)
+- 저장 시 어드벤처 씬 내 플레이어의 현재 위치(Position, FacingDirection)를 캡처하여 저장 데이터에 반영하는 로직 추가
 - `SaveSlotView`, `SettingsUIController`, `LobbyUIController`, `InGameMenuController` 스크립트 작성
 - 로비 씬 생성 및 어드벤처 씬 내 인게임 메뉴 캔버스 생성을 위한 에디터 스크립트 (`SetupLobbyScene.cs`) 추가
+- 설정(Settings) 패널에 배경 이미지를 추가하고 적절한 크기를 지정하여 화면에 패널이 제대로 생성되도록 수정
+- 세이브 슬롯 UI의 텍스트가 겹치지 않도록 각 텍스트 요소의 Anchor와 Size를 최적화
+- `SetupLobbyScene.cs` 실행 시 씬 생성 완료 후 자동으로 `ShopStyleUiTool.ApplyToOpenScene()`을 호출하여 프로젝트의 자체 상점 UI 스타일이 로비와 인게임 메뉴에 즉시 적용되도록 수정
 
 #### 다음 할 일 (Next Steps) / 사용자 액션 필요
-- 컴파일 에러(GameDataManager의 } 누락) 해결 완료 및 정상 빌드 확인
-- 에디터 상단 메뉴 `CardAdventure/Setup/1. Setup Lobby Scene`을 실행하여 로비 씬 생성 및 저장
-- `AdventureScene`을 연 뒤 `CardAdventure/Setup/2. Setup InGame Menu`를 실행하여 ESC 메뉴 캔버스 생성 및 씬 저장
-- (추가된 경우) `CardAdventure/Build Game Database` 메뉴를 클릭하여 런타임 저장 복구용 `GameDatabase` 갱신
+- 에디터 상단 메뉴 `CardAdventure/Setup/1. Setup Lobby Scene` 및 `2. Setup InGame Menu` 스크립트 실행으로 UI 구성 완료
 - 인게임에서 ESC를 눌러 메뉴가 작동하는지, 저장 및 이어하기가 정상 작동하는지 확인
+- (추가된 경우) `CardAdventure/Build Game Database` 메뉴를 클릭하여 런타임 저장 복구용 `GameDatabase` 갱신
 
 ---
 
