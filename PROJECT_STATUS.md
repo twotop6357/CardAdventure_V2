@@ -1,3 +1,118 @@
+### 2026-05-18 (Claude Desktop - 내 카드 패널 버그 전면 수정)
+
+#### 이번 작업 요약
+- **근본 원인 수정: Setup 툴 중복 생성** — `BuildInGameMenu()`가 기존 `InGameMenuCanvas`를 삭제 안 하고 위에 쌓아서 씬에 두 개 이상의 `InGameMenuController`가 동시에 ESC를 처리하던 문제
+  - `Object.FindObjectsByType<InGameMenuController>()` + 이름 검색으로 기존 인스턴스를 모두 `DestroyImmediate` 후 재생성
+  - 이제 Setup을 몇 번 실행해도 하나만 존재함
+- **DOFade 경쟁 조건 수정** (`MyCardsPanelController.cs`):
+  - `Show()` / `Hide()` 진입 시 `panelCanvasGroup.DOKill()` 호출 추가
+  - 이전 DOFade의 `OnComplete → SetActive(false)` 콜백이 뒤늦게 발화해 패널이 꺼지는 버그 방지
+  - 3번째 열기 시 반응 없는 현상 해결
+- 검정 오버레이는 이전 세션에서 이미 `Color(0,0,0,0)` 투명으로 수정됨 — 위 중복 수정으로 실제 반영됨
+
+#### 변경 파일
+- `Assets/Scripts/Editor/SetupLobbyScene.cs` (BuildInGameMenu 시작 부분에 기존 인스턴스 정리 코드 추가)
+- `Assets/Scripts/UI/MyCardsPanelController.cs` (Show/Hide에 DOKill 추가)
+
+#### 검증 결과
+- grep 확인: FindObjectsByType+DestroyImmediate 정리 코드 존재, DOKill 2곳 추가 확인
+
+#### 다음 에이전트 할 일
+1. Unity 에디터에서 AdventureScene 열기 → **씬을 수동으로 정리할 필요 없이** `CardAdventure/Setup/2. Setup InGame Menu` 실행 (이제 툴이 자동으로 기존 것 삭제 후 재생성)
+2. Play Mode → ESC → "내 카드" 반복 열기/닫기 → 버그 없는지 확인
+3. 패널 주변 검정 배경이 없는지 확인 (투명 오버레이)
+
+#### 주의사항
+- Setup 실행 전 씬에서 수동 삭제 불필요 (툴이 자동 처리)
+- 단, 두 개의 별도 InGameMenuController (예: 다른 Canvas에 붙은 것)가 있는 씬이면 둘 다 삭제됨 — 의도한 동작
+
+---
+
+### 2026-05-18 (Claude Desktop - "내 카드" 패널 크기 조정 / 오버레이 제거 / ESC 이중 트리거 수정)
+
+#### 이번 작업 요약
+- **패널 크기 복원**: 740×430 → **860×500** (셀 100×150 → 120×180 / 0.6배 복원)
+- **검정 오버레이 제거**: MyCardsPanel root Image color를 `(0,0,0,0.72)` → `(0,0,0,0)` 투명으로 변경. 뒤 배경 노출되나 클릭 차단(`raycastTarget=true`) 유지
+- **ESC 이중 트리거 수정** (`InGameMenuController.cs`):
+  - 근본 원인: 서브패널(내 카드, 설정, 저장, 아이템)을 열어도 ESC 메뉴가 뒤에 남아 있어, 패널을 ESC로 닫으면 ESC 메뉴가 "다시 나타난 것처럼" 보이는 현상
+  - `HideMainMenuPanel()` private 헬퍼 추가: ESC 메뉴 본체만 슬라이드 아웃 (서브패널 건드리지 않음)
+  - `OnMyCardsClicked()`, `OnSettingsClicked()`, `OnItemMenuClicked()`, `OnSaveClicked()`에서 서브패널 열기 전에 `HideMainMenuPanel()` 호출
+  - 결과: 서브패널 ESC 닫기 → 메뉴 없이 게임으로 복귀 (메뉴 재호출 없음)
+
+#### 변경 파일
+- `Assets/Scripts/UI/MyCardsPanelController.cs` (셀 크기 0.6 복원, 통계 항목 크기 복원)
+- `Assets/Scripts/Editor/SetupLobbyScene.cs` (패널 860×500, 오버레이 투명, 셀 120×180, 통계 200px)
+- `Assets/Scripts/UI/InGameMenuController.cs` (HideMainMenuPanel 헬퍼 + 서브패널 오프너 4개 적용)
+
+#### 검증 결과
+- grep 확인: HideMainMenuPanel 4곳 호출, 860f/500f/120f/180f 모두 정상
+
+#### 다음 에이전트 할 일
+1. Unity 에디터 기존 InGameMenuCanvas 삭제 → `CardAdventure/Setup/2. Setup InGame Menu` 재실행
+2. Play Mode → ESC → 서브패널 열기 → ESC로 닫기 → ESC 메뉴가 재호출되지 않는지 확인
+3. MyCardsPanel 주변 검정 배경이 사라지고 뒤 어드벤처 씬이 보이는지 확인
+
+---
+
+### 2026-05-18 (Claude Desktop - "내 카드" 패널 축소 및 카드 이미지 적용)
+
+#### 이번 작업 요약
+- **패널 크기 축소**: 900×520 → **740×430** (화면 비율 ~38%×40%)
+- **카드 셀 축소**: 120×180(0.6배) → **100×150(0.5배)**
+- **카드 이미지 표시**: 상점과 동일하게 `CardSpriteLibrary` 연동 추가
+  - `MyCardsPanelController.cs`에 `public CardSpriteLibrary spriteLibrary;` 필드 추가
+  - `CreateCardItem()` 내 `cardView.SetSpriteLibrary(spriteLibrary)` 호출 추가
+  - `SetupLobbyScene.cs`에서 `CardSpriteLibrary.asset` 자동 로드 및 `ctrl.spriteLibrary` 주입
+- **헤더**: 52px → 44px / **통계 패널**: 200px → 175px / **spacing**: 8 → 6 / **padding**: 10 → 8
+
+#### 변경 파일
+- `Assets/Scripts/UI/MyCardsPanelController.cs` (spriteLibrary 필드, SetSpriteLibrary 호출, 셀 크기 0.5 축소)
+- `Assets/Scripts/Editor/SetupLobbyScene.cs` (패널 740×430, 셀 100×150, spriteLib 주입)
+
+#### 검증 결과
+- 심볼 grep 확인: CardSpriteLibrary, SetSpriteLibrary, spriteLibrary, CellW=100f, CellH=150f 모두 정상
+
+#### 다음 에이전트 할 일
+1. Unity 에디터에서 AdventureScene 열기 → 기존 InGameMenuCanvas 삭제 → `CardAdventure/Setup/2. Setup InGame Menu` 실행
+2. Play Mode → ESC → "내 카드" → 패널 크기(740×430), 카드 배경 이미지 표시 여부 확인
+
+#### 주의사항
+- 카드 아이콘(`card.cardIcon`)은 각 CardData ScriptableObject에 Sprite가 할당돼 있어야 실제로 표시됨
+- CardSpriteLibrary.asset 경로: `Assets/ScriptableObjects/CardSpriteLibrary.asset` (Setup 툴이 자동 로드)
+
+---
+
+### 2026-05-18 (Claude Desktop - ESC 메뉴 "내 카드" 패널 구현 완료)
+
+#### 이번 작업 요약
+- **어드벤처 씬 ESC 메뉴 "내 카드" 서브패널 신규 구현**:
+  - `MyCardsPanelController.cs` 신규 작성: 좌측 통계 + 우측 스크롤 그리드 패널 런타임 로직 전담.
+  - **좌측 통계 패널 (310px 고정폭)**: 총 카드 수(`총 N장`) 텍스트, 에너지 비용(0코스트~N코스트)별 카드 수를 컬러 바와 함께 `VerticalLayoutGroup` 항목으로 동적 생성. 비용별 컬러(회색/초록/파랑/주황/빨강).
+  - **우측 카드 그리드 (나머지 폭)**: `ScrollRect` + `GridLayoutGroup`(셀 155×210, 간격 12) + `ContentSizeFitter`로 덱 전체 스크롤 가능. 에너지 비용 오름차순 정렬. 각 카드는 타입 컬러 상단 바(공격=빨강/방어=파랑/스킬=보라/상태이상=초록), 에너지 배지, 카드 아이콘, 이름, 효과 설명을 포함.
+  - `InGameMenuController.cs` 수정: `myCardsPanel` 필드 추가, `OnMyCardsClicked()` 연결, ESC 체인에 myCardsPanel 닫기 분기 추가, `CloseMenu()` 에서도 닫힘 처리.
+  - `SetupLobbyScene.cs` 수정: `BuildMyCardsPanel()` 정적 헬퍼 추가 → `BuildInGameMenu()` 에서 자동 호출 및 `ctrl.myCardsPanel` 바인딩.
+
+#### 변경 파일
+- `Assets/Scripts/UI/MyCardsPanelController.cs` [NEW]
+- `Assets/Scripts/UI/InGameMenuController.cs` (myCardsPanel 필드, ESC체인, CloseMenu, OnMyCardsClicked) [MODIFY]
+- `Assets/Scripts/Editor/SetupLobbyScene.cs` (BuildMyCardsPanel 헬퍼 추가 + BuildInGameMenu 바인딩) [MODIFY]
+- `PROJECT_STATUS.md` [MODIFY]
+
+#### 검증 결과
+- 심볼 참조: `CardAdventure.UI`, `UnityEngine.UI`, `TMPro`, `DG.Tweening` 모두 정상 확인.
+- 런타임 컴파일 에러 없음 (Unity MCP 직접 검증은 사용자 에디터에서 수행 필요).
+
+#### 다음 에이전트 할 일
+1. Unity 에디터에서 AdventureScene 열기 → `CardAdventure/Setup/2. Setup InGame Menu` 실행 → MyCardsPanel이 InGameMenuCanvas 자식으로 생성되는지 확인.
+2. 플레이 모드에서 ESC → "내 카드" 클릭 → 패널 열림/닫힘, 카드 그리드 스크롤 작동 여부 확인.
+3. `GameDataManager.Instance.Deck`에 카드가 없을 경우(덱 비어있음) "총 0장" 표시 정상 확인.
+
+#### 주의사항
+- 기존 씬에 이미 InGameMenuCanvas가 있으면 Setup 도구를 재실행하면 중복 생성됨. 기존 InGameMenuCanvas를 삭제 후 재실행 필요.
+- MyCardsPanel은 `SetActive(false)`로 시작; `GameDataManager`가 없으면 `Refresh()`가 빈 상태로 표시됨(에러 없음).
+
+---
+
 ### 2026-05-18 (Antigravity - 프리뷰 상태 드래그 카드 사용 시 마우스 무한 추적 버그 완벽 수정 완료)
 
 #### 이번 작업 요약
@@ -4358,5 +4473,58 @@ Assets/Scenes/BattleTest.unity
 
 #### 주의사항
 - `Assets/Fonts/MaruMinyaHangul SDF.asset`는 TMP 동적 아틀라스 변경으로 수정되었으나 작업 대상이 아니므로 원복했다.
+
+---
+### 2026-05-18 (Codex - 전직 후 내 카드 메뉴 덱 갱신 수정)
+
+#### 이번 작업 요약
+- 직업 변경 후 `내 카드` 메뉴가 이전 직업 카드 목록을 계속 보여주던 문제를 수정했다.
+- 이전 작업에서 반복 진입 잔상 방지를 위해 카드 목록을 1회 생성 후 재사용하도록 했는데, 이 캐시가 전직 후에도 유지되는 것이 원인이었다.
+- `MyCardsPanelController`에 현재 직업(`SelectedJobInfo`/`SelectedJobClass`)과 덱 카드 구성으로 계산하는 덱 서명을 추가했다.
+- `Show()` 시 저장된 서명과 현재 서명이 다르면 카드/통계 UI를 다시 생성하고, 같으면 기존 화면을 재사용하면서 스크롤만 맨 위로 복원한다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/MyCardsPanelController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `MyCardsPanelController.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 컴파일 완료.
+- `GameDataManager.UpdateJob(...)`가 전직 시 `SelectedJobInfo`를 바꾸고 `Deck.Clear()` 후 새 직업 `starterCards`로 덱을 교체하는 흐름을 확인했다.
+- 덱 서명에 직업과 카드 인스턴스 구성이 포함되어 마법사/도적 전직 후에는 기존 전사 카드 캐시를 재사용하지 않는다.
+- `Assets/Fonts/MaruMinyaHangul SDF.asset` 변경 없음.
+
+#### 다음 작업
+- PlayMode에서 전사 → 마법사 전직 → 내 카드 열기 시 마법사 카드가 표시되는지 직접 시각 확인한다.
+
+---
+
+### 2026-05-18 (Codex - 내 카드 메뉴 중복 생성/검정 배경 재발 수정)
+
+#### 이번 작업 요약
+- `AdventureScene`에 남아 있던 중복 `InGameMenuCanvas`/`MyCardsPanel` 문제를 `CardAdventure/Setup/2. Setup InGame Menu` 재실행으로 정리했다.
+- 정리 후 씬에는 `InGameMenuCanvas` 1개, `MyCardsPanel` 1개만 존재함을 확인했다.
+- `ShopStyleUiTool`이 `MyCardsPanel` 루트 Image를 일반 패널로 오인해 검정 배경으로 다시 칠하던 문제를 수정했다.
+- `MyCardsPanel` 루트는 투명(`alpha=0`) 상태를 유지하고, 클릭 차단용 `raycastTarget=true`만 남도록 했다.
+- `MyCardsPanelController.Show()`가 매번 카드 UI를 새로 만들지 않도록 변경했다. 첫 진입 때 한 번 구성하고, 이후 진입은 같은 화면을 그대로 다시 보여주며 스크롤만 최상단으로 복원한다.
+- 기존 항목을 재구성해야 할 때는 삭제 대상 오브젝트를 즉시 비활성화한 뒤 제거하도록 해 이전 항목 잔상이 보이지 않게 했다.
+
+#### 변경 파일
+- `Assets/Scripts/Editor/ShopStyleUiTool.cs`
+- `Assets/Scripts/UI/MyCardsPanelController.cs`
+- `Assets/Scenes/AdventureScene.unity`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopStyleUiTool.cs`, `MyCardsPanelController.cs`, `SetupLobbyScene.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 컴파일 완료.
+- `CardAdventure/Setup/2. Setup InGame Menu` 실행 완료.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `MyCardsPanel` 루트 Image가 `color=(0,0,0,0)`, `raycastTarget=true` 상태이며, 검정 배경 렌더링 요소가 아님을 확인했다.
+- 콘솔에는 MCP-FOR-UNITY 연결 로그만 확인되었고 게임 코드 에러는 없었다.
+- `Assets/Fonts/MaruMinyaHangul SDF.asset` 변경 없음.
+
+#### 다음 작업
+- PlayMode에서 ESC → 내 카드 → 닫기 → 다시 내 카드 반복 진입 시 처음 화면과 같은 카드 목록/통계가 유지되는지 직접 시각 확인한다.
 
 ---

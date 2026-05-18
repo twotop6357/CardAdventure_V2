@@ -163,6 +163,25 @@ namespace CardAdventure.EditorTools
                 return;
             }
 
+            // ── 기존 InGameMenuCanvas 모두 제거 (중복 방지) ─────────
+            // Setup을 여러 번 실행해도 하나만 존재하도록 보장한다.
+            var existingControllers = Object.FindObjectsByType<InGameMenuController>(FindObjectsSortMode.None);
+            foreach (var existing in existingControllers)
+            {
+                Debug.Log($"[Setup] 기존 InGameMenuCanvas 제거: {existing.gameObject.name}");
+                Object.DestroyImmediate(existing.gameObject);
+            }
+            // 이름으로도 한 번 더 검색해 혹시 남은 오브젝트 정리
+            for (int i = canvas.transform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = canvas.transform.GetChild(i);
+                if (child.name == "InGameMenuCanvas")
+                {
+                    Debug.Log($"[Setup] 잔여 InGameMenuCanvas 제거 (이름 검색)");
+                    Object.DestroyImmediate(child.gameObject);
+                }
+            }
+
             GameObject menuContainer = new GameObject("InGameMenuCanvas");
             menuContainer.transform.SetParent(canvas.transform, false);
             RectTransform containerRect = menuContainer.AddComponent<RectTransform>();
@@ -499,6 +518,11 @@ namespace CardAdventure.EditorTools
             ctrl.potionCountText = potCountTmp;
             ctrl.usePotionButton = usePotionBtn;
 
+            // MyCards Panel
+            GameObject myCardsPanelRoot = BuildMyCardsPanel(menuContainer.transform);
+            MyCardsPanelController myCardsPanelCtrl = myCardsPanelRoot.GetComponent<MyCardsPanelController>();
+            ctrl.myCardsPanel = myCardsPanelCtrl;
+
             // 씬 상에 존재하는 ShopUIController를 찾아서 potionSprite 바인딩
             ShopUIController shopCtrl = Object.FindFirstObjectByType<ShopUIController>();
             if (shopCtrl != null)
@@ -509,10 +533,290 @@ namespace CardAdventure.EditorTools
             }
 
             EditorSceneManager.MarkSceneDirty(scene);
-            
+
             ShopStyleUiTool.ApplyToOpenScene();
 
             Debug.Log("[Setup] InGameMenu 추가 및 상점 스타일 적용 완료.");
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        //  MyCards Panel Builder
+        // ═══════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// "내 카드" 서브패널 UI 계층 전체를 생성하고 MyCardsPanelController를 붙여 반환한다.
+        ///
+        /// 16:9 (1920×1080) 기준 치수:
+        ///   MyCardsPanel (전체화면 반투명 오버레이 + CanvasGroup)
+        ///     └─ InnerPanel  (900 × 520)
+        ///          ├─ Header         (타이틀 + 닫기 버튼, 52px)
+        ///          └─ ContentArea
+        ///               ├─ StatsPanel       (200px 고정 폭 — 통계)
+        ///               ├─ VerticalDivider  (2px)
+        ///               └─ CardScrollArea   (나머지 ~690px — 스크롤 그리드)
+        ///                    └─ CardContent (GridLayoutGroup, 셀 120×180, 카드 0.6 스케일)
+        /// </summary>
+        private static GameObject BuildMyCardsPanel(Transform parent)
+        {
+            // ── Root (전체화면 반투명 오버레이) ─────────────────────
+            var root = new GameObject("MyCardsPanel");
+            root.transform.SetParent(parent, false);
+            root.SetActive(false);
+
+            var rootRt = root.AddComponent<RectTransform>();
+            rootRt.anchorMin = Vector2.zero;
+            rootRt.anchorMax = Vector2.one;
+            rootRt.sizeDelta = Vector2.zero;
+            rootRt.anchoredPosition = Vector2.zero;
+
+            var rootImg = root.AddComponent<Image>();
+            rootImg.color = new Color(0f, 0f, 0f, 0f); // 투명 — 뒤 배경 노출, 클릭은 차단
+            rootImg.raycastTarget = true;
+
+            var cg = root.AddComponent<CanvasGroup>();
+            cg.alpha = 1f;
+
+            var ctrl = root.AddComponent<MyCardsPanelController>();
+            ctrl.panelCanvasGroup = cg;
+
+            // ── InnerPanel (16:9 기준 740×430) ────────────────────
+            var inner = new GameObject("InnerPanel");
+            inner.transform.SetParent(root.transform, false);
+
+            var innerRt = inner.AddComponent<RectTransform>();
+            innerRt.anchorMin = new Vector2(0.5f, 0.5f);
+            innerRt.anchorMax = new Vector2(0.5f, 0.5f);
+            innerRt.pivot = new Vector2(0.5f, 0.5f);
+            innerRt.sizeDelta = new Vector2(860f, 500f);  // 16:9 기준 중형 패널
+            innerRt.anchoredPosition = Vector2.zero;
+
+            var innerImg = inner.AddComponent<Image>();
+            innerImg.color = new Color(0.07f, 0.06f, 0.05f, 0.98f);
+
+            // ── Header (50px 상단 바) ──────────────────────────────
+            const float headerH = 50f;
+            var header = new GameObject("Header");
+            header.transform.SetParent(inner.transform, false);
+
+            var headerRt = header.AddComponent<RectTransform>();
+            headerRt.anchorMin = new Vector2(0f, 1f);
+            headerRt.anchorMax = new Vector2(1f, 1f);
+            headerRt.pivot = new Vector2(0.5f, 1f);
+            headerRt.sizeDelta = new Vector2(0f, headerH);
+            headerRt.anchoredPosition = Vector2.zero;
+
+            var headerImg = header.AddComponent<Image>();
+            headerImg.color = new Color(0.05f, 0.04f, 0.03f, 1f);
+
+            // 타이틀 텍스트
+            var titleGo = new GameObject("TitleText");
+            titleGo.transform.SetParent(header.transform, false);
+            var titleTmp = titleGo.AddComponent<TextMeshProUGUI>();
+            titleTmp.text = "내 카드";
+            titleTmp.fontSize = 24f;
+            titleTmp.fontStyle = FontStyles.Bold;
+            titleTmp.alignment = TextAlignmentOptions.MidlineLeft;
+            titleTmp.color = new Color(0.96f, 0.96f, 0.92f, 1f);
+            var titleRt = titleGo.GetComponent<RectTransform>();
+            titleRt.anchorMin = Vector2.zero;
+            titleRt.anchorMax = Vector2.one;
+            titleRt.offsetMin = new Vector2(14f, 0f);
+            titleRt.offsetMax = new Vector2(-60f, 0f);
+
+            // 닫기 버튼 (우상단)
+            Button closeBtn = CreateButton(header.transform, "CloseMyCardsButton", "✕");
+            var closeBtnRt = closeBtn.GetComponent<RectTransform>();
+            closeBtnRt.anchorMin = new Vector2(1f, 0.5f);
+            closeBtnRt.anchorMax = new Vector2(1f, 0.5f);
+            closeBtnRt.pivot = new Vector2(1f, 0.5f);
+            closeBtnRt.sizeDelta = new Vector2(50f, 42f);
+            closeBtnRt.anchoredPosition = new Vector2(-5f, 0f);
+            var closeTmp = closeBtn.GetComponentInChildren<TextMeshProUGUI>();
+            if (closeTmp != null) closeTmp.fontSize = 22f;
+            ctrl.closeButton = closeBtn;
+
+            // ── ContentArea (헤더 아래 전체) ──────────────────────
+            var contentArea = new GameObject("ContentArea");
+            contentArea.transform.SetParent(inner.transform, false);
+
+            var contentRt = contentArea.AddComponent<RectTransform>();
+            contentRt.anchorMin = Vector2.zero;
+            contentRt.anchorMax = Vector2.one;
+            contentRt.offsetMin = Vector2.zero;
+            contentRt.offsetMax = new Vector2(0f, -headerH);
+
+            // ── 좌측 통계 패널 (200px) ────────────────────────────
+            const float statsW = 200f;
+
+            var statsPanel = new GameObject("StatsPanel");
+            statsPanel.transform.SetParent(contentArea.transform, false);
+
+            var statsPanelRt = statsPanel.AddComponent<RectTransform>();
+            statsPanelRt.anchorMin = new Vector2(0f, 0f);
+            statsPanelRt.anchorMax = new Vector2(0f, 1f);
+            statsPanelRt.pivot = new Vector2(0f, 0.5f);
+            statsPanelRt.sizeDelta = new Vector2(statsW, 0f);
+            statsPanelRt.anchoredPosition = Vector2.zero;
+
+            var statsPanelImg = statsPanel.AddComponent<Image>();
+            statsPanelImg.color = new Color(0.05f, 0.04f, 0.035f, 1f);
+
+            // 패딩 컨테이너
+            var statsPadding = new GameObject("StatsPadding");
+            statsPadding.transform.SetParent(statsPanel.transform, false);
+            var statsPaddingRt = statsPadding.AddComponent<RectTransform>();
+            statsPaddingRt.anchorMin = Vector2.zero;
+            statsPaddingRt.anchorMax = Vector2.one;
+            statsPaddingRt.offsetMin = new Vector2(12f, 12f);
+            statsPaddingRt.offsetMax = new Vector2(-12f, -12f);
+
+            // "총 N장" 텍스트
+            var totalGo = new GameObject("TotalCountText");
+            totalGo.transform.SetParent(statsPadding.transform, false);
+            var totalTmp = totalGo.AddComponent<TextMeshProUGUI>();
+            totalTmp.text = "총  <b>0</b>장";
+            totalTmp.fontSize = 21f;
+            totalTmp.alignment = TextAlignmentOptions.Center;
+            totalTmp.color = new Color(0.96f, 0.96f, 0.92f, 1f);
+            var totalRt = totalGo.GetComponent<RectTransform>();
+            totalRt.anchorMin = new Vector2(0f, 1f);
+            totalRt.anchorMax = new Vector2(1f, 1f);
+            totalRt.pivot = new Vector2(0.5f, 1f);
+            totalRt.sizeDelta = new Vector2(0f, 40f);
+            totalRt.anchoredPosition = new Vector2(0f, -6f);
+            ctrl.totalCountText = totalTmp;
+
+            // 구분선
+            var divider = new GameObject("Divider");
+            divider.transform.SetParent(statsPadding.transform, false);
+            var divImg = divider.AddComponent<Image>();
+            divImg.color = new Color(0.25f, 0.23f, 0.18f, 1f);
+            var divRt = divider.GetComponent<RectTransform>();
+            divRt.anchorMin = new Vector2(0f, 1f);
+            divRt.anchorMax = new Vector2(1f, 1f);
+            divRt.pivot = new Vector2(0.5f, 1f);
+            divRt.sizeDelta = new Vector2(0f, 2f);
+            divRt.anchoredPosition = new Vector2(0f, -54f);
+
+            // 에너지 비용별 통계 컨테이너
+            var statsScrollRoot = new GameObject("StatsScrollRoot");
+            statsScrollRoot.transform.SetParent(statsPadding.transform, false);
+            var statsScrollRt = statsScrollRoot.AddComponent<RectTransform>();
+            statsScrollRt.anchorMin = Vector2.zero;
+            statsScrollRt.anchorMax = Vector2.one;
+            statsScrollRt.offsetMin = Vector2.zero;
+            statsScrollRt.offsetMax = new Vector2(0f, -62f);
+
+            // VerticalLayoutGroup + ContentSizeFitter
+            var statsContainer = new GameObject("StatsContainer");
+            statsContainer.transform.SetParent(statsScrollRoot.transform, false);
+            var statsContainerRt = statsContainer.AddComponent<RectTransform>();
+            statsContainerRt.anchorMin = new Vector2(0f, 1f);
+            statsContainerRt.anchorMax = new Vector2(1f, 1f);
+            statsContainerRt.pivot = new Vector2(0.5f, 1f);
+            statsContainerRt.sizeDelta = Vector2.zero;
+            statsContainerRt.anchoredPosition = Vector2.zero;
+
+            var vlg = statsContainer.AddComponent<VerticalLayoutGroup>();
+            vlg.childAlignment = TextAnchor.UpperCenter;
+            vlg.spacing = 5f;
+            vlg.childControlHeight = false;
+            vlg.childControlWidth = true;
+            vlg.childForceExpandWidth = true;
+            vlg.padding = new RectOffset(0, 0, 3, 0);
+
+            var statsCsf = statsContainer.AddComponent<ContentSizeFitter>();
+            statsCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            ctrl.statsContainer = statsContainer.transform;
+
+            // ── 수직 구분선 ───────────────────────────────────────
+            var vDiv = new GameObject("VerticalDivider");
+            vDiv.transform.SetParent(contentArea.transform, false);
+            var vDivImg = vDiv.AddComponent<Image>();
+            vDivImg.color = new Color(0.20f, 0.19f, 0.16f, 1f);
+            var vDivRt = vDiv.GetComponent<RectTransform>();
+            vDivRt.anchorMin = new Vector2(0f, 0f);
+            vDivRt.anchorMax = new Vector2(0f, 1f);
+            vDivRt.pivot = new Vector2(0f, 0.5f);
+            vDivRt.sizeDelta = new Vector2(2f, 0f);
+            vDivRt.anchoredPosition = new Vector2(statsW, 0f);
+
+            // ── 우측 카드 스크롤 영역 ─────────────────────────────
+            var cardArea = new GameObject("CardScrollArea");
+            cardArea.transform.SetParent(contentArea.transform, false);
+
+            var cardAreaRt = cardArea.AddComponent<RectTransform>();
+            cardAreaRt.anchorMin = Vector2.zero;
+            cardAreaRt.anchorMax = Vector2.one;
+            cardAreaRt.offsetMin = new Vector2(statsW + 4f, 0f);
+            cardAreaRt.offsetMax = Vector2.zero;
+
+            // RectMask2D 클리핑
+            cardArea.AddComponent<RectMask2D>();
+
+            // ScrollRect
+            var scrollRect = cardArea.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.scrollSensitivity = 24f;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.viewport = cardAreaRt;
+
+            // CardContent (GridLayoutGroup, 셀 100×150 = 카드 200×300 × 0.5)
+            var cardContent = new GameObject("CardContent");
+            cardContent.transform.SetParent(cardArea.transform, false);
+
+            var cardContentRt = cardContent.AddComponent<RectTransform>();
+            cardContentRt.anchorMin = new Vector2(0f, 1f);
+            cardContentRt.anchorMax = new Vector2(1f, 1f);
+            cardContentRt.pivot = new Vector2(0.5f, 1f);
+            cardContentRt.sizeDelta = Vector2.zero;
+            cardContentRt.anchoredPosition = Vector2.zero;
+
+            var grid = cardContent.AddComponent<GridLayoutGroup>();
+            grid.cellSize     = new Vector2(120f, 180f); // 카드 200×300 × 0.6 스케일
+            grid.spacing      = new Vector2(8f, 8f);
+            grid.padding      = new RectOffset(10, 10, 10, 10);
+            grid.startCorner  = GridLayoutGroup.Corner.UpperLeft;
+            grid.startAxis    = GridLayoutGroup.Axis.Horizontal;
+            grid.childAlignment = TextAnchor.UpperLeft;
+            grid.constraint   = GridLayoutGroup.Constraint.Flexible;
+
+            var cardCsf = cardContent.AddComponent<ContentSizeFitter>();
+            cardCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scrollRect.content = cardContentRt;
+            ctrl.cardGridContent = cardContentRt;
+
+            // ── CardView 프리팹 주입 ──────────────────────────────
+            GameObject cardPrefabGo =
+                AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/CardView.prefab");
+            if (cardPrefabGo == null)
+                cardPrefabGo =
+                    AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/UI/Card.prefab");
+            if (cardPrefabGo != null)
+            {
+                ctrl.cardPrefab = cardPrefabGo.GetComponent<BattleCardView>();
+                if (ctrl.cardPrefab == null)
+                    Debug.LogWarning("[Setup] CardView 프리팹에 BattleCardView가 없습니다.");
+            }
+            else
+            {
+                Debug.LogWarning("[Setup] CardView.prefab / Card.prefab을 찾을 수 없습니다. " +
+                                 "MyCardsPanelController.cardPrefab을 수동으로 할당하세요.");
+            }
+
+            // ── CardSpriteLibrary 주입 (상점 방식 카드 배경 이미지) ──
+            var spriteLib = AssetDatabase.LoadAssetAtPath<CardSpriteLibrary>(
+                "Assets/ScriptableObjects/CardSpriteLibrary.asset");
+            if (spriteLib != null)
+                ctrl.spriteLibrary = spriteLib;
+            else
+                Debug.LogWarning("[Setup] CardSpriteLibrary.asset을 찾을 수 없습니다. " +
+                                 "MyCardsPanelController.spriteLibrary를 수동으로 할당하세요.");
+
+            return root;
         }
 
         private static Button CreateButton(Transform parent, string name, string text)

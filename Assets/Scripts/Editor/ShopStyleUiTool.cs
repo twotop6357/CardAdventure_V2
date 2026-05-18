@@ -177,6 +177,15 @@ namespace CardAdventure.Editor
                 }
 
                 string name = image.gameObject.name;
+                if (IsTransparentClickBlocker(image))
+                {
+                    image.sprite = null;
+                    image.color = Color.clear;
+                    image.raycastTarget = true;
+                    RemoveOutline(image.gameObject);
+                    continue;
+                }
+
                 if (IsOverlay(name))
                 {
                     image.color = ClassicPixelUiTheme.DimBlack;
@@ -293,6 +302,17 @@ namespace CardAdventure.Editor
                 || name.IndexOf("FadeMask", StringComparison.OrdinalIgnoreCase) >= 0
                 || name.IndexOf("Blocker", StringComparison.OrdinalIgnoreCase) >= 0
                 || name.IndexOf("DamageFlash", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsTransparentClickBlocker(Image image)
+        {
+            if (image == null)
+            {
+                return false;
+            }
+
+            return image.GetComponent<CardAdventure.UI.MyCardsPanelController>() != null
+                || string.Equals(image.gameObject.name, "MyCardsPanel", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsMutedText(string name)

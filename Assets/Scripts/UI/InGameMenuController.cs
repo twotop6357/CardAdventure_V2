@@ -29,6 +29,7 @@ namespace CardAdventure.UI
         public Button cancelExitButton;
         public GameObject itemUsePanel; // 아이템 사용 전용 서브 패널
         public Button closeItemUseButton; // 아이템 사용 패널 닫기 버튼
+        public MyCardsPanelController myCardsPanel; // 내 카드 서브 패널
 
         [Header("Save Slot Panel (Optional)")]
         public GameObject saveSlotPanel;
@@ -119,6 +120,10 @@ namespace CardAdventure.UI
                 {
                     itemUsePanel.SetActive(false);
                 }
+                else if (myCardsPanel != null && myCardsPanel.gameObject.activeSelf)
+                {
+                    myCardsPanel.Hide();
+                }
                 else
                 {
                     ToggleMenu();
@@ -156,13 +161,28 @@ namespace CardAdventure.UI
             if (exitWarningPanel != null) exitWarningPanel.SetActive(false);
             if (saveSlotPanel != null) saveSlotPanel.SetActive(false);
             if (itemUsePanel != null) itemUsePanel.SetActive(false);
+            if (myCardsPanel != null && myCardsPanel.gameObject.activeSelf) myCardsPanel.Hide();
             if (settingsController != null) settingsController.Hide();
+        }
+
+        /// <summary>
+        /// ESC 메뉴 본체만 슬라이드 아웃. 서브패널은 건드리지 않음.
+        /// 서브패널을 열기 전에 호출해서 "메뉴가 뒤에 남아 있다가 다시 나타나는" 현상을 방지.
+        /// </summary>
+        private void HideMainMenuPanel()
+        {
+            isMenuOpen = false;
+            menuCanvasGroup.interactable = false;
+            menuCanvasGroup.blocksRaycasts = false;
+            menuPanelRect.DOAnchorPosX(hiddenPosX, slideDuration).SetEase(Ease.InBack);
+            menuCanvasGroup.DOFade(0f, slideDuration);
         }
 
         private void OnItemMenuClicked()
         {
             if (itemUsePanel != null)
             {
+                HideMainMenuPanel();
                 itemUsePanel.SetActive(true);
                 RefreshStatusAndItemUI();
             }
@@ -172,6 +192,7 @@ namespace CardAdventure.UI
         {
             if (settingsController != null)
             {
+                HideMainMenuPanel();
                 settingsController.Show();
             }
         }
@@ -180,6 +201,7 @@ namespace CardAdventure.UI
         {
             if (saveSlotPanel != null && saveSlots != null && saveSlots.Length > 0)
             {
+                HideMainMenuPanel();
                 saveSlotPanel.SetActive(true);
                 for (int i = 0; i < saveSlots.Length; i++)
                 {
@@ -224,7 +246,11 @@ namespace CardAdventure.UI
 
         private void OnMyCardsClicked()
         {
-            Debug.Log("내 카드 기능은 아직 준비 중입니다.");
+            if (myCardsPanel != null)
+            {
+                HideMainMenuPanel();
+                myCardsPanel.Show();
+            }
         }
 
         private void OnExitClicked()
