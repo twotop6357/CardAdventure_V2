@@ -17,6 +17,7 @@ namespace CardAdventure
         public int maxHp;
         public int gold;
         public int chapterProgress;
+        public int potionCount;
 
         // ── 직업 및 덱 (참조 문자열) ─────────────────────────────
         public string selectedJobId;

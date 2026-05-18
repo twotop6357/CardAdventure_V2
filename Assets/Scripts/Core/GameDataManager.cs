@@ -27,6 +27,9 @@ namespace CardAdventure
         /// <summary>보유 골드.</summary>
         public int Gold { get; set; }
 
+        /// <summary>보유한 체력 회복 포션 개수.</summary>
+        public int PotionCount { get; set; }
+
         /// <summary>현재 덱 (배틀 보상으로 카드 추가됨).</summary>
         public List<CardData> Deck { get; private set; } = new List<CardData>();
 
@@ -81,6 +84,7 @@ namespace CardAdventure
             MaxHp     = playerMaxHp;
             CurrentHp = playerMaxHp;
             Gold      = 0;
+            PotionCount = 0;
             ChapterProgress = 0;
             HasSavedPosition = false;
             PendingChaserNpcId = null;
@@ -157,6 +161,9 @@ namespace CardAdventure
                 completedChaserNpcIds.Add(PendingChaserNpcId);
                 PendingChaserNpcId = null;
             }
+
+            // 한 전투를 진행한 이후에 물품이 갱신되도록 상점 오퍼 리셋
+            ShopUIController.ResetShopOffers();
         }
 
         /// <summary>
@@ -178,6 +185,18 @@ namespace CardAdventure
         }
 
         public void EarnGold(int amount) => Gold += Mathf.Max(0, amount);
+
+        /// <summary>
+        /// 포션을 1개 소모하고 체력을 25 회복합니다.
+        /// </summary>
+        public bool UsePotion()
+        {
+            if (PotionCount <= 0 || CurrentHp >= MaxHp) return false;
+            PotionCount--;
+            CurrentHp = Mathf.Min(CurrentHp + 25, MaxHp);
+            Debug.Log($"[GameDataManager] 포션 사용. 현재 HP: {CurrentHp}/{MaxHp}, 남은 포션: {PotionCount}");
+            return true;
+        }
 
         /// <summary>
         /// 데이터를 초기 상태로 리셋 (뉴 게임).
@@ -226,6 +245,7 @@ namespace CardAdventure
         /// 현재 덱의 읽기 전용 뷰.
         /// </summary>
         public IReadOnlyList<CardData> ReadOnlyDeck => Deck;
+
         /// <summary>
         /// 현재 상태를 SaveData로 변환하여 반환합니다.
         /// </summary>
@@ -236,6 +256,7 @@ namespace CardAdventure
                 currentHp = CurrentHp,
                 maxHp = MaxHp,
                 gold = Gold,
+                potionCount = PotionCount,
                 chapterProgress = ChapterProgress,
                 selectedJobId = SelectedJobInfo != null ? SelectedJobInfo.name : null,
                 hasSavedPosition = HasSavedPosition,
@@ -266,6 +287,7 @@ namespace CardAdventure
             CurrentHp = data.currentHp;
             MaxHp = data.maxHp;
             Gold = data.gold;
+            PotionCount = data.potionCount;
             ChapterProgress = data.chapterProgress;
 
             HasSavedPosition = data.hasSavedPosition;

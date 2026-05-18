@@ -17,6 +17,9 @@ namespace CardAdventure.Tests
         [TearDown]
         public void TearDown()
         {
+            // 정적 캐시가 다음 테스트에 오염을 주지 않도록 리셋
+            ShopUIController.ResetShopOffers();
+
             if (usesSceneGameData && gameData != null)
             {
                 gameData.Gold = originalGold;

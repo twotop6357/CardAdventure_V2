@@ -1,18 +1,158 @@
-### 2026-05-18 (Antigravity - 10 이상 대미지 날아다님 현상 개선 & 부드러운 1회 좌우 왕복 연출 고도화)
+### 2026-05-18 (Antigravity - 상점 뒤로가기 활성화 시 보유 골드 UI 왼쪽 밀어내기 및 겹침 해결 완료)
 
 #### 이번 작업 요약
-- **10 이상 대미지 및 치명타 연출의 비주얼 피로도 완벽 경감**:
-  - 개별 문자 단위가 부르르 떨려서 날아다니는 듯한 시각적 피로도를 주는 TextAnimator의 `<shake>` 리치 텍스트 태그를 제거했습니다.
-  - DOTween의 `DOShakePosition` 진동도 제거하고, **텍스트 전체가 좌우로 한 번 약하고 고급스럽게 슥- 왕복(0.28초)**하는 커스텀 DOTween 슬라이드 연출(`DOMoveX`)을 정교하게 구현했습니다.
-  - 이로써 대미지 수치가 산만하게 튀거나 흩어지지 않고, 제자리에서 한 번 "슥-삭" 가볍게 튕긴 후 차분히 둥실 떠오르며 사라지도록 수정되어 최상의 픽셀 타격감과 시각적 단정함을 완성했습니다.
-- **방어도(Block) 파쇄 대미지 및 다단 히트 수직 정렬 시스템 완비**:
-  - HP 대미지 전의 방어도 파쇄를 실시간 자동 추적하여 `"-{amount} Block"`의 파란색/하늘색 텍스트를 출력합니다.
-  - 동시에 여러 개의 팝업이 뜨더라도 Y축 오프셋을 역산하는 수직 배치 구조(`activeList.Count * 0.32f`)를 통해 텍스트들이 서로 완전히 겹치지 않고 정렬되게 흩어지도록 구현 완료했습니다.
+- **보유 골드 UI와 뒤로가기 버튼 겹침 해결 (`ShopUIController.cs`)**:
+  - `goldPill` RectTransform을 `goldPillRect` 필드 변수로 캐싱하여 런타임 및 에디터 셋업 시점에 모두 안전하게 바인딩되도록 조치했습니다.
+  - **동적 레이아웃 연동**: 뒤로가기 버튼(`BackButton`)이 화면에 활성화되는 서브 상점 모드(`CardBuy`, `PotionBuy`)로 진입하면 `goldPillRect.anchoredPosition.x`를 기존 `-148f`에서 **`-230f`**로 안전하게 왼쪽으로 자동 밀어냅니다. 이로 인해 두 UI 요소 사이에 약 `22px` 정도의 미려하고 완벽한 안전 여백이 생성되어 단 1픽셀도 겹치지 않고 완전한 정보 시인성을 지키게 되었습니다.
+  - **메인 메뉴 복귀 시 원래 위치 복구**: 뒤로가기 버튼이 숨겨지는 `MainMenu` 상태로 전환되면 다시 원래 위치인 **`-148f`**로 복구되어 레이아웃 일관성을 지킵니다.
+  - **문법 검증 및 빌드 확인**: Unity의 `validate_script standard` 및 `refresh_unity` 컴파일 테스트를 거쳐 **에러 0건, 경고 0건**으로 견고하게 통과했음을 완벽 검증했습니다.
+
+---
+
+### 2026-05-18 (Antigravity - 카드 상점과 포션 상점 UI 화면 완전 분리 및 뒤로가기 내비게이션 완료)
+
+#### 이번 작업 요약
+- **상점 UI 진입 시 선택 메인 메뉴 (`MainMenuContainer`) 신규 이식**:
+  - 카드 구매 슬롯과 포션 구매 슬롯이 한 화면에 섞여 혼재하던 문제를 근본적으로 해결하기 위해, 상점을 처음 열었을 때 `[카드 상점]`, `[포션 상점]`, `[상점 나가기]`의 3가지 선택 분기 픽셀 버튼 메뉴가 중앙에 깔끔하고 세련되게 등장하도록 UI 상태 관리를 개편했습니다.
+- **`ShopMode` 상태 머신 및 내비게이션 연동**:
+  - `ShopMode` 열거형(`MainMenu`, `CardBuy`, `PotionBuy`)을 새로 도입하여 화면 상태를 엄격하고 정교하게 제어합니다.
+  - 서브 상점(`CardBuy`, `PotionBuy`) 모드에 진입하면 좌상단에 클래식 RPG 풍의 **`[뒤로]`(BackButton) 버튼**이 생성 및 활성화되며, 이를 클릭하거나 서브 화면에서 `ESC` 또는 `X` 키 입력 시 닫히는 대신 직전의 **메인 상점 선택 메뉴로 부드럽게 회귀**하는 계층적 내비게이션 처리를 완료했습니다.
+  - 메인 메뉴 상태에서 `ESC` 키나 `상점 나가기` 버튼을 누르면 월드로 깔끔하게 복귀합니다.
+- **포션 상점 격리 생성 (`PotionContainer`)**:
+  - 카드 추천 슬롯(`offerContainer`)과 완전히 공간적으로 분리된 포션 구매 전용 컨테이너(`PotionContainer`)를 동적으로 빌드했습니다.
+  - 포션 상점 모드로 이동하면, 50G 가격 태그와 종횡비가 유지된 포션 아이콘이 단일 상품으로 공간 한가운데에 premium 픽셀 테두리와 함께 노출되어 시각적 미려함을 극대화했습니다.
+- **컴파일 안전성 및 무결성 진단**:
+  - 유니티 스크립트 diagnostics 진단 툴 및 에디터 도메인 리로드를 통해 **에러 0건, 경고 0건**으로 빌드 안전성을 100% 검증했습니다.
 
 #### 변경 파일
-- `Assets/Scripts/Battle/BattleDamageTextPopup.cs` (DOShakePosition 대신 정교한 1회 좌우 왕복 DOMoveX 시퀀스로 리팩토링) [MODIFY]
-- `Assets/Scripts/Battle/BattleDamageTextController.cs` (대미지/회피 텍스트의 <shake> 리치 텍스트 태그 완전 제거) [MODIFY]
-- `PROJECT_STATUS.md` (최종 텍스트 연출 조정 반영)
+- `Assets/Scripts/UI/ShopUIController.cs` (ShopMode 도입, 메인 메뉴/뒤로가기/포션 격리 컨테이너 동적 UI 생성 및 내비게이션 연동 구현) [MODIFY]
+- `PROJECT_STATUS.md` (상태 최신화)
+
+---
+
+### 2026-05-18 (Antigravity - 씬 내 모든 버튼 및 직업 변경 UI 마우스 오버 하이라이트 자동 연동 완료)
+
+#### 이번 작업 요약
+- **전역 자동 버튼 하이라이트 시스템 (`GlobalButtonHighlighter`) 설계 및 이식 완료**:
+  - 씬 내의 모든 버튼과 직업 변경 UI(`JobChangeUIController.cs`) 내 직업/결정/취소 버튼에 마우스 오버 시 ESC 메뉴처럼 밝아지고 피드백을 주는 **ColorTint 하이라이트 효과**를 완전 자동 연동했습니다.
+  - 런타임에 독립적으로 동작하는 `GlobalButtonHighlighter.cs` 컴포넌트를 설계하여 씬 로드 시점 및 `0.4초` 주기 스캔을 통해 씬 내의 활성/비활성 버튼들을 실시간 추적하게 하였습니다.
+  - 버튼 고유의 비주얼 톤을 자동 검사하여, 어두운 회색/검정 계열 버튼은 ESC 메뉴와 동일한 `ColorBlock` 컬러(평소 0.15f, 오버 시 0.4f 밝아짐)를 강제하고, 컬러풀하거나 밝은 버튼들은 고유 색상 스케일에 맞춰 오버 시 1.3배 밝아지거나 색상 대비를 주어 가독성과 픽셀 감성을 극대화하도록 정교한 분기 예외 처리를 구현했습니다.
+  - 프로젝트 내 원본 프리팹 에셋이 수정되는 현상을 원천 차단하기 위해 `gameObject.scene.name == null` 방어 설계를 완료하여 안전성을 확보했습니다.
+  - 구형 캔버스를 제거하고 셋업 툴을 재구동하여 `AdventureScene`에 변경 사항을 안전하게 최종 저장했습니다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/GlobalButtonHighlighter.cs` (런타임 전역 모든 버튼 스캔 및 ESC-style ColorTint 하이라이트 자동 주입 구현) [NEW]
+- `PROJECT_STATUS.md` (상태 최신화)
+
+---
+
+### 2026-05-18 (Antigravity - 로비 나가기 경고 팝업 버튼 크기 조정 및 겹침 현상 해결 완료)
+
+#### 이번 작업 요약
+- **로비 나가기 경고 팝업 내 버튼 크기 및 여백 조정 완료**:
+  - 기존 경고 팝업(`ExitWarningPanel`) 내부의 **확인(Confirm)** 및 **취소(Cancel)** 버튼 크기가 기본 가로폭 `300`으로 생성되어 위치 간격 `X=[-120, 120]` 상에서 서로 완전히 겹치던 레이아웃 문제를 완벽하게 수정했습니다.
+  - 두 버튼의 가로폭 크기를 기본 300에서 **180으로 아담하게 축소(sizeDelta = Vector2(180, 60))**하고, 위치를 `Y = -60`으로 조금 더 균형 있게 낮추었습니다.
+  - 가로 크기가 180으로 맞춰짐에 따라 두 버튼 사이에 **60픽셀의 안전 마진(여백)**이 발생하여 단 1픽셀도 서로 겹치지 않고 미려하게 떨어져 배치되도록 수정했습니다.
+  - 줄어든 버튼 면적에 맞춰 텍스트 폰트 크기(`fontSize`)를 **28**로 자동 최적화해 가독성을 완벽하게 지켰습니다.
+  - 구형 캔버스를 제거하고 셋업 툴을 재구동하여 `AdventureScene`에 변경 사항을 안전하게 최종 저장했습니다.
+
+#### 변경 파일
+- `Assets/Scripts/Editor/SetupLobbyScene.cs` (확인/취소 버튼 sizeDelta=180으로 줄이고 Y 위치 및 fontSize 28 보정 적용) [MODIFY]
+- `PROJECT_STATUS.md` (상태 최신화)
+
+---
+
+### 2026-05-18 (Antigravity - 로비 나가기 경고 팝업 텍스트 보정 및 잘림 현상 수정 완료)
+
+#### 이번 작업 요약
+- **로비로 나가기 경고 팝업 텍스트 및 레이아웃 수정 완료**:
+  - 기존 로비 나가기 경고창 내의 텍스트를 사용자의 피드백에 따라 **`"저장하지 않은 데이터는 유실됩니다.\n정말 나가시겠습니까?"`**로 명확히 수정하여 의미 전달을 직관적으로 보완했습니다.
+  - UI 빌드 타임에 경고 텍스트 오브젝트(`WarningText`)의 `RectTransform`에 명시적인 `sizeDelta = new Vector2(550, 120)` 영역을 할당하지 않아 발생하던 **글자 잘림/미완성 현상**을 완전히 규명하였습니다. 넉넉한 영역을 부여하여 어떠한 환경에서도 텍스트가 줄바꿈 찌그러짐 없이 완전하게 표시되도록 연동을 마쳤습니다.
+  - 구형 인게임 메뉴 캔버스를 제거하고 셋업 툴을 재구동하여 `AdventureScene`에 새 변경점을 완전히 저장했습니다.
+
+#### 변경 파일
+- `Assets/Scripts/Editor/SetupLobbyScene.cs` (WarningText의 UI 텍스트 및 sizeDelta 넉넉한 할당 로직 적용) [MODIFY]
+- `PROJECT_STATUS.md` (상태 최신화)
+
+---
+
+### 2026-05-18 (Antigravity - 아이템 사용 메뉴 UI 이미지 비율 보존(Preserve Aspect) 적용 완료)
+
+#### 이번 작업 요약
+- **아이템 사용 메뉴 내 모든 이미지 종횡비 보존(Preserve Aspect) 설정 완료**:
+  - `ItemUsePanel`(아이템 사용 및 캐릭터 정보 메뉴) 내에서 늘어나거나 찌그러질 우려가 있는 **캐릭터 초상화(FaceImage)**와 **체력 회복 포션 아이콘(PotionIcon)** 이미지들의 `preserveAspect` 속성을 에디터 셋업 시 및 런타임 시작 시 모두 `true`로 강제 설정하였습니다.
+  - 이를 통해 플레이어가 선택한 직업(전사, 마법사, 도적) 고유의 고화질 초상화 및 체력 회복 포션 스프라이트가 어떠한 해상도나 UI 스케일 변화 속에서도 찌그러짐 없이 완벽한 원본 비율을 유지하도록 설계하여 프리미엄 픽셀 룩앤필을 극대화했습니다.
+- **코드 및 에디터 씬 일괄 셋업 갱신**:
+  - `InGameMenuController.cs`의 `Start()` 생명주기 메서드에 런타임 방어 코드를 작성하여 스프라이트가 교체될 때도 항상 종횡비가 정밀 고정되게 하였습니다.
+  - `SetupLobbyScene.cs`에서 인게임 메뉴 에디터 셋업 시점에 생성되는 UI 이미지 오브젝트(`PlayerFaceImage`, `PotionIcon`)들에 대해 빌드 타임에 `preserveAspect = true`가 완벽하게 주입되도록 리팩토링한 뒤, 구형 메뉴 캔버스를 제거하고 셋업 툴을 실행하여 `AdventureScene`에 변경 사항을 온전히 반영·저장했습니다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/InGameMenuController.cs` (Start() 생명주기 시작 시 playerFaceImage.preserveAspect = true 보장 적용) [MODIFY]
+- `Assets/Scripts/Editor/SetupLobbyScene.cs` (에디터 InGameMenu 빌딩 시 faceImg, potIconImg UI Image 컴포넌트에 preserveAspect = true 코드 주입) [MODIFY]
+- `PROJECT_STATUS.md` (최신 상태 갱신)
+
+---
+
+### 2026-05-18 (Antigravity - 상점 포션 구매 및 ESC 인게임 메뉴 내 아이템 사용 및 스테이터스 연동 완료)
+
+#### 이번 작업 요약
+- **상점 내 포션 판매 슬롯 동적 추가 및 골드 연동 완료**:
+  - `ShopUIController.cs`에 3가지 추천 카드 슬롯 하단(2행 1열)에 위치하도록 **체력 회복 포션 상시 판매 슬롯**을 동적으로 생성하는 `EnsurePotionOfferView()` 시스템을 성공적으로 설계하고 구현했습니다.
+  - `Assets/Assets/Sprites/Items/Potion.png` 에셋 이미지를 포션 아이콘에 안정적으로 자동 연동했습니다.
+  - **포션 구매 규칙 및 동적 비주얼 피드백**:
+    - 포션 가격은 **50골드**로 책정했으며, 다회 사용 가능한 소모품의 특성을 살려 **수량 제한 없이 다중 구매**가 가능하도록 로직을 설계했습니다.
+    - 플레이어 잔액이 50G 미만인 경우 포션 슬롯 가격 텍스트 색상이 **실시간으로 빨간색**으로 변해 직관적으로 소지금 부족을 인지할 수 있도록 premium UI 피드백을 가미했습니다.
+    - 소지금이 충분할 때 구매 버튼 클릭 시 50G 차감 및 포션 보유량 1 증가를 수행하며, 슬롯이 **통통 튀는 DOTween 애니메이션**(`DOPunchScale`) 연출을 더했습니다. 소지금 부족 시 경고 창 출력도 정상적으로 조율했습니다.
+- **ESC 인게임 메뉴 - 아이템 사용 및 캐릭터 스테이터스 동기화 인터페이스 완비**:
+  - `InGameMenuController.cs`에서 ESC 키 입력 또는 토글 시 열리는 메뉴창 하단에 포션 전용 정보 및 실시간 캐릭터 상태 UI를 이식했습니다.
+  - **직업 맞춤형 FaceImage 동적 바인딩**:
+    - 플레이어가 선택한 현재 직업(전사, 마법사, 도적)에 맞는 전용 초상화 일러스트(`Warrior_FaceImage.png`, `Magician_FaceImage.png`, `Rogue_FaceImage.png`)를 실시간 감지하여 상태창 UI에 부드럽게 세팅합니다.
+  - **실시간 HP 스테이터스 및 슬라이더 연동**:
+    - `Slider`와 텍스트를 이용해 `현재 HP / 최대 HP`를 가독성 높은 흰색 클래식 픽셀 UI 톤으로 세밀히 노출했습니다.
+  - **포션 사용 및 HP 즉각 회복**:
+    - 포션 사용 클릭 시 보유 수량을 실시간 1 차감하고, **HP를 즉각 25 회복**시킵니다. HP 회복 시 슬라이더와 수치 정보가 깔끔하게 동적 갱신되며, HP가 이미 최대이거나 포션이 없을 시 안전장치 경고 팝업을 띄우도록 빈틈없이 예외 처리를 완료했습니다.
+- **자동 씬 빌더 연동 및 컴파일 무결성 검증**:
+  - 자동화 씬 생성 에디터 유틸리티인 `SetupLobbyScene.cs`를 업데이트하여 새로 구현한 포션 슬롯과 직업별 초상화 스프라이트 에셋이 로비/인게임 UI 구조에 **완전 자동 컴파일 및 프리셋 빌딩** 되도록 바인딩 로직을 세련되게 마쳤습니다.
+  - `using DG.Tweening;` 네임스페이스와 `InGameMenuController` 필드 구조 불일치로 발생했던 에러들을 깔끔히 정리해 **프로젝트 컴파일 에러 0건**을 완벽하게 고수했습니다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs` (포션 슬롯 동적 생성, 50G 구매 로직 및 DOTween 연동) [MODIFY]
+- `Assets/Scripts/UI/InGameMenuController.cs` (ESC 인게임 메뉴 내 직업별 FaceImage, HP 상태바 슬라이더, 포션 사용 및 25 HP 즉각 회복 연동) [MODIFY]
+- `Assets/Scripts/Editor/SetupLobbyScene.cs` (에디터 로비 씬 자동 셋업 시 포션 및 페셋 완전 자동 바인딩 로직 확장) [MODIFY]
+- `PROJECT_STATUS.md` (상태 갱신) 세팅합니다.
+  - **실시간 HP 스테이터스 및 슬라이더 연동**:
+    - `Slider`와 텍스트를 이용해 `현재 HP / 최대 HP`를 가독성 높은 흰색 클래식 픽셀 UI 톤으로 세밀히 노출했습니다.
+  - **포션 사용 및 HP 즉각 회복**:
+    - 포션 사용 클릭 시 보유 수량을 실시간 1 차감하고, **HP를 즉각 25 회복**시킵니다. HP 회복 시 슬라이더와 수치 정보가 깔끔하게 동적 갱신되며, HP가 이미 최대이거나 포션이 없을 시 안전장치 경고 팝업을 띄우도록 빈틈없이 예외 처리를 완료했습니다.
+- **자동 씬 빌더 연동 및 컴파일 무결성 검증**:
+  - 자동화 씬 생성 에디터 유틸리티인 `SetupLobbyScene.cs`를 업데이트하여 새로 구현한 포션 슬롯과 직업별 초상화 스프라이트 에셋이 로비/인게임 UI 구조에 **완전 자동 컴파일 및 프리셋 빌딩** 되도록 바인딩 로직을 세련되게 마쳤습니다.
+  - `using DG.Tweening;` 네임스페이스와 `InGameMenuController` 필드 구조 불일치로 발생했던 에러들을 깔끔히 정리해 **프로젝트 컴파일 에러 0건**을 완벽하게 고수했습니다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs` (포션 슬롯 동적 생성, 50G 구매 로직 및 DOTween 연동) [MODIFY]
+- `Assets/Scripts/UI/InGameMenuController.cs` (ESC 인게임 메뉴 내 직업별 FaceImage, HP 상태바 슬라이더, 포션 사용 및 25 HP 즉각 회복 연동) [MODIFY]
+- `Assets/Scripts/Editor/SetupLobbyScene.cs` (에디터 로비 씬 자동 셋업 시 포션 및 페이스 에셋 완전 자동 바인딩 로직 확장) [MODIFY]
+- `PROJECT_STATUS.md` (상태 갱신)
+
+---
+
+### 2026-05-18 (Antigravity - 상점 SOLD OUT 시스템 및 전투 후 물품 갱신 연동 완료)
+- **상점 UI 물품 판매 방식 수정 (SOLD OUT 빨간 글씨 처리 완료)**:
+  - 3가지 카드 상품 중 하나의 물품을 구매하면 즉시 갱신되던 기존 방식을 변경하여, 구매한 카드의 패널 슬롯에 **붉은색 "SOLD OUT"** 텍스트를 크게 표시하고 카드 프리뷰 및 버튼, 가격을 깔끔하게 비활성화하도록 완성했습니다.
+  - 이 과정에서 `OfferView` 클래스 계층구조를 개선하여 카드 프리뷰를 전용 하위 컨테이너(`PreviewContainer`) 내부에서 독립적으로 관리하도록 리팩토링했습니다. 이 설계적 개선 덕분에 런타임에서 `Price` 텍스트나 `SoldOutText` 객체가 강제 파괴되는 오작동을 원천 봉쇄했으며, 에디터의 단위 테스트(`ShopUIControllerEditModeTests`)도 100% 통과하는 견고한 아키텍처를 수립했습니다.
+- **상점 물품 갱신 주기 연동 (한 전투 진행 후 자동 갱신 완료)**:
+  - 상점 상품 및 SOLD OUT 상태가 씬 전환 시에도 원활하게 캐싱 및 유지되도록 `ShopUIController.jobPersistentOffers` 딕셔너리를 `static` 변수로 전환했습니다.
+  - 전투 종료 후 결과가 저장 데이터에 반영되어 어드벤처 씬으로 복귀하는 트리거 지점인 `GameDataManager.ApplyBattleResult(...)` 메서드 하단부에 `ShopUIController.ResetShopOffers();` 정적 메서드 호출을 연동했습니다. 이로써 한 전투를 치르고 나면 상점 물품이 안전하게 초기화되고 다음 방문 시 새로운 카드로 신선하게 갱신되는 게임 플레이 사이클을 확립했습니다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ShopUIController.cs` (정적 오퍼 관리, SOLD OUT 비주얼 및 구조적 previewContainer 리팩토링) [MODIFY]
+- `Assets/Scripts/Core/GameDataManager.cs` (ApplyBattleResult 내부에 상점 오퍼 리셋 연동) [MODIFY]
+- `Assets/Tests/Editor/ShopUIControllerEditModeTests.cs` (테스트 격리성을 보장하기 위해 TearDown에 ResetShopOffers 추가) [MODIFY]
+- `PROJECT_STATUS.md` (상점 고도화 완료 반영)
+
+---
+
+### 2026-05-18 (Antigravity - 10 이상 대미지 날아다님 현상 개선 & 부드러운 1회 좌우 왕복 연출 고도화)
 
 ---
 

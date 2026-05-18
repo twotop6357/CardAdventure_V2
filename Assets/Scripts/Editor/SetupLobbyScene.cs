@@ -192,6 +192,7 @@ namespace CardAdventure.EditorTools
             Button saveBtn = CreateButton(menuPanel.transform, "SaveButton", "저장하기");
             Button settingsBtn = CreateButton(menuPanel.transform, "SettingsButton", "설정");
             Button myCardsBtn = CreateButton(menuPanel.transform, "MyCardsButton", "내 카드");
+            Button itemMenuBtn = CreateButton(menuPanel.transform, "ItemMenuButton", "아이템 사용"); // 아이템 사용 메뉴 버튼 추가
             Button exitBtn = CreateButton(menuPanel.transform, "ExitButton", "로비로 나가기");
             Button closeBtn = CreateButton(menuPanel.transform, "CloseMenuButton", "메뉴 닫기");
 
@@ -208,14 +209,27 @@ namespace CardAdventure.EditorTools
             GameObject warnTextObj = new GameObject("WarningText");
             warnTextObj.transform.SetParent(warningPanel.transform, false);
             TextMeshProUGUI warnText = warnTextObj.AddComponent<TextMeshProUGUI>();
-            warnText.text = "저장하지 않은 진행 상황은 유실됩니다.\n정말 나가시겠습니까?";
+            warnText.text = "저장하지 않은 데이터는 유실됩니다.\n정말 나가시겠습니까?";
             warnText.alignment = TextAlignmentOptions.Center;
-            warnTextObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 50);
+            warnText.fontSize = 28;
+            warnText.color = Color.white;
+            RectTransform warnTextRt = warnTextObj.GetComponent<RectTransform>();
+            warnTextRt.sizeDelta = new Vector2(550, 120); // 넉넉한 텍스트 가로세로 영역 지정으로 완성되지 않거나 잘리는 문제 해결!
+            warnTextRt.anchoredPosition = new Vector2(0, 50);
 
             Button confirmBtn = CreateButton(warningPanel.transform, "ConfirmExitButton", "확인");
-            confirmBtn.GetComponent<RectTransform>().anchoredPosition = new Vector2(-120, -50);
+            RectTransform confirmRt = confirmBtn.GetComponent<RectTransform>();
+            confirmRt.sizeDelta = new Vector2(180, 60); // 아담하고 세련된 크기 조절로 겹침 현상 원천 방지!
+            confirmRt.anchoredPosition = new Vector2(-120, -60);
+            TextMeshProUGUI confirmText = confirmBtn.GetComponentInChildren<TextMeshProUGUI>();
+            if (confirmText != null) confirmText.fontSize = 28;
+
             Button cancelBtn = CreateButton(warningPanel.transform, "CancelExitButton", "취소");
-            cancelBtn.GetComponent<RectTransform>().anchoredPosition = new Vector2(120, -50);
+            RectTransform cancelRt = cancelBtn.GetComponent<RectTransform>();
+            cancelRt.sizeDelta = new Vector2(180, 60); // 아담하고 세련된 크기 조절로 겹침 현상 원천 방지!
+            cancelRt.anchoredPosition = new Vector2(120, -60);
+            TextMeshProUGUI cancelText = cancelBtn.GetComponentInChildren<TextMeshProUGUI>();
+            if (cancelText != null) cancelText.fontSize = 28;
 
             // Save Slot Panel (Optional for InGame)
             GameObject savePanel = new GameObject("SaveSlotPanel");
@@ -266,6 +280,178 @@ namespace CardAdventure.EditorTools
             setCtrl.sfxSlider = sfxSlider;
             setCtrl.closeButton = closeSettingsBtn;
 
+            // 1. ItemUse Panel (아이템 사용 전용 서브 패널) 생성
+            GameObject itemUsePanel = new GameObject("ItemUsePanel");
+            itemUsePanel.transform.SetParent(menuContainer.transform, false);
+            itemUsePanel.SetActive(false);
+            RectTransform itemUseRect = itemUsePanel.AddComponent<RectTransform>();
+            itemUseRect.sizeDelta = new Vector2(800, 520); // 크기 설정
+            Image itemUseImg = itemUsePanel.AddComponent<Image>();
+            itemUseImg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+
+            // 타이틀 텍스트 추가
+            GameObject titleObj = new GameObject("ItemUseTitle");
+            titleObj.transform.SetParent(itemUsePanel.transform, false);
+            TextMeshProUGUI titleTxt = titleObj.AddComponent<TextMeshProUGUI>();
+            titleTxt.text = "아이템 사용 & 캐릭터 정보";
+            titleTxt.fontSize = 32;
+            titleTxt.alignment = TextAlignmentOptions.Center;
+            titleTxt.color = Color.white;
+            RectTransform titleRt = titleObj.GetComponent<RectTransform>();
+            titleRt.anchorMin = new Vector2(0.5f, 1f);
+            titleRt.anchorMax = new Vector2(0.5f, 1f);
+            titleRt.pivot = new Vector2(0.5f, 1f);
+            titleRt.sizeDelta = new Vector2(600, 50);
+            titleRt.anchoredPosition = new Vector2(0, -25);
+
+            // 닫기 버튼 추가
+            Button closeItemUseBtn = CreateButton(itemUsePanel.transform, "CloseItemUseButton", "닫기");
+            RectTransform closeItemUseRt = closeItemUseBtn.GetComponent<RectTransform>();
+            closeItemUseRt.anchorMin = new Vector2(0.5f, 0f);
+            closeItemUseRt.anchorMax = new Vector2(0.5f, 0f);
+            closeItemUseRt.pivot = new Vector2(0.5f, 0f);
+            closeItemUseRt.sizeDelta = new Vector2(200, 60);
+            closeItemUseRt.anchoredPosition = new Vector2(0, 30);
+
+            // 내부 상태 컨텐츠 배치용 statusPanel 생성
+            GameObject statusPanel = new GameObject("PlayerStatusPanel");
+            statusPanel.transform.SetParent(itemUsePanel.transform, false);
+            RectTransform statusRt = statusPanel.AddComponent<RectTransform>();
+            statusRt.anchorMin = new Vector2(0.5f, 0.5f);
+            statusRt.anchorMax = new Vector2(0.5f, 0.5f);
+            statusRt.pivot = new Vector2(0.5f, 0.5f);
+            statusRt.sizeDelta = new Vector2(700, 300); // 넉넉한 내부 컨테이너
+            statusRt.anchoredPosition = new Vector2(0, 15);
+
+            Image statusImg = statusPanel.AddComponent<Image>();
+            statusImg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
+
+            // 2. 직업 얼굴 초상화 Image
+            GameObject faceObj = new GameObject("PlayerFaceImage");
+            faceObj.transform.SetParent(statusPanel.transform, false);
+            Image faceImg = faceObj.AddComponent<Image>();
+            faceImg.preserveAspect = true;
+            RectTransform faceRt = faceObj.GetComponent<RectTransform>();
+            faceRt.anchorMin = new Vector2(0, 0.5f);
+            faceRt.anchorMax = new Vector2(0, 0.5f);
+            faceRt.pivot = new Vector2(0, 0.5f);
+            faceRt.sizeDelta = new Vector2(100, 100);
+            faceRt.anchoredPosition = new Vector2(40, 55); // 좌측 상단
+
+            // 3. 직업 이름 텍스트
+            GameObject jobTextObj = new GameObject("PlayerJobText");
+            jobTextObj.transform.SetParent(statusPanel.transform, false);
+            TextMeshProUGUI jobTmp = jobTextObj.AddComponent<TextMeshProUGUI>();
+            jobTmp.text = "직업: 초보자";
+            jobTmp.fontSize = 28;
+            jobTmp.alignment = TextAlignmentOptions.Left;
+            jobTmp.color = Color.white;
+            RectTransform jobRt = jobTextObj.GetComponent<RectTransform>();
+            jobRt.anchorMin = new Vector2(0, 0.5f);
+            jobRt.anchorMax = new Vector2(0, 0.5f);
+            jobRt.pivot = new Vector2(0, 0.5f);
+            jobRt.sizeDelta = new Vector2(250, 40);
+            jobRt.anchoredPosition = new Vector2(165, 80); // 초상화 우측 위
+
+            // 4. HP 텍스트
+            GameObject hpTextObj = new GameObject("PlayerHPText");
+            hpTextObj.transform.SetParent(statusPanel.transform, false);
+            TextMeshProUGUI hpTmp = hpTextObj.AddComponent<TextMeshProUGUI>();
+            hpTmp.text = "HP: 50/50";
+            hpTmp.fontSize = 28;
+            hpTmp.alignment = TextAlignmentOptions.Left;
+            hpTmp.color = Color.white;
+            RectTransform hpTxtRt = hpTextObj.GetComponent<RectTransform>();
+            hpTxtRt.anchorMin = new Vector2(0, 0.5f);
+            hpTxtRt.anchorMax = new Vector2(0, 0.5f);
+            hpTxtRt.pivot = new Vector2(0, 0.5f);
+            hpTxtRt.sizeDelta = new Vector2(250, 40);
+            hpTxtRt.anchoredPosition = new Vector2(165, 35); // 초상화 우측 아래
+
+            // 5. HP 슬라이더 바 (단순 출력용)
+            GameObject hpSliderObj = new GameObject("PlayerHPSlider");
+            hpSliderObj.transform.SetParent(statusPanel.transform, false);
+            Slider hpSlider = hpSliderObj.AddComponent<Slider>();
+            RectTransform sliderRt = hpSliderObj.GetComponent<RectTransform>();
+            sliderRt.anchorMin = new Vector2(0.5f, 0.5f);
+            sliderRt.anchorMax = new Vector2(0.5f, 0.5f);
+            sliderRt.pivot = new Vector2(0.5f, 0.5f);
+            sliderRt.anchoredPosition = new Vector2(0, -20); // 중간 영역
+            sliderRt.sizeDelta = new Vector2(620, 24);
+
+            // HP 슬라이더 내부 Background
+            GameObject hpBg = new GameObject("Background");
+            hpBg.transform.SetParent(hpSliderObj.transform, false);
+            Image hpBgImg = hpBg.AddComponent<Image>();
+            hpBgImg.color = new Color(0.2f, 0.2f, 0.2f);
+            RectTransform hpBgRt = hpBg.GetComponent<RectTransform>();
+            hpBgRt.anchorMin = Vector2.zero;
+            hpBgRt.anchorMax = Vector2.one;
+            hpBgRt.sizeDelta = Vector2.zero;
+
+            // HP 슬라이더 내부 Fill Area
+            GameObject hpFillArea = new GameObject("Fill Area");
+            hpFillArea.transform.SetParent(hpSliderObj.transform, false);
+            RectTransform hpFaRt = hpFillArea.AddComponent<RectTransform>();
+            hpFaRt.anchorMin = Vector2.zero;
+            hpFaRt.anchorMax = Vector2.one;
+            hpFaRt.sizeDelta = Vector2.zero;
+
+            // HP 슬라이더 내부 Fill
+            GameObject hpFill = new GameObject("Fill");
+            hpFill.transform.SetParent(hpFillArea.transform, false);
+            Image hpFillImg = hpFill.AddComponent<Image>();
+            hpFillImg.color = new Color(0.8f, 0.2f, 0.2f); // 붉은 계열의 체력 바
+            RectTransform hpFRt = hpFill.GetComponent<RectTransform>();
+            hpFRt.sizeDelta = Vector2.zero;
+
+            hpSlider.fillRect = hpFRt;
+            hpSlider.direction = Slider.Direction.LeftToRight;
+            hpSlider.minValue = 0f;
+            hpSlider.maxValue = 50f;
+            hpSlider.value = 50f;
+
+            // 6. 포션 아이콘 Image
+            GameObject potIconObj = new GameObject("PotionIcon");
+            potIconObj.transform.SetParent(statusPanel.transform, false);
+            Image potIconImg = potIconObj.AddComponent<Image>();
+            potIconImg.preserveAspect = true;
+            RectTransform potIconRt = potIconObj.GetComponent<RectTransform>();
+            potIconRt.anchorMin = new Vector2(0, 0.5f);
+            potIconRt.anchorMax = new Vector2(0, 0.5f);
+            potIconRt.pivot = new Vector2(0, 0.5f);
+            potIconRt.sizeDelta = new Vector2(50, 50);
+            potIconRt.anchoredPosition = new Vector2(40, -85); // 좌측 하단
+
+            // 7. 보유 포션 개수 텍스트
+            GameObject potCountTextObj = new GameObject("PotionCountText");
+            potCountTextObj.transform.SetParent(statusPanel.transform, false);
+            TextMeshProUGUI potCountTmp = potCountTextObj.AddComponent<TextMeshProUGUI>();
+            potCountTmp.text = "보유 포션: 0개";
+            potCountTmp.fontSize = 24;
+            potCountTmp.alignment = TextAlignmentOptions.Left;
+            potCountTmp.color = Color.white;
+            RectTransform potCountRt = potCountTextObj.GetComponent<RectTransform>();
+            potCountRt.anchorMin = new Vector2(0, 0.5f);
+            potCountRt.anchorMax = new Vector2(0, 0.5f);
+            potCountRt.pivot = new Vector2(0, 0.5f);
+            potCountRt.sizeDelta = new Vector2(250, 35);
+            potCountRt.anchoredPosition = new Vector2(105, -85); // 포션 아이콘 우측
+
+            // 8. 포션 사용 Button
+            Button usePotionBtn = CreateButton(statusPanel.transform, "UsePotionButton", "사용");
+            RectTransform usePotionRt = usePotionBtn.GetComponent<RectTransform>();
+            usePotionRt.anchorMin = new Vector2(1, 0.5f);
+            usePotionRt.anchorMax = new Vector2(1, 0.5f);
+            usePotionRt.pivot = new Vector2(1, 0.5f);
+            usePotionRt.sizeDelta = new Vector2(130, 50);
+            usePotionRt.anchoredPosition = new Vector2(-40, -85); // 우측 하단
+            
+            // 기존 버튼 텍스트의 폰트 크기 조절
+            TextMeshProUGUI usePotionTmp = usePotionBtn.GetComponentInChildren<TextMeshProUGUI>();
+            if (usePotionTmp != null) usePotionTmp.fontSize = 28;
+
+            // InGameMenuController 세팅
             InGameMenuController ctrl = menuContainer.AddComponent<InGameMenuController>();
             ctrl.menuPanelRect = panelRect;
             ctrl.menuCanvasGroup = cg;
@@ -276,6 +462,7 @@ namespace CardAdventure.EditorTools
             ctrl.saveButton = saveBtn;
             ctrl.settingsButton = settingsBtn;
             ctrl.myCardsButton = myCardsBtn;
+            ctrl.itemMenuButton = itemMenuBtn; // 세팅 완료
             ctrl.exitButton = exitBtn;
             ctrl.closeMenuButton = closeBtn;
 
@@ -287,7 +474,39 @@ namespace CardAdventure.EditorTools
             ctrl.saveSlots = slots;
             ctrl.closeSaveSlotButton = closeSaveBtn;
 
+            ctrl.itemUsePanel = itemUsePanel; // 세팅 완료
+            ctrl.closeItemUseButton = closeItemUseBtn; // 세팅 완료
             ctrl.settingsController = setCtrl;
+
+            // 포션 및 페이스 에셋 주입
+            Sprite potionSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Assets/Sprites/Items/Potion.png");
+            Sprite warriorSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Assets/Sprites/FaceImage/Warrior_FaceImage.png");
+            Sprite magicianSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Assets/Sprites/FaceImage/Magician_FaceImage.png");
+            Sprite rogueSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Assets/Sprites/FaceImage/Rogue_FaceImage.png");
+
+            potIconImg.sprite = potionSpr; // 포션 아이콘에도 디폴트 이미지 세팅
+            faceImg.sprite = warriorSpr;   // 디폴트 얼굴 세팅
+
+            ctrl.potionSprite = potionSpr;
+            ctrl.warriorFaceSprite = warriorSpr;
+            ctrl.magicianFaceSprite = magicianSpr;
+            ctrl.rogueFaceSprite = rogueSpr;
+
+            ctrl.playerFaceImage = faceImg;
+            ctrl.playerJobText = jobTmp;
+            ctrl.hpText = hpTmp;
+            ctrl.hpSlider = hpSlider;
+            ctrl.potionCountText = potCountTmp;
+            ctrl.usePotionButton = usePotionBtn;
+
+            // 씬 상에 존재하는 ShopUIController를 찾아서 potionSprite 바인딩
+            ShopUIController shopCtrl = Object.FindFirstObjectByType<ShopUIController>();
+            if (shopCtrl != null)
+            {
+                shopCtrl.potionSprite = potionSpr;
+                EditorUtility.SetDirty(shopCtrl);
+                Debug.Log("[Setup] ShopUIController.potionSprite 자동 주입 완료.");
+            }
 
             EditorSceneManager.MarkSceneDirty(scene);
             
