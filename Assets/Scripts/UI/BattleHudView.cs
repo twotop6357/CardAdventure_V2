@@ -101,6 +101,30 @@ namespace CardAdventure
             RefreshStatusIcons(c, displayBonus);
         }
 
+        public void MoveTurnTextToTopBar(Transform topBar)
+        {
+            if (turnText == null || topBar == null)
+            {
+                return;
+            }
+
+            turnText.transform.SetParent(topBar, false);
+            turnText.gameObject.name = "TopTurnText";
+            turnText.alignment = TextAlignmentOptions.Right;
+            turnText.fontSize = 18f;
+            turnText.fontStyle = FontStyles.Bold;
+            turnText.color = new Color(0.95f, 0.88f, 0.45f);
+            turnText.textWrappingMode = TextWrappingModes.NoWrap;
+            turnText.overflowMode = TextOverflowModes.Ellipsis;
+
+            RectTransform rt = turnText.rectTransform;
+            rt.anchorMin = new Vector2(1f, 0f);
+            rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(1f, 0.5f);
+            rt.sizeDelta = new Vector2(160f, 0f);
+            rt.anchoredPosition = new Vector2(-24f, 0f);
+        }
+
         /// <summary>
         /// 직업 데이터에서 가져온 플레이어 스프라이트를 PlayerAvatar Image에 적용한다.
         /// BattleUIManager가 전투 시작 시 코드-side로 호출한다.

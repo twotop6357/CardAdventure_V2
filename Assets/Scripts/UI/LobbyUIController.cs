@@ -63,6 +63,8 @@ namespace CardAdventure.UI
 
         private void OnNewGameClicked()
         {
+            SaveManager.SetCurrentSlotIndex(0);
+
             if (GameDataManager.Instance != null)
             {
                 GameDataManager.Instance.ResetForNewGame();
@@ -93,6 +95,8 @@ namespace CardAdventure.UI
             }
 
             // GameDatabase를 통해 데이터 복원
+            SaveManager.SetCurrentSlotIndex(slotIndex);
+
             GameDatabase db = Resources.Load<GameDatabase>("GameDatabase");
             if (db == null)
             {

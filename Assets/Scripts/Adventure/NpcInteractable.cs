@@ -29,11 +29,12 @@ namespace CardAdventure
         [SerializeField] private bool repeatable = true;
 
         private bool hasSpoken;
+        private bool interactionLocked;
 
         public DialogueData DialogueData => dialogueData;
 
         /// <summary>플레이어가 상호작용할 수 있는 상태인지 반환.</summary>
-        public bool CanInteract() => repeatable || !hasSpoken;
+        public bool CanInteract() => !interactionLocked && (repeatable || !hasSpoken);
 
         public Vector2 InteractionCenter
         {
@@ -87,8 +88,26 @@ namespace CardAdventure
         /// <summary>상호작용 힌트 표시/숨김.</summary>
         public void SetHintActive(bool active)
         {
+            if (interactionLocked)
+            {
+                active = false;
+            }
+
             if (interactHint != null)
                 interactHint.SetActive(active);
+        }
+
+        /// <summary>
+        /// Temporarily blocks player dialogue interaction with this NPC.
+        /// Used while an auto-detected NPC is transitioning into battle.
+        /// </summary>
+        public void SetInteractionLocked(bool locked)
+        {
+            interactionLocked = locked;
+            if (interactionLocked)
+            {
+                SetHintActive(false);
+            }
         }
 
         /// <summary>DialogueManager가 대화 종료 후 호출한다.</summary>

@@ -55,11 +55,16 @@ namespace CardAdventure
         [Header("타게팅 화살표")]
         [SerializeField] private BattleTargetArrow targetArrow;
 
+        [Header("상단 전투 상태")]
+        [Tooltip("TopBar에 표시할 현재 전투 상태 텍스트. 비워두면 기존 Title 텍스트를 재사용합니다.")]
+        [SerializeField] private TextMeshProUGUI battleStatusText;
+
         // ── 내부 상태 ──────────────────────────────────────────────
         private BattleCardView pendingCardView;
         private CardUseMode    pendingUseMode;
         private int            pendingStartedFrame = -1;
         private Canvas         rootCanvas;
+        private bool           playerUsedCardThisTurn;
 
         private enum CardUseMode
         {
@@ -91,6 +96,7 @@ namespace CardAdventure
             }
 
             rootCanvas = GetComponent<Canvas>()?.rootCanvas;
+            ConfigureTopBattleStatusBar();
 
             SubscribeEvents();
             SetupButtons();
@@ -185,6 +191,7 @@ namespace CardAdventure
             pendingCardView = null;
             pendingUseMode = CardUseMode.None;
             pendingStartedFrame = -1;
+            playerUsedCardThisTurn = false;
             targetArrow?.Hide();
 
             if (resultPanel != null) resultPanel.SetActive(false);
@@ -201,6 +208,7 @@ namespace CardAdventure
             enemyView?.ResetForBattle(manager.Enemy);
             RefreshHudAndButtons(manager);
             RefreshHand(manager);   // 첫 5장 드로우
+            SetBattleStatusText("전투를 시작합니다.");
         }
 
         private static Sprite GetPlayerFaceSprite(JobClassInfo job)
@@ -228,7 +236,9 @@ namespace CardAdventure
         /// </summary>
         private void OnEnemyIntentSelected(BattleManager manager, EnemyAction intent)
         {
+            playerUsedCardThisTurn = false;
             enemyView?.Refresh(manager.Enemy);
+            SetBattleStatusText(DescribeEnemyIntent(manager, intent));
 
             if (manager.PlayerTurnCount > 1)
             {
@@ -240,6 +250,7 @@ namespace CardAdventure
         private void OnEnemyActionExecuting(BattleManager manager, EnemyAction action)
         {
             enemyView?.PlayActionAnimation(action.actionType);
+            SetBattleStatusText(DescribeEnemyActionExecuting(manager, action));
         }
 
         private void OnEnemyStatusEffectApplied(BattleManager manager, StatusEffectType type, StatusEffectData data)
@@ -320,6 +331,7 @@ namespace CardAdventure
 
             CancelTargeting();
             handView?.SetInteractable(false);
+            SetBattleStatusText("턴을 종료했습니다. 몬스터가 행동합니다.");
             battleManager.EndPlayerTurn();
         }
 
@@ -604,7 +616,9 @@ namespace CardAdventure
                     return;
 
                 battleManager.SetTriggeredDamageDeferred(true);
+                BattleStateSnapshot before = CaptureBattleState();
                 BattleCardPlayResult result = battleManager.PlayCard(card);
+                BattleStateSnapshot after = CaptureBattleState();
                 List<BattleTriggeredDamageRequest> triggeredDamageRequests =
                     battleManager.ConsumePendingTriggeredDamageRequests();
 
@@ -612,6 +626,11 @@ namespace CardAdventure
                 {
                     battleManager.SetTriggeredDamageDeferred(false);
                     Debug.LogWarning("[BattleUIManager] 카드 효과 발동 실패: " + result.FailureReason);
+                }
+                else
+                {
+                    playerUsedCardThisTurn = true;
+                    SetBattleStatusText(DescribeCardPlay(card, before, after, triggeredDamageRequests));
                 }
 
                 if (triggeredDamageRequests.Count > 0 && playerHud != null)
@@ -703,6 +722,359 @@ namespace CardAdventure
                     new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 10f));
 
             return Vector3.zero;
+        }
+
+        private void ConfigureTopBattleStatusBar()
+        {
+            Transform topBar = null;
+            if (battleStatusText == null)
+            {
+                topBar = FindChildByName(transform, "TopBar");
+                if (topBar != null)
+                {
+                    TextMeshProUGUI[] topTexts = topBar.GetComponentsInChildren<TextMeshProUGUI>(true);
+                    foreach (TextMeshProUGUI tmp in topTexts)
+                    {
+                        if (tmp != null && tmp.gameObject.name == "Title")
+                        {
+                            battleStatusText = tmp;
+                            break;
+                        }
+                    }
+
+                    if (battleStatusText == null)
+                    {
+                        GameObject statusGo = new GameObject("BattleStatusText", typeof(RectTransform), typeof(TextMeshProUGUI));
+                        statusGo.transform.SetParent(topBar, false);
+                        battleStatusText = statusGo.GetComponent<TextMeshProUGUI>();
+                    }
+
+                    foreach (TextMeshProUGUI tmp in topTexts)
+                    {
+                        if (tmp == null || tmp == battleStatusText)
+                        {
+                            continue;
+                        }
+
+                        if (tmp.gameObject.name == "BattleLabel")
+                        {
+                            tmp.gameObject.SetActive(false);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                topBar = battleStatusText.transform.parent;
+            }
+
+            if (battleStatusText == null)
+            {
+                return;
+            }
+
+            battleStatusText.gameObject.name = "BattleStatusText";
+            battleStatusText.text = string.Empty;
+            battleStatusText.alignment = TextAlignmentOptions.Center;
+            battleStatusText.fontSize = 20f;
+            battleStatusText.fontStyle = FontStyles.Bold;
+            battleStatusText.color = new Color(0.88f, 0.94f, 1f);
+            battleStatusText.textWrappingMode = TextWrappingModes.NoWrap;
+            battleStatusText.overflowMode = TextOverflowModes.Ellipsis;
+
+            RectTransform rt = battleStatusText.rectTransform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.offsetMin = new Vector2(24f, 0f);
+            rt.offsetMax = new Vector2(-204f, 0f);
+            rt.anchoredPosition = Vector2.zero;
+
+            playerHud?.MoveTurnTextToTopBar(topBar);
+        }
+
+        private static Transform FindChildByName(Transform root, string childName)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+
+            foreach (Transform child in root)
+            {
+                if (child.name == childName)
+                {
+                    return child;
+                }
+
+                Transform found = FindChildByName(child, childName);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
+        private void SetBattleStatusText(string message)
+        {
+            if (battleStatusText == null)
+            {
+                return;
+            }
+
+            battleStatusText.text = string.IsNullOrWhiteSpace(message)
+                ? "전투 상황을 확인하세요."
+                : message;
+        }
+
+        private string DescribeEnemyIntent(BattleManager manager, EnemyAction intent)
+        {
+            if (intent == null)
+            {
+                return "몬스터의 다음 행동을 살피는 중입니다.";
+            }
+
+            string enemyName = manager?.Enemy?.Data?.enemyName;
+            if (string.IsNullOrWhiteSpace(enemyName))
+            {
+                enemyName = "몬스터";
+            }
+
+            string statusName = intent.statusEffect != null ? intent.statusEffect.effectName : "상태이상";
+            int stacks = Mathf.Max(1, intent.statusEffectStacks);
+
+            return intent.actionType switch
+            {
+                EnemyActionType.Attack => $"{enemyName}은(는) 다음 턴에 플레이어에게 {Mathf.Max(0, intent.value)} 데미지를 주려 합니다.",
+                EnemyActionType.Defend => $"{enemyName}은(는) 다음 턴에 방어도 {Mathf.Max(0, intent.value)}을 얻어 버티려 합니다.",
+                EnemyActionType.Buff => $"{enemyName}은(는) 다음 턴에 자신에게 {statusName} {stacks} 효과를 얻으려 합니다.",
+                EnemyActionType.DebuffPlayer => $"{enemyName}은(는) 다음 턴에 플레이어에게 {statusName} {stacks} 효과를 부여하려 합니다.",
+                EnemyActionType.HealSelf => $"{enemyName}은(는) 다음 턴에 HP {Mathf.Max(0, intent.value)}을 회복하려 합니다.",
+                _ => $"{enemyName}의 다음 행동을 알 수 없습니다.",
+            };
+        }
+
+        private string DescribeEnemyActionExecuting(BattleManager manager, EnemyAction action)
+        {
+            if (action == null)
+            {
+                return "몬스터가 행동합니다.";
+            }
+
+            string enemyName = manager?.Enemy?.Data?.enemyName;
+            if (string.IsNullOrWhiteSpace(enemyName))
+            {
+                enemyName = "몬스터";
+            }
+
+            return $"{enemyName}이(가) {action.GetIntentDescription()} 행동을 실행합니다.";
+        }
+
+        private BattleStateSnapshot CaptureBattleState()
+        {
+            return new BattleStateSnapshot(
+                battleManager?.Enemy?.Combatant?.CurrentHp ?? 0,
+                battleManager?.Enemy?.Combatant?.Block ?? 0,
+                battleManager?.Player?.Combatant?.Block ?? 0,
+                battleManager?.Player?.CurrentEnergy ?? 0,
+                battleManager?.Player?.CardPiles?.Hand?.Count ?? 0);
+        }
+
+        private string DescribeCardPlay(
+            BattleRuntimeCard card,
+            BattleStateSnapshot before,
+            BattleStateSnapshot after,
+            List<BattleTriggeredDamageRequest> triggeredDamageRequests)
+        {
+            CardData data = card?.Data;
+            string cardName = !string.IsNullOrWhiteSpace(data?.cardName) ? data.cardName : "카드";
+            int damageDealt = Mathf.Max(0, before.EnemyHp - after.EnemyHp);
+            int blockGained = Mathf.Max(0, after.PlayerBlock - before.PlayerBlock);
+            int energyGained = Mathf.Max(0, after.PlayerEnergy - before.PlayerEnergy);
+            int cardsDrawn = Mathf.Max(0, after.HandCount - before.HandCount + 1);
+
+            if (damageDealt <= 0)
+            {
+                damageDealt = EstimateDeferredDamage(data, triggeredDamageRequests);
+            }
+
+            List<string> effects = new List<string>();
+            if (damageDealt > 0)
+            {
+                effects.Add($"{damageDealt} 데미지를 가함");
+            }
+
+            if (blockGained > 0)
+            {
+                effects.Add($"방어도 {blockGained}을 얻음");
+            }
+
+            if (energyGained > 0)
+            {
+                effects.Add($"에너지 {energyGained}을 얻음");
+            }
+
+            if (cardsDrawn > 0)
+            {
+                effects.Add($"카드 {cardsDrawn}장을 뽑음");
+            }
+
+            AddKnownCardEffectDescription(data, effects);
+
+            if (effects.Count == 0)
+            {
+                effects.Add("효과를 발동함");
+            }
+
+            return $"{cardName} 카드를 사용하여 {JoinKoreanEffects(effects)}.";
+        }
+
+        private static int EstimateDeferredDamage(CardData data, List<BattleTriggeredDamageRequest> requests)
+        {
+            if (requests != null && requests.Count > 0)
+            {
+                int total = 0;
+                foreach (BattleTriggeredDamageRequest request in requests)
+                {
+                    total += Mathf.Max(0, request.BaseDamage);
+                }
+
+                if (total > 0)
+                {
+                    return total;
+                }
+            }
+
+            if (data == null)
+            {
+                return 0;
+            }
+
+            return data.effectType switch
+            {
+                CardEffectType.DoubleStrike => Mathf.Max(0, data.effectValue * 2),
+                CardEffectType.MultiHitAttack => Mathf.Max(0, data.effectValue * Mathf.Max(1, data.secondaryValue)),
+                CardEffectType.MultiHitAndGainStrength => Mathf.Max(0, data.effectValue * 3),
+                CardEffectType.MultiHitWithCritFromDodge => Mathf.Max(0, data.effectValue * 3),
+                _ => 0,
+            };
+        }
+
+        private static void AddKnownCardEffectDescription(CardData data, List<string> effects)
+        {
+            if (data == null || effects == null)
+            {
+                return;
+            }
+
+            string statusName = data.statusEffect != null ? data.statusEffect.effectName : "상태이상";
+            int statusStacks = Mathf.Max(1, data.secondaryValue > 0 ? data.secondaryValue : data.effectValue);
+
+            switch (data.effectType)
+            {
+                case CardEffectType.Rage:
+                    effects.Add($"이번 턴 공격 보너스 {Mathf.Max(0, data.effectValue)}을 얻음");
+                    break;
+                case CardEffectType.Taunt:
+                    effects.Add("적에게 약화 효과를 부여함");
+                    break;
+                case CardEffectType.ApplyStatusToEnemy:
+                case CardEffectType.AttackAndApplyStatus:
+                case CardEffectType.DamageAndApplyStatus:
+                    effects.Add($"적에게 {statusName} {statusStacks} 효과를 부여함");
+                    break;
+                case CardEffectType.ApplyStatusToPlayer:
+                    effects.Add($"{statusName} {Mathf.Max(1, data.effectValue)} 효과를 얻음");
+                    break;
+                case CardEffectType.GainStrength:
+                    effects.Add($"힘 {Mathf.Max(0, data.effectValue)} 효과를 얻음");
+                    break;
+                case CardEffectType.GainStrengthEqualCurrentBlock:
+                    effects.Add("현재 방어도만큼 힘을 얻음");
+                    break;
+                case CardEffectType.DealDamageWhenBlockGained:
+                    effects.Add($"이번 턴 방어할 때마다 {Mathf.Max(0, data.effectValue)} 데미지 효과를 얻음");
+                    break;
+                case CardEffectType.GainBlockWhenDamageDealt:
+                    effects.Add($"이번 턴 피해를 줄 때마다 방어도 {Mathf.Max(0, data.effectValue)}을 얻는 효과를 얻음");
+                    break;
+                case CardEffectType.DrawCardWhenBlockGained:
+                    effects.Add($"이번 턴 방어할 때마다 카드 {Mathf.Max(0, data.effectValue)}장을 뽑는 효과를 얻음");
+                    break;
+                case CardEffectType.GrantEnemyStrengthAndRetaliateNext:
+                    effects.Add("다음에 받는 피해만큼 힘을 얻는 효과를 준비함");
+                    break;
+                case CardEffectType.BlockAndNextTurnEnergy:
+                    effects.Add($"다음 턴 에너지 {Mathf.Max(0, data.secondaryValue)}을 예약함");
+                    break;
+                case CardEffectType.ApplyPoisonWhenDamageDealt:
+                    effects.Add($"이번 턴 피해를 줄 때마다 독 {Mathf.Max(0, data.effectValue)}을 부여하는 효과를 얻음");
+                    break;
+                case CardEffectType.FreezeEnemyNextAction:
+                    effects.Add("적의 다음 행동을 봉인함");
+                    break;
+                case CardEffectType.MakeFirstAttackFreeThisTurn:
+                    effects.Add("이번 턴 첫 공격 카드 비용을 0으로 만듦");
+                    break;
+                case CardEffectType.PlayHandRandomly:
+                    effects.Add("손패의 다른 카드를 무작위로 사용함");
+                    break;
+                case CardEffectType.AttackAndGainDodge:
+                    effects.Add($"회피 {Mathf.Max(0, data.secondaryValue)} 효과를 얻음");
+                    break;
+                case CardEffectType.GainDodgeWhenPlayingFreeCards:
+                    effects.Add($"비용 0 카드 사용 시 회피 {Mathf.Max(0, data.effectValue)}을 얻는 효과를 얻음");
+                    break;
+                case CardEffectType.MultiplyDodgeStacks:
+                    effects.Add($"회피 스택을 {Mathf.Max(2, data.effectValue)}배로 증폭함");
+                    break;
+                case CardEffectType.DrawCardWhenPlayingFreeCards:
+                    effects.Add($"비용 0 카드 사용 시 카드 {Mathf.Max(0, data.effectValue)}장을 뽑는 효과를 얻음");
+                    break;
+                case CardEffectType.DrawCardsGainDodgeOnFreeDraw:
+                    effects.Add($"비용 0 카드를 뽑을 때마다 회피 {Mathf.Max(0, data.secondaryValue)}을 얻는 효과를 얻음");
+                    break;
+            }
+        }
+
+        private static string JoinKoreanEffects(List<string> effects)
+        {
+            if (effects == null || effects.Count == 0)
+            {
+                return "효과를 발동함";
+            }
+
+            if (effects.Count == 1)
+            {
+                return effects[0];
+            }
+
+            if (effects.Count == 2)
+            {
+                return $"{effects[0]} 및 {effects[1]}";
+            }
+
+            return $"{effects[0]}, {effects[1]} 외 {effects.Count - 2}개 효과";
+        }
+
+        private readonly struct BattleStateSnapshot
+        {
+            public BattleStateSnapshot(int enemyHp, int enemyBlock, int playerBlock, int playerEnergy, int handCount)
+            {
+                EnemyHp = enemyHp;
+                EnemyBlock = enemyBlock;
+                PlayerBlock = playerBlock;
+                PlayerEnergy = playerEnergy;
+                HandCount = handCount;
+            }
+
+            public int EnemyHp { get; }
+            public int EnemyBlock { get; }
+            public int PlayerBlock { get; }
+            public int PlayerEnergy { get; }
+            public int HandCount { get; }
         }
 
         private void ShowTurnAnnouncement(string message)

@@ -230,6 +230,8 @@ namespace CardAdventure
                 // 전투 데이터가 있으면 배틀 로드
                 if (battleEnemyData != null)
                 {
+                    npcInteractable.SetInteractionLocked(true);
+                    player?.SetInputEnabled(false);
                     GameDataManager.Instance?.SetPendingChaserNpc(gameObject.name);
 
                     yield return new WaitForSeconds(0.2f); // 연출 유예

@@ -53,13 +53,16 @@ public static class MagicCrowBattleSceneSetup
         GameObject topBar = CreatePanel("TopBar", canvasGo.transform, new Color(0.04f, 0.055f, 0.065f, 0.86f),
             new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0, -26), new Vector2(0, 52));
         topBar.GetComponent<Image>().raycastTarget = false;
-        CreateTMP("Title", topBar.transform, "CardAdventure", 22, TextAlignmentOptions.Left,
-            new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(22, 0), new Vector2(260, 0))
-            .GetComponent<TextMeshProUGUI>().fontStyle = FontStyles.Bold;
-        TextMeshProUGUI battleLabel = CreateTMP("BattleLabel", topBar.transform, "Magic Crow", 20, TextAlignmentOptions.Right,
-            new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(-28, 0), new Vector2(260, 0))
+        TextMeshProUGUI battleLabel = CreateTMP("BattleStatusText", topBar.transform, "전투 상황을 확인하세요.", 20, TextAlignmentOptions.Center,
+            Vector2.zero, Vector2.one, new Vector2(24, 0), new Vector2(-204, 0))
             .GetComponent<TextMeshProUGUI>();
         battleLabel.color = new Color(0.78f, 0.92f, 1f);
+        battleLabel.fontStyle = FontStyles.Bold;
+        TextMeshProUGUI topTurnText = CreateTMP("TopTurnText", topBar.transform, "턴 1", 18, TextAlignmentOptions.Right,
+            new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(-24, 0), new Vector2(160, 0))
+            .GetComponent<TextMeshProUGUI>();
+        topTurnText.color = new Color(0.95f, 0.88f, 0.45f);
+        topTurnText.fontStyle = FontStyles.Bold;
 
         CreatePanel("PlayerGroundShadow", canvasGo.transform, new Color(0f, 0f, 0f, 0.34f),
             new Vector2(0.28f, 0.43f), new Vector2(0.28f, 0.43f), new Vector2(0, -18), new Vector2(310, 34))
@@ -136,15 +139,13 @@ public static class MagicCrowBattleSceneSetup
             Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         GameObject playerStatus = CreateHorizontalGroup("StatusContainer", playerHudGo.transform,
             new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(84, 12), new Vector2(250, 36));
-        GameObject turnText = CreateTMP("TurnText", playerHudGo.transform, "Turn 1", 16, TextAlignmentOptions.Right,
-            new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-10, -10), new Vector2(80, 26));
         GameObject damageFlash = CreatePanel("DamageFlash", canvasGo.transform, new Color(1f, 0f, 0f, 0f),
             Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         damageFlash.GetComponent<Image>().raycastTarget = false;
 
         SerializeHudView(hudView, playerHpSlider.GetComponent<Slider>(), playerHpText.GetComponent<TextMeshProUGUI>(),
             playerBlockPanel, playerBlockText.GetComponent<TextMeshProUGUI>(), energyText,
-            playerStatus.GetComponent<RectTransform>(), turnText.GetComponent<TextMeshProUGUI>(),
+            playerStatus.GetComponent<RectTransform>(), topTurnText,
             damageFlash.GetComponent<Image>(), statusIconPrefab != null ? statusIconPrefab.GetComponent<BattleStatusIconView>() : null);
 
         GameObject handArea = CreateEmpty("HandArea", canvasGo.transform);

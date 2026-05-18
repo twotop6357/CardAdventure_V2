@@ -113,10 +113,7 @@ namespace CardAdventure
 
         private void OnBattleEnded(BattleManager manager, BattlePhase phase)
         {
-            // GameDataManager 없으면 복귀하지 않음 (독립 실행)
             if (GameDataManager.Instance == null) return;
-            if (SceneLoader.Instance == null) return;
-
             if (phase == BattlePhase.Won)
             {
                 int remainingHp = manager.Player?.Combatant?.CurrentHp ?? 0;
@@ -133,9 +130,16 @@ namespace CardAdventure
             }
             else if (phase == BattlePhase.Lost)
             {
-                // 패배 시 게임 오버 처리 (현재는 어드벤처 씬으로 복귀)
-                Invoke(nameof(ReturnToAdventure), 1.5f);
                 _remainingHp = 0;
+
+                if (rewardUI != null)
+                {
+                    rewardUI.ShowDefeat(manager);
+                }
+                else
+                {
+                    Invoke(nameof(ReturnToAdventure), 1.5f);
+                }
             }
         }
 
@@ -143,7 +147,8 @@ namespace CardAdventure
 
         private void ReturnToAdventure()
         {
-            SceneLoader.Instance.ReturnFromBattle(_remainingHp);
+            if (SceneLoader.Instance != null)
+                SceneLoader.Instance.ReturnFromBattle(_remainingHp);
         }
     }
 }

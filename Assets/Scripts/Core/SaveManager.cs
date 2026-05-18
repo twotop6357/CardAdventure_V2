@@ -8,6 +8,13 @@ namespace CardAdventure
     public static class SaveManager
     {
         public const int MAX_SAVE_SLOTS = 3;
+        public static int CurrentSlotIndex { get; private set; } = 0;
+
+        public static void SetCurrentSlotIndex(int slotIndex)
+        {
+            CurrentSlotIndex = Mathf.Clamp(slotIndex, 0, MAX_SAVE_SLOTS - 1);
+        }
+
         private static string GetSaveFilePath(int slotIndex)
         {
             return Path.Combine(Application.persistentDataPath, $"save_slot_{slotIndex}.json");
@@ -25,6 +32,16 @@ namespace CardAdventure
                 if (HasSaveData(i)) return true;
             }
             return false;
+        }
+
+        public static bool HasCurrentSaveData()
+        {
+            return HasSaveData(CurrentSlotIndex);
+        }
+
+        public static SaveData LoadCurrentSaveData()
+        {
+            return LoadSaveData(CurrentSlotIndex);
         }
 
         public static SaveData LoadSaveData(int slotIndex)
@@ -61,6 +78,7 @@ namespace CardAdventure
             {
                 string json = JsonUtility.ToJson(data, true);
                 File.WriteAllText(GetSaveFilePath(slotIndex), json);
+                SetCurrentSlotIndex(slotIndex);
                 Debug.Log($"[SaveManager] 슬롯 {slotIndex} 저장 성공: {GetSaveFilePath(slotIndex)}");
             }
             catch (Exception e)

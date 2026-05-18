@@ -4528,3 +4528,195 @@ Assets/Scenes/BattleTest.unity
 - PlayMode에서 ESC → 내 카드 → 닫기 → 다시 내 카드 반복 진입 시 처음 화면과 같은 카드 목록/통계가 유지되는지 직접 시각 확인한다.
 
 ---
+### 2026-05-18 (Codex - NPC 초기 바라보는 방향 에디터 툴 추가)
+
+#### 이번 작업 요약
+- NPC 배치 후 초기 바라보는 방향을 상/하/좌/우로 지정할 수 있는 에디터 툴을 추가했다.
+- `NpcFacingDirection` 컴포넌트를 새로 만들고, 선택한 NPC의 초기 방향을 씬에 저장하도록 했다.
+- 에디터 메뉴 `CardAdventure/NPC/Facing/Face Up`, `Face Down`, `Face Left`, `Face Right`를 추가했다.
+- 메뉴 실행 시 선택된 오브젝트 또는 부모 계층에서 `NpcInteractable`, `NpcMovement`, `NpcTileAlignment`, `NpcChaser`, `JobChangerNpc`가 붙은 NPC 루트를 찾아 `NpcFacingDirection`을 자동 추가/갱신한다.
+- 추격형 NPC(`NpcChaser`)는 기존 `initialFacingDir` 직렬화 필드도 함께 갱신해 감지 방향과 시각 방향이 어긋나지 않게 했다.
+- Animator의 `DirectionX`/`DirectionY` 파라미터가 있으면 같이 설정하고, 일반 남/여 NPC 계열은 `MaleNPC_IdleDown/Side/Back` 기본 상태명으로 즉시 미리보기를 시도한다.
+
+#### 변경 파일
+- `Assets/Scripts/Adventure/NpcFacingDirection.cs`
+- `Assets/Scripts/Editor/NpcFacingDirectionEditorTool.cs`
+- `PROJECT_STATUS.md`
+
+#### 사용 방법
+- 씬에서 방향을 바꿀 NPC 오브젝트를 선택한다. 자식 비주얼을 선택해도 부모 NPC 루트를 찾아 처리한다.
+- Unity 상단 메뉴에서 `CardAdventure > NPC > Facing > Face Up/Down/Left/Right` 중 하나를 선택한다.
+- 여러 NPC를 동시에 선택한 뒤 같은 메뉴를 실행하면 선택된 NPC 전체에 같은 방향이 적용된다.
+- 적용 후 `NpcFacingDirection` 컴포넌트의 `Initial Facing` 값이 씬에 저장된다.
+
+#### 검증 결과
+- `NpcFacingDirection.cs`, `NpcFacingDirectionEditorTool.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 컴파일 완료.
+- 메뉴 경로 문자열과 `NpcFacingDirection` 참조 검색 확인 완료.
+- `Assets/Fonts/MaruMinyaHangul SDF.asset` 변경 없음.
+
+#### 주의사항
+- 특정 NPC Animator가 기본 상태명(`MaleNPC_IdleDown`, `MaleNPC_IdleSide`, `MaleNPC_IdleBack`)과 다른 상태명을 쓰는 경우, `NpcFacingDirection` 컴포넌트의 idle 상태명 필드를 해당 컨트롤러에 맞게 조정해야 한다.
+- 좌/우 방향은 `SpriteRenderer.flipX`로 처리한다. 스프라이트의 기본 좌우가 반대면 기존 `NpcTileAlignment`/`NpcMovement`의 `invertVisualFlip` 설정을 따른다.
+
+---
+### 2026-05-18 (Codex - 추격 NPC 전투 진입 연출 중 대화 상호작용 잠금)
+
+#### 이번 작업 요약
+- 플레이어가 추격 NPC에게 탐지되어 대화 후 전투에 진입하는 연출 구간에서, 같은 NPC와 다시 대화 상호작용할 수 있던 문제를 수정했다.
+- `NpcInteractable`에 런타임 상호작용 잠금 플래그를 추가하고 `CanInteract()`가 잠금 상태를 반영하도록 했다.
+- 상호작용이 잠기면 NPC 상호작용 힌트도 강제로 꺼지도록 했다.
+- `NpcChaser`가 대화 종료 후 `battleEnemyData`가 있어 전투 진입이 확정되는 순간 `npcInteractable.SetInteractionLocked(true)`를 호출하도록 했다.
+- `DialogueManager`가 대화 종료 시 플레이어 입력을 다시 켜는 타이밍을 덮기 위해, 전투 진입 대기 구간에서 플레이어 입력도 다시 비활성화했다.
+
+#### 변경 파일
+- `Assets/Scripts/Adventure/NpcInteractable.cs`
+- `Assets/Scripts/Adventure/NpcChaser.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `NpcInteractable.cs` Unity `validate_script standard`: 에러 0개.
+- `NpcChaser.cs` Unity `validate_script standard`: 에러 0개, 기존 성능 경고 2개 확인.
+- Unity 스크립트 컴파일 완료.
+- `SetInteractionLocked`, `CanInteract`, 추격 NPC 전투 진입 지점 연결 검색 확인 완료.
+- `Assets/Fonts/MaruMinyaHangul SDF.asset` 변경 없음.
+
+#### 다음 작업
+- PlayMode에서 추격 NPC에게 탐지 → 대화 종료 → 전투 전환 연출 중 상호작용 키를 눌러도 대화가 재시작되지 않는지 확인한다.
+
+---
+### 2026-05-18 (Codex - 배틀 패배 결과 UI 및 현재 슬롯 불러오기)
+
+#### 이번 작업 요약
+- 배틀 패배 시 즉시 어드벤처로 복귀하지 않고, 승리 화면과 같은 전투 요약 UI를 먼저 표시하도록 변경.
+- 패배 결과 하단에 `가장 최근의 저장 데이터를 불러옵니다.` 문구와 `불러오기` / `로비로 나가기` 버튼 2개를 가로 배치.
+- `불러오기`는 전체 저장 파일 중 최신이 아니라, 현재 플레이 중인 저장 슬롯(`SaveManager.CurrentSlotIndex`)의 저장 데이터만 불러오도록 연결.
+- 로비 이어하기 슬롯 선택과 인게임 저장 시 현재 슬롯을 갱신하도록 저장 슬롯 추적 추가.
+- 이전 NPC 방향 도구에서 없는 Animator state 재생 시 콘솔 에러가 나지 않도록 상태 존재 여부 확인 추가.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleRewardUIController.cs`
+- `Assets/Scripts/Battle/BattleSceneConnector.cs`
+- `Assets/Scripts/Core/SaveManager.cs`
+- `Assets/Scripts/UI/LobbyUIController.cs`
+- `Assets/Scripts/UI/InGameMenuController.cs`
+- `Assets/Scripts/Adventure/NpcFacingDirection.cs`
+
+#### 검증 결과
+- Unity MCP `validate_script`: 위 주요 변경 스크립트 컴파일 진단 통과.
+- Unity 스크립트 컴파일 요청 완료.
+- 콘솔 확인: 새 CS 컴파일 에러 없음. MCP 연결 종료 로그 2건은 도구 세션 로그로 남아 있음.
+- `git diff --check`: 공백 오류 없음.
+
+#### 다음 작업
+- Play Mode에서 몬스터 공격으로 플레이어 패배 유도 후, 패배 요약 UI/불러오기/로비 이동 버튼 동작을 실제 플로우로 확인.
+- 새 게임에서 아직 저장하지 않은 상태로 패배하는 경우 `불러오기` 버튼은 현재 슬롯 저장 데이터가 없으면 비활성화됨.
+
+---
+### 2026-05-18 (Codex - 패배 결과 패널 승리 문구 순간 노출 수정)
+
+#### 이번 작업 요약
+- 패배 패널 표시 직전 `전투 승리!` 문구가 아주 짧게 보이던 문제 수정.
+- 원인: `BattleRewardUIController.EnsureUI()`가 기본 타이틀을 `전투 승리!`로 생성하고, 패배 타이틀은 페이드 완료 후 적용되어 첫 프레임에 기본 문구가 노출됨.
+- 수정: 결과 UI를 활성화하기 전에 승리/패배 화면 내용을 먼저 세팅하고, 기본 생성 타이틀은 빈 문자열로 변경.
+- `CanvasGroup` 페이드 시작 전 기존 트윈을 정리해 이전 페이드 콜백/상태가 섞이지 않게 처리.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleRewardUIController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity MCP `validate_script`: `BattleRewardUIController.cs` 진단 오류 없음.
+- Unity 스크립트 컴파일 요청 완료.
+- 콘솔 확인: 새 C# 컴파일 에러 없음. MCP 연결 종료 로그 2건은 도구 세션 로그로 남아 있음.
+
+#### 다음 작업
+- Play Mode에서 패배 유도 후 패배 패널 등장 첫 프레임에 `전투 승리!`가 보이지 않는지 실제 화면 확인.
+
+---
+### 2026-05-18 (Codex - 배틀 상단 바 전투 상태 텍스트화)
+
+#### 이번 작업 요약
+- 배틀씬 상단 어두운 바의 `CardAdventure`/몬스터 영문 이름 용도 텍스트를 런타임에서 제거하고, `BattleStatusText` 한 줄 상태 표시로 재사용하도록 변경.
+- 플레이어가 카드를 사용하기 전에는 적의 다음 행동 의도를 풀어서 표시:
+  - 공격, 방어, 버프, 디버프, 회복 의도를 문장형으로 표시.
+- 플레이어가 카드를 사용하면 카드명과 효과 결과를 표시:
+  - 실제 HP 변화/방어도/에너지/드로우량을 기반으로 `~~ 카드를 사용하여 ~~ 데미지를 가함`, `방어도 ~~을 얻음` 형태로 표시.
+  - 다단 히트처럼 지연 처리되는 피해는 카드 데이터/대기 중 피해 요청을 기반으로 보완 표시.
+- `MagicCrowBattleSceneSetup`으로 배틀 씬을 재생성할 때도 상단 바가 기존 `Title`/`BattleLabel` 2개 텍스트 대신 `BattleStatusText` 하나만 만들도록 변경.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `Assets/Scripts/Editor/MagicCrowBattleSceneSetup.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity MCP `validate_script`: `BattleUIManager.cs`, `MagicCrowBattleSceneSetup.cs` 진단 오류 없음.
+- Unity 스크립트 컴파일 요청 완료.
+- 콘솔 확인: 새 C# 컴파일 에러 없음. MCP 연결 종료 로그 2건은 도구 세션 로그로 남아 있음.
+- `git diff --check`: 공백 오류 없음.
+
+#### 다음 작업
+- 현재 Unity에 배틀 씬이 로드되어 있지 않아 실제 씬 오브젝트 직접 패치는 미실행. Play Mode에서 배틀씬 진입 후 상단 바가 상태 텍스트로 바뀌는지 확인 필요.
+- 배틀 씬을 에디터 메뉴로 재생성하는 경우 `CardAdventure/Build Magic Crow Battle Scene` 기준 새 상단 바 구조가 적용됨.
+
+---
+### 2026-05-18 (Codex - 배틀 상단 상태 텍스트 조사 표기 수정)
+
+#### 이번 작업 요약
+- 배틀 상단 상태 텍스트의 몬스터 이름 뒤 조사 표기를 `은`에서 `은(는)`으로 변경.
+- 대상: 적 다음 턴 의도 설명 5종(공격/방어/버프/디버프/회복).
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity MCP `validate_script`: `BattleUIManager.cs` 진단 오류 없음.
+
+---
+### 2026-05-18 (Codex - 배틀 턴 표시 상단 바 이동)
+
+#### 이번 작업 요약
+- 플레이어 HUD 옆에 있던 턴 수 텍스트를 전투 상태 표시줄(`TopBar`)의 오른쪽으로 이동하도록 변경.
+- 런타임에서 기존 `turnText`를 `TopBar`로 재부모화하고 `TopTurnText`로 우측 정렬.
+- 중앙 전투 상태 문구는 오른쪽 턴 표시 영역과 겹치지 않도록 우측 여백을 확보.
+- `MagicCrowBattleSceneSetup`으로 씬을 재생성할 때도 `TopBar` 오른쪽에 `TopTurnText`가 생성되도록 변경.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleHudView.cs`
+- `Assets/Scripts/UI/BattleUIManager.cs`
+- `Assets/Scripts/Editor/MagicCrowBattleSceneSetup.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity MCP `validate_script`: `BattleHudView.cs`, `BattleUIManager.cs`, `MagicCrowBattleSceneSetup.cs` 진단 오류 없음.
+- Unity 스크립트 컴파일 요청 완료.
+- 콘솔 확인: 새 C# 컴파일 에러 없음. MCP 연결 종료 로그 2건은 도구 세션 로그로 남아 있음.
+- `git diff --check`: 현재 작업과 무관한 `Assets/Scenes/AdventureScene.unity` 기존 trailing whitespace가 검출됨.
+
+#### 다음 작업
+- Play Mode에서 배틀씬 진입 후 턴 수가 상단 바 오른쪽에 표시되고 중앙 상태 문구와 겹치지 않는지 실제 화면 확인.
+
+---
+### 2026-05-18 (Codex - 대화 UI 글자별 타이핑 적용)
+
+#### 이번 작업 요약
+- `DialogueView`의 대화 본문 표시 방식을 TMP `maxVisibleCharacters` 기반 글자별 타이핑으로 교체.
+- 기존 Febucci `TypewriterByCharacter`는 자동 타이핑을 끄고, `DialogueView`가 직접 한 글자씩 표시하도록 변경.
+- 쉼표/마침표/물음표/느낌표 계열 문장부호에는 짧은 추가 지연을 적용.
+- `SkipTypewriter()`는 현재 줄 전체를 즉시 표시하고 다음 화살표를 띄우도록 유지.
+- 대화창을 닫거나 새 줄을 표시할 때 기존 타이핑 코루틴을 정리하도록 처리.
+
+#### 변경 파일
+- `Assets/Scripts/UI/DialogueView.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity MCP `validate_script`: `DialogueView.cs` 진단 오류 없음.
+- Unity 컴파일 요청은 사용량 제한으로 실행되지 못함(미검증).
+
+#### 다음 작업
+- 사용량 제한 해제 후 Unity 컴파일 및 Play Mode에서 NPC 대화 타이핑/스킵 동작 확인.
+
+---

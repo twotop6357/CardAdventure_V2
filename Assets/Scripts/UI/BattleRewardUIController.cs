@@ -4,6 +4,7 @@ using DG.Tweening;
 using TMPro;
 using TheraBytes.BetterUi;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace CardAdventure
@@ -48,6 +49,8 @@ namespace CardAdventure
         private RectTransform   scrollContent;        // 덱 카드 목록 부모
         private Button          skipButton;
         private TextMeshProUGUI skipLabel;
+        private Button          secondaryButton;
+        private TextMeshProUGUI secondaryLabel;
 
         // ════════════════════════════════════════════════════════
         //  공개 API
@@ -65,18 +68,41 @@ namespace CardAdventure
             GameDataManager.Instance?.EarnGold(goldEarned);
 
             EnsureUI();
-            gameObject.SetActive(true);
 
             if (rootCg != null)
             {
+                rootCg.DOKill();
                 rootCg.alpha = 0f;
-                rootCg.DOFade(1f, 0.4f).SetEase(Ease.OutQuad)
-                      .OnComplete(() => StartSummaryPhase());
             }
-            else
+
+            StartSummaryPhase();
+            gameObject.SetActive(true);
+
+            if (rootCg != null)
+                rootCg.DOFade(1f, 0.4f).SetEase(Ease.OutQuad);
+        }
+
+        public void ShowDefeat(BattleManager battleManager)
+        {
+            if (isActive) return;
+            isActive = true;
+            bm = battleManager;
+            savedHp = 0;
+            goldEarned = 0;
+
+            EnsureUI();
+
+            if (rootCg != null)
             {
-                StartSummaryPhase();
+                rootCg.DOKill();
+                rootCg.alpha = 0f;
             }
+
+            StartDefeatSummaryPhase();
+            gameObject.SetActive(true);
+
+            if (rootCg != null)
+                rootCg.DOFade(1f, 0.4f).SetEase(Ease.OutQuad);
         }
 
         // ════════════════════════════════════════════════════════
@@ -97,7 +123,37 @@ namespace CardAdventure
             BuildSummaryContent();
 
             if (goldBadgeText != null)
+            {
+                goldBadgeText.color = ClassicPixelUiTheme.Energy;
                 goldBadgeText.text = $"골드 + {goldEarned} G  획득!";
+            }
+        }
+
+        private void StartDefeatSummaryPhase()
+        {
+            SetTitle("전투 패배", new Color(1f, 0.45f, 0.38f));
+            SetSubtitle("");
+            SetFooterButtons(
+                "불러오기",
+                () => LoadCurrentSaveData(),
+                "로비로 나가기",
+                () => ReturnToLobby());
+
+            summaryRoot.SetActive(true);
+            mainMenuRoot.SetActive(false);
+            rewardCardContainer.gameObject.SetActive(false);
+            deleteViewRoot.SetActive(false);
+
+            BuildSummaryContent();
+
+            if (goldBadgeText != null)
+            {
+                goldBadgeText.text = "가장 최근의 저장 데이터를 불러옵니다.";
+                goldBadgeText.color = ClassicPixelUiTheme.Text;
+            }
+
+            if (skipButton != null)
+                skipButton.interactable = SaveManager.HasCurrentSaveData();
         }
 
         private void BuildSummaryContent()
@@ -236,6 +292,40 @@ namespace CardAdventure
 
             if (SceneLoader.Instance != null)
                 SceneLoader.Instance.ReturnFromBattle(savedHp);
+        }
+
+        private void LoadCurrentSaveData()
+        {
+            if (!isActive) return;
+            isActive = false;
+
+            int slotIndex = SaveManager.CurrentSlotIndex;
+            SaveData data = SaveManager.LoadCurrentSaveData();
+            if (data == null)
+            {
+                Debug.LogWarning($"[BattleRewardUI] 현재 슬롯 {slotIndex}의 저장 데이터를 찾을 수 없어 로비로 이동합니다.");
+                ReturnToLobby();
+                return;
+            }
+
+            GameDatabase db = Resources.Load<GameDatabase>("GameDatabase");
+            if (db == null)
+            {
+                Debug.LogError("[BattleRewardUI] GameDatabase를 Resources에서 찾을 수 없어 로비로 이동합니다.");
+                ReturnToLobby();
+                return;
+            }
+
+            SaveManager.SetCurrentSlotIndex(slotIndex);
+            GameDataManager.Instance?.LoadFromSaveData(data, db);
+            SceneManager.LoadScene(string.IsNullOrEmpty(data.currentSceneName) ? "AdventureScene" : data.currentSceneName);
+        }
+
+        private void ReturnToLobby()
+        {
+            isActive = false;
+            Time.timeScale = 1f;
+            SceneManager.LoadScene("LobbyScene");
         }
 
         // ════════════════════════════════════════════════════════
@@ -503,7 +593,7 @@ namespace CardAdventure
             GameObject header = CreateImage("Header", panelRoot, ClassicPixelUiTheme.InnerBlack);
             SetStretchOffsets(header.GetComponent<RectTransform>(), new Vector2(0f, 556f), Vector2.zero);
 
-            titleText = CreateText("TitleText", header.transform, "전투 승리!", 42, TextAlignmentOptions.Center);
+            titleText = CreateText("TitleText", header.transform, "", 42, TextAlignmentOptions.Center);
             Stretch(titleText.rectTransform);
             titleText.fontStyle = FontStyles.Bold;
             titleText.color = ClassicPixelUiTheme.Energy;
@@ -677,6 +767,14 @@ namespace CardAdventure
                 Vector2.zero, new Vector2(240f, 50f), new Vector2(0.5f, 0.5f));
             skipLabel = skipButton.GetComponentInChildren<TextMeshProUGUI>();
 
+            secondaryButton = CreateButton("SecondaryButton", footer.transform, "로비로 나가기",
+                ClassicPixelUiTheme.WindowBlack, new Color(0.16f, 0.04f, 0.04f, 1f));
+            SetRect(secondaryButton.GetComponent<RectTransform>(),
+                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                new Vector2(150f, 0f), new Vector2(240f, 50f), new Vector2(0.5f, 0.5f));
+            secondaryLabel = secondaryButton.GetComponentInChildren<TextMeshProUGUI>();
+            secondaryButton.gameObject.SetActive(false);
+
             summaryRoot.SetActive(false);
             mainMenuRoot.SetActive(false);
             deleteViewRoot.SetActive(false);
@@ -774,10 +872,40 @@ namespace CardAdventure
 
         private void SetSkip(string label, System.Action onClick)
         {
-            if (skipLabel != null) skipLabel.text = label;
-            if (skipButton == null) return;
-            skipButton.onClick.RemoveAllListeners();
-            skipButton.onClick.AddListener(() => onClick?.Invoke());
+            SetFooterButtons(label, onClick, null, null);
+        }
+
+        private void SetFooterButtons(
+            string primaryLabel,
+            System.Action primaryClick,
+            string secondaryLabelText,
+            System.Action secondaryClick)
+        {
+            if (skipButton != null)
+            {
+                RectTransform rt = skipButton.GetComponent<RectTransform>();
+                Vector2 pos = string.IsNullOrEmpty(secondaryLabelText) ? Vector2.zero : new Vector2(-150f, 0f);
+                SetRect(rt,
+                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                    pos, new Vector2(240f, 50f), new Vector2(0.5f, 0.5f));
+
+                skipButton.gameObject.SetActive(true);
+                skipButton.interactable = true;
+                if (skipLabel != null) skipLabel.text = primaryLabel;
+                skipButton.onClick.RemoveAllListeners();
+                skipButton.onClick.AddListener(() => primaryClick?.Invoke());
+            }
+
+            if (secondaryButton == null) return;
+
+            bool useSecondary = !string.IsNullOrEmpty(secondaryLabelText);
+            secondaryButton.gameObject.SetActive(useSecondary);
+            secondaryButton.onClick.RemoveAllListeners();
+            if (!useSecondary) return;
+
+            if (secondaryLabel != null) secondaryLabel.text = secondaryLabelText;
+            secondaryButton.interactable = true;
+            secondaryButton.onClick.AddListener(() => secondaryClick?.Invoke());
         }
 
         // ════════════════════════════════════════════════════════

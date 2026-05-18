@@ -1,6 +1,7 @@
 using DG.Tweening;
 using Febucci.UI;
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -44,6 +45,11 @@ namespace CardAdventure
         [Tooltip("DialogueText와 같은 GameObject에 있는 TypewriterByCharacter 컴포넌트")]
         [SerializeField] private TypewriterByCharacter typewriter;
 
+        [Header("글자별 타이핑")]
+        [SerializeField, Min(0.005f)] private float characterInterval = 0.035f;
+        [SerializeField, Min(0f)] private float commaPause = 0.08f;
+        [SerializeField, Min(0f)] private float periodPause = 0.16f;
+
         [Header("화살표")]
         [SerializeField] private GameObject nextArrow;          // ▼ 오브젝트
 
@@ -52,6 +58,8 @@ namespace CardAdventure
         private bool     typewriterUnavailable;
         private Sequence arrowSeq;
         private Tween    panelTween;
+        private Coroutine typingRoutine;
+        private string    currentLine = string.Empty;
 
         /// <summary>타이핑 효과가 진행 중이면 true</summary>
         public bool IsTyping => isTyping;
@@ -67,7 +75,10 @@ namespace CardAdventure
             HideArrow();
 
             if (typewriter != null)
+            {
+                typewriter.useTypeWriter = false;
                 typewriter.onTextShowed.AddListener(OnTypewriterComplete);
+            }
         }
 
         private void OnDestroy()
@@ -77,6 +88,7 @@ namespace CardAdventure
 
             arrowSeq?.Kill();
             panelTween?.Kill();
+            StopTypingRoutine();
         }
 
         // ══════════════════════════════════════════════════════
@@ -141,13 +153,23 @@ namespace CardAdventure
         {
             isTyping = true;
             HideArrow();
+            StopTypingRoutine();
+            currentLine = line ?? string.Empty;
+
+            if (dialogueText != null)
+            {
+                dialogueText.text = currentLine;
+                dialogueText.maxVisibleCharacters = 0;
+                typingRoutine = StartCoroutine(TypeLineByCharacter());
+                return;
+            }
 
             if (typewriter != null && !typewriterUnavailable)
             {
                 try
                 {
-                    // Febucci TypewriterByCharacter
-                    typewriter.ShowText(line ?? string.Empty);
+                    typewriter.useTypeWriter = true;
+                    typewriter.ShowText(currentLine);
                     return;
                 }
                 catch (Exception ex)
@@ -157,19 +179,28 @@ namespace CardAdventure
                 }
             }
 
-            if (dialogueText != null)
-            {
-                // 폴백: 타이핑 없이 즉시 표시
-                dialogueText.text = line ?? string.Empty;
-                isTyping = false;
-                ShowArrow();
-            }
+            isTyping = false;
+            ShowArrow();
         }
 
         /// <summary>타이핑 중인 텍스트를 즉시 완성한다.</summary>
         public void SkipTypewriter()
         {
+            if (!isTyping)
+            {
+                return;
+            }
+
+            StopTypingRoutine();
+            if (dialogueText != null)
+            {
+                dialogueText.text = currentLine;
+                dialogueText.maxVisibleCharacters = int.MaxValue;
+            }
+
             typewriter?.SkipTypewriter();
+            isTyping = false;
+            ShowArrow();
         }
 
         /// <summary>대화창을 슬라이드 아웃한 뒤 비활성화한다.</summary>
@@ -177,6 +208,8 @@ namespace CardAdventure
         {
             HideArrow();
             arrowSeq?.Kill();
+            StopTypingRoutine();
+            isTyping = false;
 
             panelTween?.Kill();
 
@@ -215,6 +248,77 @@ namespace CardAdventure
         {
             isTyping = false;
             ShowArrow();
+        }
+
+        private IEnumerator TypeLineByCharacter()
+        {
+            if (dialogueText == null)
+            {
+                isTyping = false;
+                ShowArrow();
+                yield break;
+            }
+
+            dialogueText.ForceMeshUpdate();
+            int characterCount = dialogueText.textInfo.characterCount;
+
+            if (characterCount <= 0)
+            {
+                CompleteTyping();
+                yield break;
+            }
+
+            for (int i = 0; i <= characterCount; i++)
+            {
+                dialogueText.maxVisibleCharacters = i;
+
+                if (i >= characterCount)
+                {
+                    break;
+                }
+
+                yield return new WaitForSeconds(GetTypingWaitForVisibleCharacter(i));
+            }
+
+            CompleteTyping();
+        }
+
+        private float GetTypingWaitForVisibleCharacter(int visibleCharacterIndex)
+        {
+            if (dialogueText == null || visibleCharacterIndex < 0 || visibleCharacterIndex >= dialogueText.textInfo.characterCount)
+            {
+                return characterInterval;
+            }
+
+            char c = dialogueText.textInfo.characterInfo[visibleCharacterIndex].character;
+            return c switch
+            {
+                '.' or '!' or '?' or '。' or '！' or '？' => characterInterval + periodPause,
+                ',' or ';' or ':' or '，' or '、' or '；' or '：' => characterInterval + commaPause,
+                _ => characterInterval,
+            };
+        }
+
+        private void CompleteTyping()
+        {
+            typingRoutine = null;
+            isTyping = false;
+            if (dialogueText != null)
+            {
+                dialogueText.maxVisibleCharacters = int.MaxValue;
+            }
+            ShowArrow();
+        }
+
+        private void StopTypingRoutine()
+        {
+            if (typingRoutine == null)
+            {
+                return;
+            }
+
+            StopCoroutine(typingRoutine);
+            typingRoutine = null;
         }
 
         private void ShowArrow()

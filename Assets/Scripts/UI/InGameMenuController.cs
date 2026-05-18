@@ -214,8 +214,8 @@ namespace CardAdventure.UI
             {
                 // 기본적으로 슬롯 0에 저장하는 예시 (UI가 없을 경우)
                 CapturePlayerPosition();
-                SaveManager.SaveGame(0);
-                Debug.Log("게임 저장 완료 (슬롯 0)");
+                SaveManager.SaveGame(SaveManager.CurrentSlotIndex);
+                Debug.Log($"게임 저장 완료 (슬롯 {SaveManager.CurrentSlotIndex})");
             }
         }
 
