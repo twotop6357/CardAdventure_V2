@@ -535,6 +535,10 @@ public static class BattleSceneBuilder
         var go = CreateEmpty(name, parent);
         var img = go.AddComponent<Image>();
         img.color = color;
+        if (name.Contains("Panel") || name.Contains("Background") || name.Contains("Button") || name.Contains("Block"))
+        {
+            ClassicPixelUiTheme.ApplyPanel(img, name.Contains("Intent"));
+        }
         SetRectAnchored(go, anchorMin, anchorMax, anchoredPos, sizeDelta);
         return go;
     }
@@ -546,6 +550,10 @@ public static class BattleSceneBuilder
         var go = CreateEmpty(name, parent);
         var img = go.AddComponent<Image>();
         img.color = color;
+        if (name.Contains("Frame") || name.Contains("Background"))
+        {
+            ClassicPixelUiTheme.ApplyPanel(img);
+        }
         SetRectAnchored(go, anchorMin, anchorMax, anchoredPos, sizeDelta);
         return go;
     }
@@ -560,7 +568,7 @@ public static class BattleSceneBuilder
         tmp.text      = text;
         tmp.fontSize  = fontSize;
         tmp.alignment = alignment;
-        tmp.color     = Color.white;
+        ClassicPixelUiTheme.ApplyText(tmp);
         SetRectAnchored(go, anchorMin, anchorMax, anchoredPos, sizeDelta);
         return go;
     }
@@ -620,6 +628,7 @@ public static class BattleSceneBuilder
             label, 20, TextAlignmentOptions.Center,
             Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         textGo.GetComponent<TextMeshProUGUI>().fontStyle = FontStyles.Bold;
+        ClassicPixelUiTheme.ApplyButton(btn);
         return go;
     }
 }

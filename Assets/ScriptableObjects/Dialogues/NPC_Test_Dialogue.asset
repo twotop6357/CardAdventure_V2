@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: NPC_Test_Dialogue
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.DialogueData
   speakerName: "\uD14C\uC2A4\uD2B8NPC"
+  speakerPortrait: {fileID: -5531905583669876038, guid: 50c530c48c57a0645ad0d23492e0db41,
+    type: 3}
   lines:
   - "\uB300\uD654 \uD14C\uC2A4\uD2B8\uD558\uB7EC \uC624\uC168\uC5B4\uC694?"
   - "\uC81C \uB9D0\uC774 \uB4E4\uB9AC\uC138\uC694?\n\uB4E4\uB9AC\uB0D0\uACE0 \uBB3C\uC5B4\uBCF4\uC796\uC544\uC694!"

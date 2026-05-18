@@ -36,6 +36,10 @@ namespace CardAdventure
         [SerializeField] private GameObject      nameBoxRoot;    // 이름 박스 전체 (이름 없으면 숨김)
         [SerializeField] private TextMeshProUGUI dialogueText;
 
+        [Header("초상화")]
+        [SerializeField] private GameObject portraitRoot;
+        [SerializeField] private Image portraitImage;
+
         [Header("Febucci Typewriter")]
         [Tooltip("DialogueText와 같은 GameObject에 있는 TypewriterByCharacter 컴포넌트")]
         [SerializeField] private TypewriterByCharacter typewriter;
@@ -82,6 +86,12 @@ namespace CardAdventure
         /// <summary>대화창을 슬라이드 인하며 첫 줄을 표시한다.</summary>
         public void Show(string speakerName, string firstLine)
         {
+            Show(speakerName, null, firstLine);
+        }
+
+        /// <summary>대화창을 슬라이드 인하며 초상화와 첫 줄을 표시한다.</summary>
+        public void Show(string speakerName, Sprite portrait, string firstLine)
+        {
             gameObject.SetActive(true);
 
             // 화자 이름
@@ -89,6 +99,18 @@ namespace CardAdventure
             if (nameBoxRoot != null) nameBoxRoot.SetActive(hasSpeaker);
             if (speakerNameText != null && hasSpeaker)
                 speakerNameText.text = speakerName;
+
+            bool hasPortrait = portrait != null;
+            if (portraitRoot != null)
+            {
+                portraitRoot.SetActive(hasPortrait);
+            }
+            if (portraitImage != null)
+            {
+                portraitImage.sprite = portrait;
+                portraitImage.enabled = hasPortrait;
+                portraitImage.preserveAspect = true;
+            }
 
             // 슬라이드 인 애니메이션
             panelTween?.Kill();

@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: NPC_JobChanger_Dialogue
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.DialogueData
   speakerName: "\uC804\uC9C1\uAD00"
+  speakerPortrait: {fileID: 5640442975441318860, guid: 3dddf0c4d97d6a843aca7cbcd1452233,
+    type: 3}
   lines:
   - "\uC548\uB155\uD558\uC138\uC694. \uBAA8\uD5D8\uAC00\uB2D8."
   - "\uC9C1\uC5C5\uC744 \uBCC0\uACBD\uD558\uACE0 \uC2F6\uC73C\uC2E0\uAC00\uC694?

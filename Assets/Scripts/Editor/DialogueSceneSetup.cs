@@ -12,7 +12,9 @@
  * 생성되는 계층 구조:
  *   DialogueCanvas  (Canvas / CanvasScaler / GraphicRaycaster)
  *     └─ DialoguePanel  (CanvasGroup, RectTransform — 하단 고정)
- *          ├─ PanelBg         (Image — 흰 배경 + 둥근 모서리)
+ *          ├─ PanelBg         (Image — 검은 픽셀 창)
+ *          ├─ PortraitFrame   (Image — 초상화 프레임)
+ *          │    └─ PortraitImage
  *          ├─ NameBox         (Image — 이름 박스)
  *          │    └─ NameText   (TextMeshProUGUI)
  *          ├─ DialogueText    (TextMeshProUGUI + TextAnimator_TMP + TypewriterByCharacter)
@@ -146,7 +148,7 @@ namespace CardAdventure.Editor
             panelRt.anchorMax        = new Vector2(1f, 0f);
             panelRt.pivot            = new Vector2(0.5f, 0f);
             panelRt.anchoredPosition = Vector2.zero;
-            panelRt.sizeDelta        = new Vector2(0f, 140f);
+            panelRt.sizeDelta        = new Vector2(0f, 156f);
 
             panel.AddComponent<CanvasGroup>();
 
@@ -156,15 +158,35 @@ namespace CardAdventure.Editor
             RectTransform bgRt = bg.AddComponent<RectTransform>();
             bgRt.anchorMin        = Vector2.zero;
             bgRt.anchorMax        = Vector2.one;
-            bgRt.offsetMin        = Vector2.zero;
-            bgRt.offsetMax        = Vector2.zero;
+            bgRt.offsetMin        = new Vector2(10f, 6f);
+            bgRt.offsetMax        = new Vector2(-10f, -6f);
 
             Image bgImg = bg.AddComponent<Image>();
-            bgImg.color = new Color(0.96f, 0.95f, 0.90f, 0.97f); // 크림 화이트
-            // 외곽 테두리처럼 보이도록 Outline 컴포넌트 추가
-            Outline outline = bg.AddComponent<Outline>();
-            outline.effectColor    = new Color(0.15f, 0.15f, 0.25f, 1f);
-            outline.effectDistance = new Vector2(2f, 2f);
+            ClassicPixelUiTheme.ApplyPanel(bgImg, true);
+
+            // ── PortraitFrame ─────────────────────────────────
+            GameObject portraitFrame = new GameObject("PortraitFrame");
+            portraitFrame.transform.SetParent(panel.transform, false);
+            RectTransform portraitFrameRt = portraitFrame.AddComponent<RectTransform>();
+            portraitFrameRt.anchorMin = new Vector2(0f, 0.5f);
+            portraitFrameRt.anchorMax = new Vector2(0f, 0.5f);
+            portraitFrameRt.pivot = new Vector2(0f, 0.5f);
+            portraitFrameRt.anchoredPosition = new Vector2(24f, 0f);
+            portraitFrameRt.sizeDelta = new Vector2(126f, 126f);
+
+            Image portraitFrameImg = portraitFrame.AddComponent<Image>();
+            ClassicPixelUiTheme.ApplyPanel(portraitFrameImg);
+
+            GameObject portraitImageGo = new GameObject("PortraitImage");
+            portraitImageGo.transform.SetParent(portraitFrame.transform, false);
+            RectTransform portraitImageRt = portraitImageGo.AddComponent<RectTransform>();
+            portraitImageRt.anchorMin = Vector2.zero;
+            portraitImageRt.anchorMax = Vector2.one;
+            portraitImageRt.offsetMin = new Vector2(6f, 6f);
+            portraitImageRt.offsetMax = new Vector2(-6f, -6f);
+            Image portraitImage = portraitImageGo.AddComponent<Image>();
+            portraitImage.color = Color.white;
+            portraitImage.preserveAspect = true;
 
             // ── NameBox ────────────────────────────────────────
             GameObject nameBox = new GameObject("NameBox");
@@ -177,7 +199,7 @@ namespace CardAdventure.Editor
             nameBoxRt.sizeDelta        = new Vector2(120f, 28f);
 
             Image nameBoxImg = nameBox.AddComponent<Image>();
-            nameBoxImg.color = new Color(0.18f, 0.38f, 0.62f, 1f); // 파란 이름 박스
+            ClassicPixelUiTheme.ApplyPanel(nameBoxImg, true);
 
             // NameText
             GameObject nameTextGo = new GameObject("NameText");
@@ -192,8 +214,8 @@ namespace CardAdventure.Editor
             nameTmp.text      = "화자 이름";
             nameTmp.fontSize  = 14f;
             nameTmp.fontStyle = FontStyles.Bold;
-            nameTmp.color     = Color.white;
             nameTmp.alignment = TextAlignmentOptions.MidlineLeft;
+            ClassicPixelUiTheme.ApplyText(nameTmp);
 
             // ── DialogueText ───────────────────────────────────
             GameObject textGo = new GameObject("DialogueText");
@@ -201,15 +223,15 @@ namespace CardAdventure.Editor
             RectTransform textRt = textGo.AddComponent<RectTransform>();
             textRt.anchorMin        = Vector2.zero;
             textRt.anchorMax        = Vector2.one;
-            textRt.offsetMin        = new Vector2(20f, 14f);
-            textRt.offsetMax        = new Vector2(-36f, -14f);
+            textRt.offsetMin        = new Vector2(174f, 26f);
+            textRt.offsetMax        = new Vector2(-44f, -24f);
 
             TextMeshProUGUI dialogueTmp = textGo.AddComponent<TextMeshProUGUI>();
             dialogueTmp.text      = "";
-            dialogueTmp.fontSize  = 16f;
-            dialogueTmp.color     = new Color(0.1f, 0.08f, 0.06f, 1f);
+            dialogueTmp.fontSize  = 17f;
             dialogueTmp.alignment = TextAlignmentOptions.TopLeft;
-            dialogueTmp.enableWordWrapping = true;
+            dialogueTmp.textWrappingMode = TextWrappingModes.Normal;
+            ClassicPixelUiTheme.ApplyText(dialogueTmp);
 
             // Febucci: TextAnimator_TMP + TypewriterByCharacter
             textGo.AddComponent<TextAnimator_TMP>();
@@ -225,14 +247,14 @@ namespace CardAdventure.Editor
             arrowRt.anchorMin        = new Vector2(1f, 0f);
             arrowRt.anchorMax        = new Vector2(1f, 0f);
             arrowRt.pivot            = new Vector2(1f, 0f);
-            arrowRt.anchoredPosition = new Vector2(-10f, 10f);
+            arrowRt.anchoredPosition = new Vector2(-42f, 18f);
             arrowRt.sizeDelta        = new Vector2(20f, 20f);
 
             TextMeshProUGUI arrowTmp = arrowGo.AddComponent<TextMeshProUGUI>();
             arrowTmp.text      = "▼";
             arrowTmp.fontSize  = 14f;
-            arrowTmp.color     = new Color(0.15f, 0.15f, 0.25f, 1f);
             arrowTmp.alignment = TextAlignmentOptions.Center;
+            arrowTmp.color     = ClassicPixelUiTheme.Cyan;
             arrowGo.SetActive(false);
 
             return panel;
@@ -254,6 +276,8 @@ namespace CardAdventure.Editor
 
             Transform nameBox  = panelGo.transform.Find("NameBox");
             Transform nameText = nameBox?.Find("NameText");
+            Transform portrait = panelGo.transform.Find("PortraitFrame");
+            Transform portraitImage = portrait?.Find("PortraitImage");
             Transform textGo   = panelGo.transform.Find("DialogueText");
             Transform arrowGo  = panelGo.transform.Find("NextArrow");
 
@@ -263,6 +287,12 @@ namespace CardAdventure.Editor
             if (nameText != null)
                 so.FindProperty("speakerNameText").objectReferenceValue =
                     nameText.GetComponent<TextMeshProUGUI>();
+
+            if (portrait != null)
+                so.FindProperty("portraitRoot").objectReferenceValue = portrait.gameObject;
+
+            if (portraitImage != null)
+                so.FindProperty("portraitImage").objectReferenceValue = portraitImage.GetComponent<Image>();
 
             if (textGo != null)
             {

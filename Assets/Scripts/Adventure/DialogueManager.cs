@@ -219,7 +219,7 @@ namespace CardAdventure
                 FaceNpcTowardPlayer(npc);
             }
 
-            dialogueView.Show(data.speakerName, data.lines[0]);
+            dialogueView.Show(data.speakerName, data.speakerPortrait, data.lines[0]);
         }
 
         private void HandleSpaceDuringDialogue()

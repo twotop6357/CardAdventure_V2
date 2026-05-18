@@ -13,6 +13,9 @@ namespace CardAdventure
         [Tooltip("대화창 이름 박스에 표시될 이름. 비워두면 이름 박스를 숨긴다.")]
         public string speakerName;
 
+        [Tooltip("대화창 왼쪽 초상화 슬롯에 표시할 이미지. 비워두면 초상화 슬롯을 숨긴다.")]
+        public Sprite speakerPortrait;
+
         [Header("대화 내용")]
         [Tooltip("Space를 누를 때마다 한 줄씩 넘어간다.")]
         [TextArea(2, 5)]

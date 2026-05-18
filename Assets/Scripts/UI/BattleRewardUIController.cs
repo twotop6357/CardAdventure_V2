@@ -275,8 +275,8 @@ namespace CardAdventure
 
                 // 상점의 Offer_N 래퍼와 동일한 패턴
                 GameObject wrapper = CreateImage($"RewardCard_{i + 1}", rewardCardContainer,
-                    new Color(0.18f, 0.15f, 0.12f, 1f));
-                AddOutline(wrapper, new Color(0.44f, 0.34f, 0.2f, 0.9f), new Vector2(2f, -2f));
+                    ClassicPixelUiTheme.WindowBlack);
+                AddOutline(wrapper, ClassicPixelUiTheme.Gold, new Vector2(2f, -2f));
                 wrapper.AddComponent<LayoutElement>().preferredWidth = 310f;
                 wrapper.GetComponent<RectTransform>().sizeDelta = new Vector2(310f, 414f);
 
@@ -440,7 +440,7 @@ namespace CardAdventure
                 c.highlightedColor = new Color(1f, 0.92f, 0.55f);
                 c.pressedColor     = new Color(0.8f, 0.7f, 0.3f);
                 btn.colors = c;
-                AddOutline(cv.gameObject, new Color(0.44f, 0.34f, 0.2f, 0.9f), new Vector2(2f, -2f));
+                AddOutline(cv.gameObject, ClassicPixelUiTheme.Gold, new Vector2(2f, -2f));
             }
 
             btn.onClick.RemoveAllListeners();
@@ -486,34 +486,34 @@ namespace CardAdventure
             rootCg = canvasGo.AddComponent<CanvasGroup>();
 
             // ── 딤 오버레이 ─────────────────────────────────────
-            Stretch(CreateImage("DimOverlay", canvasGo.transform, new Color(0f, 0f, 0f, 0.72f)).GetComponent<RectTransform>());
+            Stretch(CreateImage("DimOverlay", canvasGo.transform, ClassicPixelUiTheme.DimBlack).GetComponent<RectTransform>());
 
             // ── 메인 패널 ───────────────────────────────────────
             GameObject panel = CreateImage("RewardPanel", canvasGo.transform,
-                new Color(0.09f, 0.07f, 0.12f, 0.97f));
+                ClassicPixelUiTheme.WindowBlack);
             panelRoot = panel.GetComponent<RectTransform>();
             panelRoot.anchorMin       = new Vector2(0.5f, 0.5f);
             panelRoot.anchorMax       = new Vector2(0.5f, 0.5f);
             panelRoot.pivot           = new Vector2(0.5f, 0.5f);
             panelRoot.sizeDelta       = new Vector2(1100f, 660f);
             panelRoot.anchoredPosition = Vector2.zero;
-            AddOutline(panel, new Color(0.55f, 0.35f, 0.85f, 0.9f), new Vector2(3f, -3f));
+            AddOutline(panel, ClassicPixelUiTheme.Gold, new Vector2(3f, -3f));
 
             // ── 헤더 ────────────────────────────────────────────
-            GameObject header = CreateImage("Header", panelRoot, new Color(0.14f, 0.09f, 0.20f, 1f));
+            GameObject header = CreateImage("Header", panelRoot, ClassicPixelUiTheme.InnerBlack);
             SetStretchOffsets(header.GetComponent<RectTransform>(), new Vector2(0f, 556f), Vector2.zero);
 
             titleText = CreateText("TitleText", header.transform, "전투 승리!", 42, TextAlignmentOptions.Center);
             Stretch(titleText.rectTransform);
             titleText.fontStyle = FontStyles.Bold;
-            titleText.color = new Color(1f, 0.88f, 0.2f);
+            titleText.color = ClassicPixelUiTheme.Energy;
 
             subtitleText = CreateText("SubtitleText", panelRoot, "", 19, TextAlignmentOptions.Center);
             SetRect(subtitleText.rectTransform,
                 new Vector2(0f, 1f), new Vector2(1f, 1f),
                 new Vector2(0f, -115f), new Vector2(-60f, 30f),
                 new Vector2(0.5f, 1f));
-            subtitleText.color = new Color(0.82f, 0.82f, 0.82f, 1f);
+            subtitleText.color = ClassicPixelUiTheme.MutedText;
 
             // ── 전투 요약 뷰 ─────────────────────────────────────
             summaryRoot = new GameObject("SummaryView", typeof(RectTransform));
@@ -524,7 +524,7 @@ namespace CardAdventure
 
             // 스크롤 영역 (아래 66px은 골드 배지용)
             GameObject sumScrollGo = CreateImage("SummaryScroll", summaryRoot.transform,
-                new Color(0.06f, 0.04f, 0.09f, 0.85f));
+                ClassicPixelUiTheme.InnerBlack);
             SetStretchOffsets(sumScrollGo.GetComponent<RectTransform>(),
                 new Vector2(0f, 66f), Vector2.zero);
 
@@ -556,8 +556,8 @@ namespace CardAdventure
 
             // 골드 배지
             GameObject goldBadgeGo = CreateImage("GoldBadge", summaryRoot.transform,
-                new Color(0.15f, 0.10f, 0.04f, 1f));
-            AddOutline(goldBadgeGo, new Color(1f, 0.82f, 0.20f, 0.8f), new Vector2(2f, -2f));
+                ClassicPixelUiTheme.WindowBlack);
+            AddOutline(goldBadgeGo, ClassicPixelUiTheme.Gold, new Vector2(2f, -2f));
             RectTransform goldRect = goldBadgeGo.GetComponent<RectTransform>();
             goldRect.anchorMin        = new Vector2(0.5f, 0f);
             goldRect.anchorMax        = new Vector2(0.5f, 0f);
@@ -566,7 +566,7 @@ namespace CardAdventure
             goldRect.anchoredPosition = new Vector2(0f, 5f);
             goldBadgeText = CreateText("GoldText", goldBadgeGo.transform, "", 26, TextAlignmentOptions.Center);
             Stretch(goldBadgeText.rectTransform);
-            goldBadgeText.color     = new Color(1f, 0.88f, 0.30f, 1f);
+            goldBadgeText.color     = ClassicPixelUiTheme.Energy;
             goldBadgeText.fontStyle = FontStyles.Bold;
 
             // ── 메인 메뉴 (행동 선택) ───────────────────────────
@@ -580,9 +580,9 @@ namespace CardAdventure
             GameObject gainBtn = CreateMenuChoiceButton("GainCardButton", mainMenuRoot.transform,
                 "카드 획득",
                 "직업 카드 1장을\n덱에 추가합니다",
-                new Color(0.15f, 0.11f, 0.05f, 1f),
-                new Color(0.28f, 0.22f, 0.08f, 1f),
-                new Color(1f, 0.80f, 0.20f, 0.85f));
+                ClassicPixelUiTheme.WindowBlack,
+                new Color(0.08f, 0.17f, 0.24f, 1f),
+                ClassicPixelUiTheme.Gold);
             RectTransform gainRect = gainBtn.GetComponent<RectTransform>();
             gainRect.anchorMin = new Vector2(0f, 0f);
             gainRect.anchorMax = new Vector2(0.47f, 1f);
@@ -593,9 +593,9 @@ namespace CardAdventure
             GameObject delBtn = CreateMenuChoiceButton("DeleteCardButton", mainMenuRoot.transform,
                 "카드 삭제",
                 "덱에서 카드 1장을\n제거합니다",
-                new Color(0.16f, 0.06f, 0.04f, 1f),
-                new Color(0.30f, 0.11f, 0.07f, 1f),
-                new Color(1f, 0.42f, 0.20f, 0.85f));
+                ClassicPixelUiTheme.WindowBlack,
+                new Color(0.16f, 0.04f, 0.04f, 1f),
+                ClassicPixelUiTheme.Gold);
             RectTransform delRect = delBtn.GetComponent<RectTransform>();
             delRect.anchorMin = new Vector2(0.53f, 0f);
             delRect.anchorMax = new Vector2(1f, 1f);
@@ -611,7 +611,7 @@ namespace CardAdventure
 
             // ── 카드 삭제 스크롤 영역 ───────────────────────────
             deleteViewRoot = CreateImage("DeleteScrollView", panelRoot,
-                new Color(0.06f, 0.04f, 0.08f, 0.9f));
+                ClassicPixelUiTheme.InnerBlack);
             SetStretchOffsets(deleteViewRoot.GetComponent<RectTransform>(),
                 new Vector2(8f, 86f), new Vector2(-8f, -142f));
             deleteViewRoot.AddComponent<CanvasGroup>().alpha = 0f;
@@ -647,7 +647,7 @@ namespace CardAdventure
 
             // Scrollbar
             GameObject sbGo = CreateImage("VerticalScrollbar", deleteViewRoot.transform,
-                new Color(0.18f, 0.12f, 0.22f, 0.9f));
+                ClassicPixelUiTheme.WindowBlack);
             RectTransform sbRect = sbGo.GetComponent<RectTransform>();
             sbRect.anchorMin = new Vector2(1f, 0f);
             sbRect.anchorMax = Vector2.one;
@@ -657,7 +657,7 @@ namespace CardAdventure
 
             Scrollbar sb = sbGo.AddComponent<Scrollbar>();
             sb.direction = Scrollbar.Direction.BottomToTop;
-            GameObject handle = CreateImage("Handle", sbGo.transform, new Color(0.5f, 0.3f, 0.75f, 1f));
+            GameObject handle = CreateImage("Handle", sbGo.transform, ClassicPixelUiTheme.Blue);
             handle.GetComponent<RectTransform>().sizeDelta = Vector2.zero;
             sb.handleRect    = handle.GetComponent<RectTransform>();
             sb.targetGraphic = handle.GetComponent<Image>();
@@ -666,12 +666,12 @@ namespace CardAdventure
 
             // ── 푸터 / 건너뛰기 버튼 ────────────────────────────
             GameObject footer = CreateImage("Footer", panelRoot,
-                new Color(0.12f, 0.08f, 0.17f, 1f));
+                ClassicPixelUiTheme.InnerBlack);
             SetStretchOffsets(footer.GetComponent<RectTransform>(),
                 Vector2.zero, new Vector2(0f, -574f));
 
             skipButton = CreateButton("SkipButton", footer.transform, "건너뛰기",
-                new Color(0.2f, 0.15f, 0.28f, 1f), new Color(0.36f, 0.25f, 0.48f, 1f));
+                ClassicPixelUiTheme.WindowBlack, new Color(0.08f, 0.17f, 0.24f, 1f));
             SetRect(skipButton.GetComponent<RectTransform>(),
                 new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
                 Vector2.zero, new Vector2(240f, 50f), new Vector2(0.5f, 0.5f));
@@ -710,11 +710,11 @@ namespace CardAdventure
 
             TextMeshProUGUI titleTmp = CreateText("Title", go.transform, title, 34, TextAlignmentOptions.Center);
             titleTmp.fontStyle = FontStyles.Bold;
-            titleTmp.color = new Color(0.98f, 0.93f, 0.72f, 1f);
+            titleTmp.color = ClassicPixelUiTheme.Text;
             titleTmp.gameObject.AddComponent<LayoutElement>().preferredHeight = 48f;
 
             TextMeshProUGUI descTmp = CreateText("Desc", go.transform, desc, 18, TextAlignmentOptions.Center);
-            descTmp.color = new Color(0.76f, 0.72f, 0.65f, 1f);
+            descTmp.color = ClassicPixelUiTheme.MutedText;
             descTmp.gameObject.AddComponent<LayoutElement>().preferredHeight = 56f;
 
             return go;
@@ -801,7 +801,7 @@ namespace CardAdventure
             tmp.text            = text;
             tmp.fontSize        = fontSize;
             tmp.alignment       = align;
-            tmp.color           = new Color(0.96f, 0.92f, 0.82f, 1f);
+            ClassicPixelUiTheme.ApplyText(tmp);
             tmp.textWrappingMode = TextWrappingModes.Normal;
             tmp.overflowMode    = TextOverflowModes.Ellipsis;
             return tmp;
@@ -811,16 +811,17 @@ namespace CardAdventure
             Color normal, Color highlighted)
         {
             GameObject go = CreateImage(goName, parent, normal);
-            AddOutline(go, new Color(0.8f, 0.6f, 1f, 0.5f), new Vector2(1.5f, -1.5f));
+            AddOutline(go, ClassicPixelUiTheme.Gold, new Vector2(1.5f, -1.5f));
             Button btn = go.AddComponent<Button>();
             ColorBlock cb = btn.colors;
             cb.normalColor      = normal;
             cb.highlightedColor = highlighted;
             cb.pressedColor     = Color.Lerp(normal, Color.black, 0.35f);
-            cb.disabledColor    = new Color(0.2f, 0.18f, 0.22f, 0.6f);
+            cb.disabledColor    = new Color(0.05f, 0.05f, 0.05f, 0.55f);
             btn.colors = cb;
             var tmp = CreateText("Label", go.transform, label, 20, TextAlignmentOptions.Center);
             Stretch(tmp.rectTransform);
+            ClassicPixelUiTheme.ApplyButton(btn);
             return btn;
         }
 

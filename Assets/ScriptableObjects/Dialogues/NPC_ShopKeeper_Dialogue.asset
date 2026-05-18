@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: NPC_ShopKeeper_Dialogue
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.DialogueData
   speakerName: "\uC0C1\uC810 \uC8FC\uC778"
+  speakerPortrait: {fileID: -955715014576327242, guid: 84a3efe1a6a52e44a85a341fc05425c1,
+    type: 3}
   lines:
   - "\uC5B4\uC11C \uC624\uC138\uC694. \uC624\uB298\uB3C4 \uC4F8 \uB9CC\uD55C \uCE74\uB4DC\uAC00
     \uB4E4\uC5B4\uC654\uC5B4\uC694."

@@ -29,11 +29,11 @@ namespace CardAdventure
         private const string FONT_PATH   = "Assets/Fonts/MaruMinyaHangul SDF.asset";
 
         // ── 색상 ───────────────────────────────────────────────
-        // 픽셀 RPG 스타일: 어두운 테두리 + 밝은 내부 채움
-        private static readonly Color32 ColBorder   = new Color32(28,  28,  28,  255);
-        private static readonly Color32 ColFill     = new Color32(242, 242, 234, 255);
+        // 기준 이미지 스타일: 검은 창 + 금색 테두리 + 흰 텍스트
+        private static readonly Color32 ColBorder   = new Color32(219, 191, 20, 255);
+        private static readonly Color32 ColFill     = new Color32(4, 3, 3, 245);
         private static readonly Color32 ColOverlay  = new Color32(0,   0,   0,   140);
-        private static readonly Color32 ColText     = new Color32(18,  18,  18,  255);
+        private static readonly Color32 ColText     = new Color32(245, 245, 235, 255);
         private static readonly Color32 ColTransp   = new Color32(0,   0,   0,   0);
 
         // ── 폰트 크기 ──────────────────────────────────────────

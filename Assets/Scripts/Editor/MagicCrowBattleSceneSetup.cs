@@ -305,6 +305,10 @@ public static class MagicCrowBattleSceneSetup
         GameObject go = CreateEmpty(name, parent);
         Image image = go.AddComponent<Image>();
         image.color = color;
+        if (name.Contains("Panel") || name.Contains("Bar") || name.Contains("Button") || name.Contains("Background") || name.Contains("Block"))
+        {
+            ClassicPixelUiTheme.ApplyPanel(image, name.Contains("Intent") || name.Contains("Top"));
+        }
         SetRect(go, anchorMin, anchorMax, anchoredPosition, sizeDelta);
         return go;
     }
@@ -323,7 +327,7 @@ public static class MagicCrowBattleSceneSetup
         tmp.text = text;
         tmp.fontSize = fontSize;
         tmp.alignment = alignment;
-        tmp.color = Color.white;
+        ClassicPixelUiTheme.ApplyText(tmp);
         SetRect(go, anchorMin, anchorMax, anchoredPosition, sizeDelta);
         return go;
     }
@@ -370,6 +374,7 @@ public static class MagicCrowBattleSceneSetup
         TextMeshProUGUI text = CreateTMP("Text", go.transform, label, 20, TextAlignmentOptions.Center,
             Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero).GetComponent<TextMeshProUGUI>();
         text.fontStyle = FontStyles.Bold;
+        ClassicPixelUiTheme.ApplyButton(button);
         return go;
     }
 

@@ -376,19 +376,19 @@ namespace CardAdventure
 
             Stretch(canvasObject.GetComponent<RectTransform>());
 
-            GameObject dim = CreateImage("Dim", canvasObject.transform, new Color(0f, 0f, 0f, 0.55f));
+            GameObject dim = CreateImage("Dim", canvasObject.transform, ClassicPixelUiTheme.DimBlack);
             Stretch(dim.GetComponent<RectTransform>());
 
-            GameObject panel = CreateImage("Panel", canvasObject.transform, new Color(0.1f, 0.08f, 0.07f, 0.96f));
+            GameObject panel = CreateImage("Panel", canvasObject.transform, ClassicPixelUiTheme.WindowBlack);
             panelRoot = panel.GetComponent<RectTransform>();
             panelRoot.anchorMin = new Vector2(0.5f, 0.5f);
             panelRoot.anchorMax = new Vector2(0.5f, 0.5f);
             panelRoot.pivot = new Vector2(0.5f, 0.5f);
             panelRoot.sizeDelta = new Vector2(1080f, 640f);
             panelRoot.anchoredPosition = Vector2.zero;
-            AddPanelOutline(panel, new Color(0.72f, 0.58f, 0.36f, 0.85f), new Vector2(3f, -3f));
+            AddPanelOutline(panel, ClassicPixelUiTheme.Gold, new Vector2(3f, -3f));
 
-            GameObject header = CreateImage("Header", panelRoot, new Color(0.18f, 0.13f, 0.12f, 1f));
+            GameObject header = CreateImage("Header", panelRoot, ClassicPixelUiTheme.InnerBlack);
             RectTransform headerRect = header.GetComponent<RectTransform>();
             SetStretchOffsets(headerRect, new Vector2(0f, 544f), new Vector2(0f, 0f));
 
@@ -398,17 +398,17 @@ namespace CardAdventure
 
             TextMeshProUGUI subtitle = CreateText("Subtitle", headerRect, "오늘의 추천 카드", 18, TextAlignmentOptions.Left);
             SetRect(subtitle.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(34f, -28f), new Vector2(360f, 26f), new Vector2(0f, 0.5f));
-            subtitle.color = new Color(0.74f, 0.82f, 0.72f, 1f);
+            subtitle.color = ClassicPixelUiTheme.MutedText;
 
-            GameObject goldPill = CreateImage("GoldPill", headerRect, new Color(0.09f, 0.18f, 0.22f, 1f));
-            AddPanelOutline(goldPill, new Color(0.26f, 0.54f, 0.62f, 0.8f), new Vector2(2f, -2f));
+            GameObject goldPill = CreateImage("GoldPill", headerRect, ClassicPixelUiTheme.WindowBlack);
+            AddPanelOutline(goldPill, ClassicPixelUiTheme.Blue, new Vector2(2f, -2f));
             SetRect(goldPill.GetComponent<RectTransform>(), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-148f, 0f), new Vector2(210f, 46f), new Vector2(1f, 0.5f));
 
             goldText = CreateText("GoldText", goldPill.transform, string.Empty, 22, TextAlignmentOptions.Center);
             Stretch(goldText.rectTransform);
-            goldText.color = new Color(0.98f, 0.9f, 0.45f, 1f);
+            goldText.color = ClassicPixelUiTheme.Energy;
 
-            closeButton = CreateButton("CloseButton", headerRect, "닫기", new Color(0.32f, 0.1f, 0.12f, 1f), new Color(0.64f, 0.2f, 0.2f, 1f));
+            closeButton = CreateButton("CloseButton", headerRect, "닫기", ClassicPixelUiTheme.WindowBlack, new Color(0.16f, 0.04f, 0.04f, 1f));
             SetRect(closeButton.GetComponent<RectTransform>(), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-34f, 0f), new Vector2(78f, 42f), new Vector2(1f, 0.5f));
 
             GameObject container = new GameObject("OfferContainer", typeof(RectTransform), typeof(BetterGridLayoutGroup));
@@ -439,7 +439,7 @@ namespace CardAdventure
             grid.KeepCellAspectRatio = true;
             grid.CellSizer.OptimizedSize = new Vector2(1200f, 1600f);
 
-            GameObject footer = CreateImage("Footer", panelRoot, new Color(0.13f, 0.1f, 0.09f, 1f));
+            GameObject footer = CreateImage("Footer", panelRoot, ClassicPixelUiTheme.InnerBlack);
             SetStretchOffsets(footer.GetComponent<RectTransform>(), Vector2.zero, new Vector2(0f, -572f));
 
             messageText = CreateText("MessageText", footer.transform, DEFAULT_MESSAGE, 20, TextAlignmentOptions.Left);
@@ -457,12 +457,12 @@ namespace CardAdventure
 
         private OfferView CreateOfferView(int index)
         {
-            GameObject root = CreateImage($"Offer_{index + 1}", offerContainer, new Color(0.18f, 0.15f, 0.12f, 1f));
-            AddPanelOutline(root, new Color(0.44f, 0.34f, 0.2f, 0.9f), new Vector2(2f, -2f));
+            GameObject root = CreateImage($"Offer_{index + 1}", offerContainer, ClassicPixelUiTheme.WindowBlack);
+            AddPanelOutline(root, ClassicPixelUiTheme.Gold, new Vector2(2f, -2f));
             root.AddComponent<LayoutElement>().preferredWidth = 310f;
             root.GetComponent<RectTransform>().sizeDelta = new Vector2(310f, 414f);
 
-            GameObject previewFrame = CreateImage("CardPreviewFrame", root.transform, new Color(0.08f, 0.18f, 0.2f, 1f));
+            GameObject previewFrame = CreateImage("CardPreviewFrame", root.transform, ClassicPixelUiTheme.InnerBlack);
             SetStretchOffsets(previewFrame.GetComponent<RectTransform>(), new Vector2(18f, 104f), new Vector2(-18f, -20f));
             BattleCardView cardPreview = CreateCardPreview(previewFrame.transform);
             Button cardButton = ConfigureCardPreviewButton(cardPreview, index);
@@ -471,7 +471,7 @@ namespace CardAdventure
             // Centered slightly higher from bottom since button is removed
             SetRect(price.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 24f), new Vector2(0f, 40f), new Vector2(0.5f, 0f));
             price.fontStyle = FontStyles.Bold;
-            price.color = new Color(1f, 0.86f, 0.36f, 1f);
+            price.color = ClassicPixelUiTheme.Energy;
 
             return new OfferView(root, previewFrame.transform, cardPreview, cardButton, price);
         }
@@ -517,7 +517,7 @@ namespace CardAdventure
 
             if (preview == null)
             {
-                GameObject fallback = CreateImage("CardPreviewFallback", parent, new Color(0.24f, 0.18f, 0.14f, 1f));
+                GameObject fallback = CreateImage("CardPreviewFallback", parent, ClassicPixelUiTheme.WindowBlack);
                 preview = fallback.AddComponent<BattleCardView>();
             }
 
@@ -558,14 +558,14 @@ namespace CardAdventure
                 background.raycastTarget = true;
                 button.targetGraphic = background;
 
-                Outline outline = AddPanelOutline(background.gameObject, new Color(0.44f, 0.34f, 0.2f, 0.95f), new Vector2(2f, -2f));
+                Outline outline = AddPanelOutline(background.gameObject, ClassicPixelUiTheme.Gold, new Vector2(2f, -2f));
                 ShopOfferHoverFeedback hover = preview.gameObject.GetComponent<ShopOfferHoverFeedback>();
                 if (hover == null)
                 {
                     hover = preview.gameObject.AddComponent<ShopOfferHoverFeedback>();
                 }
 
-                hover.Configure(outline, new Color(0.44f, 0.34f, 0.2f, 0.95f), new Color(0.22f, 0.9f, 0.42f, 1f));
+                hover.Configure(outline, ClassicPixelUiTheme.Gold, ClassicPixelUiTheme.Cyan);
             }
 
             int capturedIndex = offerIndex;
@@ -693,7 +693,7 @@ namespace CardAdventure
             label.text = text;
             label.fontSize = fontSize;
             label.alignment = alignment;
-            label.color = new Color(0.96f, 0.92f, 0.82f, 1f);
+            ClassicPixelUiTheme.ApplyText(label);
             label.textWrappingMode = TextWrappingModes.Normal;
             label.overflowMode = TextOverflowModes.Ellipsis;
             return label;
@@ -701,23 +701,24 @@ namespace CardAdventure
 
         private Button CreateButton(string objectName, Transform parent, string label)
         {
-            return CreateButton(objectName, parent, label, new Color(0.42f, 0.24f, 0.12f, 1f), new Color(0.58f, 0.35f, 0.18f, 1f));
+            return CreateButton(objectName, parent, label, ClassicPixelUiTheme.WindowBlack, new Color(0.08f, 0.17f, 0.24f, 1f));
         }
 
         private Button CreateButton(string objectName, Transform parent, string label, Color normalColor, Color highlightedColor)
         {
             GameObject go = CreateImage(objectName, parent, normalColor);
-            AddPanelOutline(go, new Color(0.94f, 0.82f, 0.5f, 0.45f), new Vector2(1.5f, -1.5f));
+            AddPanelOutline(go, ClassicPixelUiTheme.Gold, new Vector2(1.5f, -1.5f));
             Button button = go.AddComponent<Button>();
             ColorBlock colors = button.colors;
             colors.normalColor = normalColor;
             colors.highlightedColor = highlightedColor;
             colors.pressedColor = Color.Lerp(normalColor, Color.black, 0.35f);
-            colors.disabledColor = new Color(0.2f, 0.18f, 0.16f, 0.65f);
+            colors.disabledColor = new Color(0.05f, 0.05f, 0.05f, 0.55f);
             button.colors = colors;
 
             TextMeshProUGUI text = CreateText("Label", go.transform, label, 20, TextAlignmentOptions.Center);
             Stretch(text.rectTransform);
+            ClassicPixelUiTheme.ApplyButton(button);
             return button;
         }
 

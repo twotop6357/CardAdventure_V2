@@ -1,3 +1,168 @@
+### 2026-05-18 (Antigravity - 로비 씬 구성 및 세이브 연동 완료)
+
+#### 이번 작업 요약
+- `SaveData`, `SaveManager`, `GameDatabase`, `GameDatabaseBuilder` 구현
+- `GameDataManager`에 SaveData 호환(로드/저장) 로직 구현 (`CreateSaveData`, `LoadFromSaveData`)
+- `SaveSlotView`, `SettingsUIController`, `LobbyUIController`, `InGameMenuController` 스크립트 작성
+- 로비 씬 생성 및 어드벤처 씬 내 인게임 메뉴 캔버스 생성을 위한 에디터 스크립트 (`SetupLobbyScene.cs`) 추가
+
+#### 다음 할 일 (Next Steps) / 사용자 액션 필요
+- 컴파일 에러(GameDataManager의 } 누락) 해결 완료 및 정상 빌드 확인
+- 에디터 상단 메뉴 `CardAdventure/Setup/1. Setup Lobby Scene`을 실행하여 로비 씬 생성 및 저장
+- `AdventureScene`을 연 뒤 `CardAdventure/Setup/2. Setup InGame Menu`를 실행하여 ESC 메뉴 캔버스 생성 및 씬 저장
+- (추가된 경우) `CardAdventure/Build Game Database` 메뉴를 클릭하여 런타임 저장 복구용 `GameDatabase` 갱신
+- 인게임에서 ESC를 눌러 메뉴가 작동하는지, 저장 및 이어하기가 정상 작동하는지 확인
+
+---
+
+### 2026-05-18 (Claude Desktop - 직업 설명 UI 상점 스타일 후속 정리 및 대화 초상화 자동 할당)
+
+#### 이번 작업 요약
+- 직전 작업에서 `ShouldKeepArtImage(image.sprite != null && !LooksLikePanel(name))` 로직이 너무 보수적이어서 JobChangeCanvas/JobDescription 처럼 기존 디자인 sprite(UI_JobChange.png)가 박힌 패널 Image가 보호되고 있던 문제를 해결했다.
+- `ShopStyleUiTool` 보강: `ShouldKeepArtImage` 는 PortraitImage/CardIcon/Preview/Illust 등 명시적 아트 마커만 보호하도록 단순화. `LooksLikePanel` 마커에 Description/Stats/Job/Dialogue/Name/Slot/Group/Row/Cell/Tab/List 등 도메인 노드를 추가해 자체 UI 노드가 빠짐없이 상점 스타일로 정리되게 했다.
+- `CardAdventure/UI/Apply Shop Style To Project` 재실행으로 JobDescription Image의 UI_JobChange sprite 제거 + 검은 패널 + Gold Outline 적용 확인. 씬 안 UI_JobChange sprite 참조 0건.
+- `DialogueData` 에는 이미 `speakerPortrait` (Sprite) 필드가 있었고 `DialogueManager.BeginDialogue(...)` → `DialogueView.Show(name, portrait, line)` → `portraitImage.sprite/enabled` 흐름도 완비되어 있었음을 확인. DialogueCanvas.prefab 의 DialogueView 인스펙터에 portraitImage/portraitRoot 도 이미 연결됨.
+- 기존 7개 DialogueData 들이 `speakerPortrait` 값을 채우지 않아 빈 슬롯으로 동작하던 점을 해결하기 위해 `DialoguePortraitAutoAssign` 에디터 도구를 추가하고 실행했다.
+- 도구는 파일명 키워드(`jobchanger`, `shopkeeper`, `eventbattle`, `afterjob`, `examiner`, `warrior`, `magician`, `rogue`, `femalenpc`, `malenpc`, `test`)와 `Assets/Assets/Sprites/FaceImage/*_FaceImage.png` 를 매핑해 빈 초상화에 자동 할당한다.
+
+#### 변경 파일
+- `Assets/Scripts/Editor/ShopStyleUiTool.cs`
+- `Assets/Scripts/Editor/DialoguePortraitAutoAssign.cs` (신규)
+- `Assets/Scenes/AdventureScene.unity`
+- `Assets/Scenes/BattleTest.unity`
+- `Assets/Prefabs/UI/DialogueCanvas.prefab`
+- `Assets/ScriptableObjects/Dialogues/*.asset` (7개)
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ShopStyleUiTool.cs`, `DialoguePortraitAutoAssign.cs` Unity `validate_script standard`: 에러 0, 경고 0.
+- `CardAdventure/UI/Apply Shop Style To Project` 재실행: ClassicPixelFrame 제거 0 (이전 작업에서 이미 정리됨), 패널 재스타일 31 (AdventureScene 12 / BattleTest 16 / DialogueCanvas.prefab 3).
+- AdventureScene 파일 직접 확인:
+  - `JobDescription` Image — sprite 0, color WindowBlack(0.015/0.012/0.010/0.96), Outline 컴포넌트 추가됨.
+  - 씬 내 UI_JobChange sprite(guid 08fbfeedc1c623a4f9c920e4697f2567) 참조 0건.
+- `CardAdventure/UI/Auto Assign Dialogue Portraits` 실행: 7개 DialogueData 모두 초상화 자동 할당 성공.
+  - `NPC_JobChanger_Dialogue` / `NPC_AfterJobChange_Dialogue` → `JobChanger_FaceImage`
+  - `NPC_ShopKeeper_Dialogue` → `ShopKeeper_FaceImage`
+  - `NPC_EventBattle_Dialogue` / `NPC_EventBattleIntro_Dialogue` / `NPC_AfterEventBattle_Dialogue` → `examiner_FaceImage`
+  - `NPC_Test_Dialogue` → `MaleNPC_FaceImage`
+- `NPC_JobChanger_Dialogue.asset` YAML 확인: `speakerPortrait: {fileID: ..., guid: 3dddf0c4d97d6a843aca7cbcd1452233, type: 3}` 정상 시리얼라이즈.
+- AdventureScene `manage_scene validate`: Missing Script 0, Broken Prefab 0.
+- 콘솔에 이번 변경 관련 컴파일 에러 없음.
+
+#### 다음 작업
+- PlayMode 에서 각 NPC 대화 시 좌측 PortraitImage 슬롯에 매핑된 FaceImage 가 표시되는지 시각 확인한다. `examiner_FaceImage` 매핑이 시험관/이벤트전 의도와 맞는지도 함께 확인한다.
+- 신규 DialogueData 를 만들 때는 Inspector "화자 정보 > Speaker Portrait" 슬롯에 직접 sprite 를 드래그해서 할당하거나, 파일명에 NPC 키워드를 포함시킨 뒤 `CardAdventure/UI/Auto Assign Dialogue Portraits` 를 다시 실행한다.
+- 초상화 매핑 규칙은 `DialoguePortraitAutoAssign.NameKeywordToFaceFile` 에서 관리한다. 새 NPC가 생기면 여기에 추가한다.
+
+#### 주의사항
+- `speakerPortrait` 가 비어 있으면 `DialogueView.Show(...)` 가 portraitRoot 를 자동으로 비활성화해 초상화 슬롯이 숨겨진다. 따라서 초상화가 필요 없는 대화는 그냥 비워두면 된다.
+- `ShouldKeepArtImage` 가 단순화되면서 "Background" 라는 이름의 Image 도 패널 마커가 일치하면 검은 패널로 재스타일된다. 현재 BattleTest 의 Background 들은 모두 sprite_fid=0 이라 영향이 없지만, 추후 배틀 배경 일러스트를 Image 로 넣을 때는 노드 이름을 "BattleBackdrop", "BattleArt" 처럼 패널 마커와 겹치지 않게 두거나 `ShouldKeepArtImage` 마커에 추가해야 한다.
+
+---
+
+### 2026-05-18 (Claude Desktop - 한글 폰트 복원 및 전체 자체 UI 상점 스타일 통일)
+
+#### 이번 작업 요약
+- `MaruMinyaHangul SDF` Dynamic Atlas 폰트의 `m_GlyphTable`/`m_CharacterTable`이 비어 있어 한글이 깨져 보이던 문제를 해결했다.
+- `KoreanFontAtlasPrebake` 에디터 도구를 추가해 한글 음절 전체(가-힣, 11,172자) + ASCII + 자모 + 자주 쓰는 기호를 폰트 Atlas에 사전 등록했다. 메뉴 실행 결과 character/glyph 11,407개 등록 완료.
+- 사용자가 "전체 UI를 상점 스타일로 통일" 요청 → `ShopUIController`의 단순 검은 패널 + Gold/Blue Outline 구조로 모든 자체 UI를 통일했다.
+- `ClassicPixelUiTheme`에 `ApplyShopPanel(Image, ShopPanelAccent)`, `ApplyShopButton(Button, ShopPanelAccent)` 헬퍼를 추가했다. 이전의 12개 자식(`__ClassicPixelFrame`, `__ClassicPixelSurface`)을 만드는 화려한 픽셀 테두리 구조 대신, 단순한 Image + Unity `Outline` 컴포넌트 조합을 사용한다.
+- `ShopStyleUiTool` 에디터 도구를 추가하고 실행해, 대화창/직업 변경창/카드/전투 HUD/상태 아이콘/배틀 보상/직업 선택 등 모든 자체 UI에 일괄 적용했다. 카드 일러스트, 캐릭터 미리보기 같은 아트 이미지는 보존한다.
+
+#### 변경 파일
+- `Assets/Scripts/Editor/KoreanFontAtlasPrebake.cs` (신규)
+- `Assets/Scripts/UI/ClassicPixelUiTheme.cs`
+- `Assets/Scripts/Editor/ShopStyleUiTool.cs` (신규)
+- `Assets/Prefabs/UI/DialogueCanvas.prefab`
+- `Assets/Scenes/AdventureScene.unity`
+- `Assets/Scenes/BattleTest.unity`
+- `Assets/Fonts/MaruMinyaHangul SDF.asset` (Dynamic Atlas 사전 등록 결과)
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ClassicPixelUiTheme.cs`, `ShopStyleUiTool.cs` Unity `validate_script standard`: 에러 0개, 경고 0개.
+- `CardAdventure/UI/Prebake Korean Glyphs` 실행: 요청 11,668자 / character 11,407 / glyph 11,407 / 누락 260자(미존재 한글 외 기호), 전부 추가됨=False (TTF에 없는 기호 261종을 제외하면 모든 한글 음절 등록).
+- `CardAdventure/UI/Apply Shop Style To Project` 실행: ClassicPixelFrame 29개 제거, 패널 53개 재스타일.
+  - `Card.prefab`/`CardView.prefab`/`StatusIcon.prefab`은 기존에 ClassicPixelFrame 미적용 상태로 변경 없음.
+  - `DialogueCanvas.prefab`: ClassicPixelFrame 3개 제거, 패널 6개 재스타일.
+  - `AdventureScene`: ClassicPixelFrame 11개 제거, 패널 21개 재스타일.
+  - `BattleTest`: ClassicPixelFrame 15개 제거, 패널 26개 재스타일.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `BattleTest` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- scene 파일 직접 확인: `AdventureScene` 내 잔여 ClassicPixelFrame 컴포넌트 0개, 생성 자식 0개, 상점 스타일 Outline 8개. `BattleTest`도 ClassicPixelFrame 0개, Outline 10개. `DialogueCanvas.prefab` ClassicPixelFrame 0개, Outline 3개.
+- JobChangeCanvas/BackGround Image: 검은색(WindowBlack 0.015/0.012/0.010/0.96), 스프라이트 없음. Outline 컴포넌트로 Gold 테두리 적용 확인.
+- 콘솔에 이번 변경 관련 컴파일 에러 없음. 기존 경고(FindObjectOfType obsolete, enableWordWrapping obsolete 등)만 남음.
+
+#### 다음 작업
+- PlayMode에서 한글이 모든 화면(대화창, 직업 변경창, 전투 HUD, 상점, 카드 텍스트 등)에서 깨지지 않고 표시되는지 시각 확인한다.
+- PlayMode에서 대화창, 직업 변경창의 배경/버튼/테두리가 상점 화면과 동일한 단순 검은 패널 + Gold/Blue Outline 톤으로 보이는지 확인한다.
+- 카드 프리팹은 기존 카드 스프라이트 라이브러리와 런타임 이미지 주입을 유지하므로, 카드별 프레임/일러스트와 새 배경 톤이 잘 어울리는지 PlayMode에서 점검한다.
+- 신규 UI를 추가할 때는 `ClassicPixelUiTheme.ApplyShopPanel(...)` / `ApplyShopButton(...)`을 사용해 동일 스타일을 유지한다. `ClassicPixelFrame`을 새로 추가하지 않는다.
+
+#### 주의사항
+- `ClassicPixelFrame` 컴포넌트와 클래스 자체는 코드베이스에 남아 있지만, 모든 자체 UI에서 더 이상 사용하지 않는다. 추후 완전 제거 가능.
+- `ApplyShopPanel`은 기본적으로 Gold Outline을 적용한다. 강조 항목(`NameBox`, `Header`, `Pill`, `Intent`)은 자동으로 Blue accent로 인식해 Blue Outline을 적용한다.
+- `JobImage`, `CharacterPreview`, `CardIcon`, `EnemyImage`, `PlayerAvatar`, `IntentIcon` 등 아트 이미지는 `ShouldKeepArtImage()`로 보호하여 스타일 변경 대상에서 제외한다.
+- 폰트 Atlas는 Dynamic Mode를 유지하므로 사전 등록되지 않은 신규 한자/특수문자는 런타임에 동적 추가된다. 빌드 시 `m_ClearDynamicDataOnBuild=1`이므로 새 빌드에서 빠진 한글이 보이면 `CardAdventure/UI/Prebake Korean Glyphs`를 다시 실행한다.
+
+---
+
+### 2026-05-18 (Codex - 기준 이미지 기반 클래식 픽셀 UI 기준 수립 및 전체 UI 적용)
+
+#### 이번 작업 요약
+- 사용자가 제공한 참고 이미지의 UI 톤을 기준으로 프로젝트 공통 UI 구현 기준을 수립했다.
+- 핵심 기준은 검은 RPG Maker풍 창, 얇은 금색/청색 픽셀 테두리, 고대비 흰색 텍스트, 하단 대화창 좌측 초상화 슬롯이다.
+- `Assets/Docs/UI_STYLE_GUIDE.md`를 추가해 색상, 레이아웃, 대화창, 버튼, 카드/초상화 이미지 예외 규칙을 문서화했다.
+- `ClassicPixelUiTheme`를 추가해 신규 런타임 UI와 에디터 생성 UI가 같은 색상/버튼/패널 규칙을 쓰도록 했다.
+- `ClassicPixelUiStyleTool`을 추가하고 실행해 UI 프리팹과 `AdventureScene`, `BattleTest`의 기존 자체 UI를 클래식 픽셀 스타일로 일괄 적용했다.
+- 추가 요청에 따라 단순 색상 변경이 아니라 `ClassicPixelFrame` 컴포넌트가 실제 자식 Image 오브젝트(`__ClassicPixelFrame/OuterTop`, `OuterBottom`, `InnerTop`, 코너 픽셀 등)를 생성하는 방식으로 보강했다.
+- `AdventureScene`에는 `__ClassicPixelFrame` 14개, `BattleTest`에는 `__ClassicPixelFrame` 19개가 생성되어 계층 구조상 실제 새 UI 요소가 존재함을 확인했다.
+- `DialogueData`에 선택 초상화 필드 `speakerPortrait`를 추가하고, `DialogueView`/`DialogueManager`가 초상화를 표시할 수 있게 연결했다.
+- 대화 시스템 생성 도구가 새 대화창을 만들 때 참고 이미지처럼 좌측 초상화 프레임과 검은 본문 창을 생성하도록 갱신했다.
+- 상점 UI, 전투 보상 UI, 배틀 씬 빌더, 매직 크로우 배틀 씬 빌더, 직업 선택 UI 생성 기준도 검은 창/금색 테두리/흰 텍스트 톤으로 맞췄다.
+
+#### 변경 파일
+- `Assets/Docs/UI_STYLE_GUIDE.md`
+- `Assets/Scripts/UI/ClassicPixelUiTheme.cs`
+- `Assets/Scripts/UI/ClassicPixelFrame.cs`
+- `Assets/Scripts/Editor/ClassicPixelUiStyleTool.cs`
+- `Assets/Scripts/Data/DialogueData.cs`
+- `Assets/Scripts/UI/DialogueView.cs`
+- `Assets/Scripts/Adventure/DialogueManager.cs`
+- `Assets/Scripts/Editor/DialogueSceneSetup.cs`
+- `Assets/Scripts/Editor/BattleSceneBuilder.cs`
+- `Assets/Scripts/Editor/MagicCrowBattleSceneSetup.cs`
+- `Assets/Scripts/Editor/JobSelectionSetup.cs`
+- `Assets/Scripts/UI/ShopUIController.cs`
+- `Assets/Scripts/UI/BattleRewardUIController.cs`
+- `Assets/Prefabs/UI/Card.prefab`
+- `Assets/Prefabs/UI/CardView.prefab`
+- `Assets/Prefabs/UI/DialogueCanvas.prefab`
+- `Assets/Prefabs/UI/StatusIcon.prefab`
+- `Assets/Scenes/AdventureScene.unity`
+- `Assets/Scenes/BattleTest.unity`
+
+#### 검증 결과
+- 변경 스크립트 Unity `validate_script standard`: 에러 0개.
+- `CardAdventure/UI/Apply Classic Pixel UI To UI Prefabs` 실행 완료.
+- `AdventureScene`, `BattleTest`에 `CardAdventure/UI/Apply Classic Pixel UI To Open Scene` 실행 완료.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `BattleTest` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `AdventureScene` 내 `__ClassicPixelFrame` 생성 오브젝트 14개 확인.
+- `BattleTest` 내 `__ClassicPixelFrame` 생성 오브젝트 19개 확인.
+- 콘솔에는 MCP-FOR-UNITY 연결 종료/Disposed object 로그만 남아 있으며, 게임 코드 컴파일 에러는 확인되지 않았다.
+
+#### 다음 작업
+- PlayMode에서 대화창, 전투 HUD, 카드 프리뷰, 상점, 전투 보상 화면이 기준 이미지처럼 검은 창/금색 테두리/흰 텍스트로 보이는지 시각 확인한다.
+- 각 `DialogueData`에 사용할 NPC 초상화를 연결하면 대화창 좌측 초상화 슬롯이 표시된다. 초상화가 없으면 슬롯은 숨겨진다.
+- 카드 프리팹은 기존 카드 스프라이트 라이브러리와 런타임 이미지 주입을 유지하므로, 카드별 프레임/일러스트가 기준 톤과 어울리는지 PlayMode에서 조정한다.
+
+#### 주의사항
+- `Assets/Fonts/MaruMinyaHangul SDF.asset`는 TMP가 동적 아틀라스를 생성하며 의도치 않게 변경됐으나, UI 스타일 변경 대상이 아니므로 원상복구했다.
+- 이번 작업은 UI 기준과 자체 UI 적용만 다루며, 전투/상점/대화 로직의 규칙 자체는 변경하지 않았다.
+
+---
+
 ### 2026-05-15 (Codex - 사용 카드 퇴장 DOTween 연출 추가)
 
 #### 이번 작업 요약
@@ -3873,5 +4038,43 @@ Assets/Scenes/BattleTest.unity
 - PlayMode에서 실제로 `NPC_ShopKeeper`와 상호작용해 대화 종료 직후 상점 UI가 열리는지, 골드 보유량에 따라 구매 버튼 상태가 자연스럽게 바뀌는지 화면 기준으로 확인하면 된다.
 - 상점 위치는 현재 `(-3.5, 5.5, 0)` 기준이며, 루미나 마을 최종 배치에 맞춰 필요하면 조정한다.
 - 판매 카드 가격과 카드 풀 필터(직업별/희귀도별/챕터별)는 밸런싱 단계에서 조정한다.
+
+---
+### 2026-05-18 (Codex - 배틀 배경 복원 및 Better UI 생성형 픽셀 UI 보강)
+
+#### 이번 작업 요약
+- `BattleTest`의 `BattleCanvas/Background`는 스타일 적용 대상에서 제외하고 `Assets/Assets/Sprites/BattleBackground/CrowBattleBackground.png` 원본 스프라이트, 흰색 틴트, raycast 비활성 상태로 복원했다.
+- 기존 `Image`에 색상만 입히던 패널 처리 방식을 바꿔, 기존 Image는 투명한 구조/입력 요소로 남기고 실제 보이는 면과 테두리는 새 자식 오브젝트로 생성하도록 변경했다.
+- `ClassicPixelFrame`이 `__ClassicPixelSurface/Surface`와 `__ClassicPixelFrame/*` 자식들을 생성하며, 생성된 시각 요소는 `TheraBytes.BetterUi.BetterImage`와 Unity 내장 `Resources/unity_builtin_extra` 스프라이트를 사용한다.
+- 이전 패스에서 배경/패널에 붙었던 `Outline`/`Shadow` 장식 컴포넌트는 새 생성형 프레임과 충돌하지 않도록 제거되게 했다.
+- UI 프리팹과 `AdventureScene`, `BattleTest`에 새 생성형 UI 기준을 다시 적용했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/ClassicPixelFrame.cs`
+- `Assets/Scripts/UI/ClassicPixelUiTheme.cs`
+- `Assets/Scripts/Editor/ClassicPixelUiStyleTool.cs`
+- `Assets/Prefabs/UI/Card.prefab`
+- `Assets/Prefabs/UI/CardView.prefab`
+- `Assets/Prefabs/UI/DialogueCanvas.prefab`
+- `Assets/Prefabs/UI/StatusIcon.prefab`
+- `Assets/Scenes/AdventureScene.unity`
+- `Assets/Scenes/BattleTest.unity`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ClassicPixelFrame.cs`, `ClassicPixelUiTheme.cs`, `ClassicPixelUiStyleTool.cs` Unity `validate_script standard`: 에러 0개.
+- `CardAdventure/UI/Apply Classic Pixel UI To Project` 실행 완료.
+- `BattleTest` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `AdventureScene` Unity `manage_scene validate`: Missing Script 0개, Broken Prefab 0개.
+- `BattleTest` 배경 `Background`는 `CrowBattleBackground.png` 스프라이트와 흰색 틴트로 복원되고, `ClassicPixelFrame`/`Outline` 없이 유지됨을 확인했다.
+- 생성 Surface 오브젝트가 `TheraBytes.BetterUi.BetterImage`와 Unity 내장 스프라이트(`Resources/unity_builtin_extra`)를 사용하는 것을 확인했다.
+- 콘솔에는 MCP-FOR-UNITY 연결/직렬화 경고만 남아 있으며 게임 코드 컴파일 에러는 확인되지 않았다.
+
+#### 다음 작업
+- PlayMode에서 배틀 HUD, 대화창, 상점, 보상 UI의 클릭 판정과 레이어 순서가 새 생성형 Surface/Frame 구조에서도 정상인지 시각 확인한다.
+- 카드 프리팹과 상태 아이콘의 작은 UI 요소는 실제 플레이 화면에서 과도하게 두껍지 않은지 확인 후 두께를 조정한다.
+
+#### 주의사항
+- `Assets/Fonts/MaruMinyaHangul SDF.asset`는 TMP 동적 아틀라스 변경으로 수정되었으나 작업 대상이 아니므로 원복했다.
 
 ---

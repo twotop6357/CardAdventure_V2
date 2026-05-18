@@ -226,5 +226,87 @@ namespace CardAdventure
         /// 현재 덱의 읽기 전용 뷰.
         /// </summary>
         public IReadOnlyList<CardData> ReadOnlyDeck => Deck;
+        /// <summary>
+        /// 현재 상태를 SaveData로 변환하여 반환합니다.
+        /// </summary>
+        public SaveData CreateSaveData()
+        {
+            var data = new SaveData
+            {
+                currentHp = CurrentHp,
+                maxHp = MaxHp,
+                gold = Gold,
+                chapterProgress = ChapterProgress,
+                selectedJobId = SelectedJobInfo != null ? SelectedJobInfo.name : null,
+                hasSavedPosition = HasSavedPosition,
+                savedPosX = SavedPosition.x,
+                savedPosY = SavedPosition.y,
+                savedFacingDirX = SavedFacingDirection.x,
+                savedFacingDirY = SavedFacingDirection.y,
+                pendingChaserNpcId = PendingChaserNpcId,
+                completedChaserNpcIds = new List<string>(completedChaserNpcIds)
+            };
+
+            foreach (var card in Deck)
+            {
+                if (card != null)
+                    data.deckCardIds.Add(card.name);
+            }
+
+            return data;
+        }
+
+        /// <summary>
+        /// SaveData와 GameDatabase를 이용해 현재 상태를 덮어씁니다.
+        /// </summary>
+        public void LoadFromSaveData(SaveData data, GameDatabase db)
+        {
+            if (data == null || db == null) return;
+
+            CurrentHp = data.currentHp;
+            MaxHp = data.maxHp;
+            Gold = data.gold;
+            ChapterProgress = data.chapterProgress;
+
+            HasSavedPosition = data.hasSavedPosition;
+            SavedPosition = new Vector2(data.savedPosX, data.savedPosY);
+            SavedFacingDirection = new Vector2(data.savedFacingDirX, data.savedFacingDirY);
+
+            PendingChaserNpcId = data.pendingChaserNpcId;
+            completedChaserNpcIds.Clear();
+            if (data.completedChaserNpcIds != null)
+            {
+                foreach (var id in data.completedChaserNpcIds)
+                {
+                    completedChaserNpcIds.Add(id);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(data.selectedJobId))
+            {
+                SelectedJobInfo = db.GetJobById(data.selectedJobId);
+            }
+            else
+            {
+                SelectedJobInfo = defaultJobInfo;
+            }
+
+            Deck.Clear();
+            if (data.deckCardIds != null)
+            {
+                foreach (var cardId in data.deckCardIds)
+                {
+                    var card = db.GetCardById(cardId);
+                    if (card != null)
+                    {
+                        Deck.Add(card);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[GameDataManager] 세이브 파일에 기록된 카드 '{cardId}'를 GameDatabase에서 찾을 수 없습니다.");
+                    }
+                }
+            }
+        }
     }
 }
