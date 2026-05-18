@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Warrior_BattlePreparation
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "전투 준비"
+  cardName: "\uC804\uD22C \uC900\uBE44"
   energyCost: 3
   cardType: 1
   cardClass: 1
@@ -20,7 +20,8 @@ MonoBehaviour:
   effectType: 203
   effectValue: 3
   secondaryValue: 10
-  effectDescription: "카드를 {value}장 드로우하고 방어도 {value2}를 획득합니다."
+  effectDescription: "\uCE74\uB4DC\uB97C {value}\uC7A5 \uB4DC\uB85C\uC6B0\uD558\uACE0
+    \uBC29\uC5B4\uB3C4 {value2}\uB97C \uD68D\uB4DD\uD569\uB2C8\uB2E4."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

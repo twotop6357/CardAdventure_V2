@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Rogue_DodgeAmplify
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "회피 증폭"
+  cardName: "\uD68C\uD53C \uC99D\uD3ED"
   energyCost: 1
   cardType: 2
   cardClass: 3
@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 319
   effectValue: 2
   secondaryValue: 0
-  effectDescription: "회피 중첩을 {value}배로 증폭합니다."
+  effectDescription: "\uD68C\uD53C \uC911\uCCA9\uC744 {value}\uBC30\uB85C \uC99D\uD3ED\uD569\uB2C8\uB2E4."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

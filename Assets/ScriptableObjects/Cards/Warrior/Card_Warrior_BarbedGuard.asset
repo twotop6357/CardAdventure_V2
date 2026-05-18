@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Warrior_BarbedGuard
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "가시 방벽"
+  cardName: "\uAC00\uC2DC \uBC29\uBCBD"
   energyCost: 0
   cardType: 2
   cardClass: 1
@@ -20,7 +20,9 @@ MonoBehaviour:
   effectType: 304
   effectValue: 1
   secondaryValue: 0
-  effectDescription: "이번 턴에 방어도를 1 획득할 때마다 모든 적에게 {value} 피해를 적용합니다."
+  effectDescription: "\uC774\uBC88 \uD134\uC5D0 \uBC29\uC5B4\uB3C4\uB97C 1 \uD68D\uB4DD\uD560
+    \uB54C\uB9C8\uB2E4 \uBAA8\uB4E0 \uC801\uC5D0\uAC8C {value} \uD53C\uD574\uB97C
+    \uC801\uC6A9\uD569\uB2C8\uB2E4."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

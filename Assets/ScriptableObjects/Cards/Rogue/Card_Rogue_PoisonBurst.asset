@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Rogue_PoisonBurst
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "독 폭발"
+  cardName: "\uB3C5 \uD3ED\uBC1C"
   energyCost: 3
   cardType: 0
   cardClass: 3
@@ -20,7 +20,10 @@ MonoBehaviour:
   effectType: 321
   effectValue: 5
   secondaryValue: 5
-  effectDescription: "대상에게 독 {value}를 부여합니다. 이후 대상의 독 중첩을 모두 제거하고 {value} + 제거한 독 중첩만큼 피해를 적용합니다."
+  effectDescription: "\uB300\uC0C1\uC5D0\uAC8C \uB3C5 {value}\uB97C \uBD80\uC5EC\uD569\uB2C8\uB2E4.
+    \uC774\uD6C4 \uB300\uC0C1\uC758 \uB3C5 \uC911\uCCA9\uC744 \uBAA8\uB450 \uC81C\uAC70\uD558\uACE0
+    {value} + \uC81C\uAC70\uD55C \uB3C5 \uC911\uCCA9\uB9CC\uD07C \uD53C\uD574\uB97C
+    \uC801\uC6A9\uD569\uB2C8\uB2E4."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Mage_FrostBind
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "빙결 속박"
+  cardName: "\uBE59\uACB0 \uC18D\uBC15"
   energyCost: 2
   cardType: 2
   cardClass: 2
@@ -20,7 +20,8 @@ MonoBehaviour:
   effectType: 312
   effectValue: 0
   secondaryValue: 0
-  effectDescription: "대상을 얼려 다음 턴에 행동할 수 없게 합니다."
+  effectDescription: "\uB300\uC0C1\uC744 \uC5BC\uB824 \uB2E4\uC74C \uD134\uC5D0 \uD589\uB3D9\uD560
+    \uC218 \uC5C6\uAC8C \uD569\uB2C8\uB2E4."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0

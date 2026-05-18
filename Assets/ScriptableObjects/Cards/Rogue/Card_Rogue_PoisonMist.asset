@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -20,7 +20,7 @@ MonoBehaviour:
   effectType: 400
   effectValue: 5
   secondaryValue: 0
-  effectDescription: "대상에게 독 {value}를 부여합니다."
+  effectDescription: "\uB300\uC0C1\uC5D0\uAC8C \uB3C5 {value}\uB97C \uBD80\uC5EC\uD569\uB2C8\uB2E4."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 11400000, guid: 03970def3e819c049997aa4e30a6389a, type: 2}
   isExhaust: 0

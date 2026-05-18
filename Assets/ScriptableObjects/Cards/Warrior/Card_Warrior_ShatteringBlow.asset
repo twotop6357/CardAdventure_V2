@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Warrior_ShatteringBlow
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "파쇄 일격"
+  cardName: "\uD30C\uC1C4 \uC77C\uACA9"
   energyCost: 1
   cardType: 3
   cardClass: 1
@@ -20,7 +20,8 @@ MonoBehaviour:
   effectType: 108
   effectValue: 3
   secondaryValue: 5
-  effectDescription: "대상에게 취약 {value}를 부여하고 {value2} 피해를 적용합니다."
+  effectDescription: "\uB300\uC0C1\uC5D0\uAC8C \uCDE8\uC57D {value}\uB97C \uBD80\uC5EC\uD558\uACE0
+    {value2} \uD53C\uD574\uB97C \uC801\uC6A9\uD569\uB2C8\uB2E4."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 11400000, guid: 25988997590447d199e70ae14d94a131, type: 2}
   isExhaust: 0

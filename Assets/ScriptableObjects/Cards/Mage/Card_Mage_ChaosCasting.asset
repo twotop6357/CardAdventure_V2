@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
 MonoBehaviour:
@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Mage_ChaosCasting
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "혼돈 시전"
+  cardName: "\uD63C\uB3C8 \uC2DC\uC804"
   energyCost: 3
   cardType: 2
   cardClass: 2
@@ -20,7 +20,8 @@ MonoBehaviour:
   effectType: 314
   effectValue: 0
   secondaryValue: 0
-  effectDescription: "손에 있는 모든 카드를 무작위 순서로 무작위 대상에게 사용합니다."
+  effectDescription: "\uC190\uC5D0 \uC788\uB294 \uBAA8\uB4E0 \uCE74\uB4DC\uB97C \uBB34\uC791\uC704
+    \uC21C\uC11C\uB85C \uBB34\uC791\uC704 \uB300\uC0C1\uC5D0\uAC8C \uC0AC\uC6A9\uD569\uB2C8\uB2E4."
   cardIcon: {fileID: 0}
   statusEffect: {fileID: 0}
   isExhaust: 0
