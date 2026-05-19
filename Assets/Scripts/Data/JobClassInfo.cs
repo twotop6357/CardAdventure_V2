@@ -55,6 +55,9 @@ namespace CardAdventure
         [Tooltip("이동 방향에 따른 SpriteRenderer.flipX 로직을 반전시킬지 여부. (스프라이트 시트의 기본 방향이 다를 경우 사용)")]
         public bool invertVisualFlip = false;
 
+        [Tooltip("좌우 방향을 바라볼 때 SpriteRenderer.flipX 보정을 한 번 더 반전합니다. 걷기 시트와 IdleSide의 기본 방향이 다를 경우 사용합니다.")]
+        public bool invertMovingVisualFlip = false;
+
         [Header("게임 데이터")]
         [Tooltip("이 직업을 선택했을 때 시작 덱에 들어갈 카드 목록")]
         public List<CardData> starterCards = new List<CardData>();

@@ -4720,3 +4720,50 @@ Assets/Scenes/BattleTest.unity
 - 사용량 제한 해제 후 Unity 컴파일 및 Play Mode에서 NPC 대화 타이핑/스킵 동작 확인.
 
 ---
+### 2026-05-19 (Codex - 전사 좌우 정지 방향 및 달리기 이동속도 보정)
+
+#### 이번 작업 요약
+- 전사가 좌우로 이동하다 멈출 때 `IdleSide` 전환 과정에서 좌우 flip 보정이 풀려 반대 방향을 바라보던 문제를 수정했다.
+- 전사 전용 `invertMovingVisualFlip` 보정이 좌우 방향을 바라보는 동안 계속 유지되도록 바꿔, 걷기/달리기 후 정지해도 마지막 이동 방향을 그대로 바라보게 했다.
+- 플레이어 달리기 이동속도를 공통적으로 걷기 속도의 1.5배로 조정했다.
+- `AdventureScene`에 직렬화된 PlayerController의 `sprintMultiplier` 값도 2에서 1.5로 갱신했다.
+
+#### 변경 파일
+- `Assets/Scripts/Adventure/PlayerController.cs`
+- `Assets/Scenes/AdventureScene.unity`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `PlayerController.cs`, `JobClassInfo.cs` Unity `validate_script standard`: 에러 0개.
+- 미검증: Play Mode에서 전사 좌우 이동 후 정지 방향, 3직업 달리기 체감 속도 확인 필요.
+
+---
+
+### 2026-05-19 (Codex - 플레이어 달리기 애니메이션 제거 및 전사 걷기 방향 보정)
+
+#### 이번 작업 요약
+- 플레이어가 달릴 때 별도 `Player_Run*` 상태를 재생하지 않고, 현재 방향의 `Player_Walk*` 상태를 그대로 1.5배 속도로 재생하도록 변경했다.
+- 이후 걷기 애니메이션 클립을 수정하면 달리기 표현도 자동으로 같은 클립을 따라가도록 `PlayerController`에 `sprintWalkAnimationSpeedMultiplier` 설정값을 추가했다.
+- 마법사/도적 Animator Controller에서 `Player_RunFront`, `Player_RunBack`, `Player_RunSide` 상태 참조를 제거했다. 전사 컨트롤러에는 기존부터 Run 상태가 없었다.
+- 직업 데이터에 이동 중 전용 좌우 반전 보정값 `invertMovingVisualFlip`을 추가하고, 전사(`Job_Warrior`)에만 활성화했다. 마법사/도적의 기존 `invertVisualFlip` 설정은 변경하지 않았다.
+
+#### 변경 파일
+- `Assets/Scripts/Adventure/PlayerController.cs`
+- `Assets/Scripts/Data/JobClassInfo.cs`
+- `Assets/ScriptableObjects/Jobs/Job_Warrior.asset`
+- `Assets/Animations/Player/Player_Magician.controller`
+- `Assets/Animations/Player/Player_Rogue.controller`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `PlayerController.cs`, `JobClassInfo.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 스크립트 컴파일 요청 및 ready 상태 확인 완료.
+- `Player_Run`, `RunFront`, `RunBack`, `RunSide`가 플레이어 런타임 코드와 3개 직업 Animator Controller에 남아 있지 않음을 검색으로 확인했다.
+- 콘솔에는 MCP 연결 종료 로그만 남아 있고 C# 컴파일 에러는 확인되지 않았다.
+- `git status`는 저장소 소유권/LFS clean filter 권한 문제로 전체 상태 확인이 실패했다. 대신 변경 대상 파일 diff는 `filter.lfs` 비활성 옵션으로 확인했다.
+
+#### 다음 작업
+- Play Mode에서 전사/마법사/도적 각각 걷기와 Shift 달리기 시 같은 걷기 애니메이션이 1.5배 속도로 재생되는지 화면 확인.
+- 전사 좌우 이동 시 걷기 방향만 정상 보정되고, 마법사/도적의 기존 방향은 유지되는지 확인.
+
+---

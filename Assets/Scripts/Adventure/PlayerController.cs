@@ -14,7 +14,7 @@ namespace CardAdventure
         [Header("Movement")]
         [SerializeField] private float moveSpeed = 4f;
         [Tooltip("Shift를 누른 채 이동 시 적용되는 속도 배율.")]
-        [SerializeField] private float sprintMultiplier = 2f;
+        [SerializeField] private float sprintMultiplier = 1.5f;
         [Tooltip("이동을 차단할 Tilemap 목록 (예: Wall_Tilemap, Water_Tilemap). 비워두면 런타임에 자동으로 탐색합니다.")]
         [SerializeField] private Tilemap[] blockingTilemaps;
         [SerializeField] private float moveUnitSize = 1f;
@@ -32,6 +32,8 @@ namespace CardAdventure
         [Header("Visual")]
         [SerializeField] private SpriteRenderer spriteRenderer;
         [SerializeField] private Animator animator;
+        [Tooltip("달릴 때 별도 Run 클립 대신 현재 걷기 애니메이션을 이 배율로 재생합니다.")]
+        [SerializeField] private float sprintWalkAnimationSpeedMultiplier = 1.5f;
         [Tooltip("Visual scale used by the smaller walk sprite sheets.")]
         [SerializeField] private Vector3 walkVisualScale = Vector3.one;
         [Tooltip("Idle sheets are larger than walk sheets, so idle is scaled down to match visual size.")]
@@ -58,9 +60,6 @@ namespace CardAdventure
         private const string WalkFront = "Player_WalkFront";
         private const string WalkBack  = "Player_WalkBack";
         private const string WalkSide  = "Player_WalkSide";
-        private const string RunFront  = "Player_RunFront";
-        private const string RunBack   = "Player_RunBack";
-        private const string RunSide   = "Player_RunSide";
 
         private void Awake()
         {
@@ -475,42 +474,48 @@ private void FixedUpdate()
             return direction;
         }
 
-        private void UpdateFacingDirection(Vector2 direction)
+private void UpdateFacingDirection(Vector2 direction)
         {
             facingDirection = direction;
-
-            if (spriteRenderer != null && direction.x != 0f)
-            {
-                bool baseFlip = direction.x > 0f;
-                // 직업 데이터에 따라 flipX 로직 반전 여부 결정
-                if (GameDataManager.Instance != null && GameDataManager.Instance.SelectedJobInfo != null)
-                {
-                    if (GameDataManager.Instance.SelectedJobInfo.invertVisualFlip)
-                        baseFlip = !baseFlip;
-                }
-                spriteRenderer.flipX = baseFlip;
-            }
+            ApplyFacingFlip();
         }
+
+        private void ApplyFacingFlip()
+        {
+            if (spriteRenderer == null || facingDirection.x == 0f)
+            {
+                return;
+            }
+
+            bool baseFlip = facingDirection.x > 0f;
+            if (GameDataManager.Instance != null && GameDataManager.Instance.SelectedJobInfo != null)
+            {
+                JobClassInfo jobInfo = GameDataManager.Instance.SelectedJobInfo;
+                if (jobInfo.invertVisualFlip)
+                {
+                    baseFlip = !baseFlip;
+                }
+
+                if (jobInfo.invertMovingVisualFlip)
+                {
+                    baseFlip = !baseFlip;
+                }
+            }
+
+            spriteRenderer.flipX = baseFlip;
+        }
+
 
         /// <summary>
         /// 특정 월드 좌표를 바라보도록 스프라이트 방향을 설정한다.
         /// </summary>
-        public void FaceToward(Vector2 targetPosition)
+public void FaceToward(Vector2 targetPosition)
         {
             Vector2 dir = targetPosition - (Vector2)transform.position;
             if (Mathf.Abs(dir.x) > 0.1f)
             {
                 facingDirection = dir.x > 0 ? Vector2.right : Vector2.left;
-                if (spriteRenderer != null)
-                {
-                    bool baseFlip = dir.x > 0f;
-                    if (GameDataManager.Instance != null && GameDataManager.Instance.SelectedJobInfo != null)
-                    {
-                        if (GameDataManager.Instance.SelectedJobInfo.invertVisualFlip)
-                            baseFlip = !baseFlip;
-                    }
-                    spriteRenderer.flipX = baseFlip;
-                }
+                ApplyFacingFlip();
             }
             else if (Mathf.Abs(dir.y) > 0.1f)
             {
@@ -525,6 +530,7 @@ private void PlayDirectionalAnimation(bool moving, bool sprinting)
             if (animator == null) return;
 
             ApplyVisualScale(moving);
+            ApplyFacingFlip();
 
             string stateName;
             if (!moving)
@@ -533,12 +539,6 @@ private void PlayDirectionalAnimation(bool moving, bool sprinting)
                 else if (facingDirection.y > 0f)       stateName = IdleBack;
                 else                                   stateName = IdleFront;
             }
-            else if (sprinting)
-            {
-                if (Mathf.Abs(facingDirection.x) > 0f) stateName = RunSide;
-                else if (facingDirection.y > 0f)       stateName = RunBack;
-                else                                   stateName = RunFront;
-            }
             else
             {
                 if (Mathf.Abs(facingDirection.x) > 0f) stateName = WalkSide;
@@ -546,12 +546,20 @@ private void PlayDirectionalAnimation(bool moving, bool sprinting)
                 else                                   stateName = WalkFront;
             }
 
-            if (currentAnimationState == stateName) return;
-            currentAnimationState = stateName;
-            animator.Play(stateName);
+            if (currentAnimationState != stateName)
+            {
+                currentAnimationState = stateName;
+                animator.Play(stateName);
+            }
 
-            // Idle: 첫 프레임 정지 (부동자세)
-            animator.speed = stateName.Contains("Idle") ? 0f : 1f;
+            if (!moving)
+            {
+                animator.speed = 0f;
+            }
+            else
+            {
+                animator.speed = sprinting ? Mathf.Max(0.01f, sprintWalkAnimationSpeedMultiplier) : 1f;
+            }
         }
 
         private void ApplyVisualScale(bool moving)
