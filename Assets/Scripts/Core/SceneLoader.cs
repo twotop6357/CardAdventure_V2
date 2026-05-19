@@ -26,6 +26,8 @@ namespace CardAdventure
         private IrisTransitionGraphic irisGraphic;
         private bool         isLoading;
 
+        public bool IsLoading => isLoading;
+
         // ── 라이프사이클 ───────────────────────────────────────
 
         private void Awake()
@@ -178,6 +180,12 @@ namespace CardAdventure
 
         public void EnterBattle(EnemyData enemy, string returnScene = "AdventureScene")
         {
+            if (isLoading)
+            {
+                StartCoroutine(EnterBattleWhenReady(enemy, null, returnScene));
+                return;
+            }
+
             LockAdventurePlayerInput();
 
             if (GameDataManager.Instance != null)
@@ -188,6 +196,12 @@ namespace CardAdventure
 
         public void EnterBattle(EnemyData enemy, BattleIntroData introData, string returnScene = "AdventureScene")
         {
+            if (isLoading)
+            {
+                StartCoroutine(EnterBattleWhenReady(enemy, introData, returnScene));
+                return;
+            }
+
             LockAdventurePlayerInput();
 
             if (GameDataManager.Instance != null)
@@ -197,6 +211,23 @@ namespace CardAdventure
             }
 
             LoadScene(BATTLE_SCENE_NAME, true);
+        }
+
+        private System.Collections.IEnumerator EnterBattleWhenReady(EnemyData enemy, BattleIntroData introData, string returnScene)
+        {
+            while (isLoading)
+            {
+                yield return null;
+            }
+
+            if (introData != null)
+            {
+                EnterBattle(enemy, introData, returnScene);
+            }
+            else
+            {
+                EnterBattle(enemy, returnScene);
+            }
         }
 
 

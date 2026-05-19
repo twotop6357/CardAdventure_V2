@@ -174,12 +174,17 @@ namespace CardAdventure
 
         public void SetPendingChaserNpc(string npcId)
         {
-            PendingChaserNpcId = npcId;
+            PendingChaserNpcId = IsValidChaserNpcId(npcId) ? npcId : null;
         }
 
         public bool IsChaserNpcBattleCompleted(string npcId)
         {
-            return !string.IsNullOrEmpty(npcId) && completedChaserNpcIds.Contains(npcId);
+            return IsValidChaserNpcId(npcId) && completedChaserNpcIds.Contains(npcId);
+        }
+
+        private static bool IsValidChaserNpcId(string npcId)
+        {
+            return !string.IsNullOrEmpty(npcId) && npcId.StartsWith("ChaserV2|");
         }
 
         /// <summary>
@@ -195,7 +200,11 @@ namespace CardAdventure
 
             if (!string.IsNullOrEmpty(PendingChaserNpcId))
             {
-                completedChaserNpcIds.Add(PendingChaserNpcId);
+                if (IsValidChaserNpcId(PendingChaserNpcId))
+                {
+                    completedChaserNpcIds.Add(PendingChaserNpcId);
+                }
+
                 PendingChaserNpcId = null;
             }
 

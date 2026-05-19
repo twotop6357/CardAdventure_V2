@@ -208,11 +208,11 @@ MonoBehaviour:
     m_Bits: 0
   spriteRenderer: {fileID: 0}
   invertVisualFlip: 0
-  afterChaseDialogueData: {fileID: 11400000, guid: adc0d60b437be454c90b766d5a830fbf,
+  afterChaseDialogueData: {fileID: 11400000, guid: abfa8a544ce0ce84ba7dc13da8d7530f,
     type: 2}
   eventMarkSprite: {fileID: 6582060141386157611, guid: 3bfe19508340d0340932b449922a15a3,
     type: 3}
-  battleEnemyData: {fileID: 11400000, guid: cc3e7609d8734bef95c4de102fffe890, type: 2}
+  battleEnemyData: {fileID: 11400000, guid: 1854994180ae14e44a0b4867a3d37381, type: 2}
   animWalkFront: FemaleNPC_WalkFront
   animWalkSide: FemaleNPC_WalkSide
   animWalkBack: FemaleNPC_WalkBack

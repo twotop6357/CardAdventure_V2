@@ -52,6 +52,11 @@ namespace CardAdventure
         private Button          secondaryButton;
         private TextMeshProUGUI secondaryLabel;
 
+        private const float RewardCardCellWidth = 292f;
+        private const float RewardCardCellHeight = 400f;
+        private const float RewardCardPreviewScale = 1.107f;
+        private const float RewardCardPreviewOffsetY = 26f;
+
         // ════════════════════════════════════════════════════════
         //  공개 API
         // ════════════════════════════════════════════════════════
@@ -427,7 +432,7 @@ namespace CardAdventure
             if (cards.Count == 0) { TransitionToDelete(); return; }
 
             int cols = Mathf.Min(3, cards.Count);
-            SetupBetterGrid(rewardCardContainer, cols, new Vector2(16f, 16f), new Vector2(1200f, 1600f));
+            SetupRewardCardGrid(rewardCardContainer, cols);
 
             for (int i = 0; i < cards.Count; i++)
             {
@@ -437,15 +442,19 @@ namespace CardAdventure
                 GameObject wrapper = CreateImage($"RewardCard_{i + 1}", rewardCardContainer,
                     ClassicPixelUiTheme.WindowBlack);
                 AddOutline(wrapper, ClassicPixelUiTheme.Gold, new Vector2(2f, -2f));
-                wrapper.AddComponent<LayoutElement>().preferredWidth = 310f;
-                wrapper.GetComponent<RectTransform>().sizeDelta = new Vector2(310f, 414f);
+                wrapper.GetComponent<RectTransform>().sizeDelta = Vector2.zero;
 
                 wrapper.transform.localScale = Vector3.zero;
                 wrapper.transform.DOScale(Vector3.one, 0.38f)
                        .SetEase(Ease.OutBack)
                        .SetDelay(0.08f + i * 0.13f);
 
-                BattleCardView cv = SpawnCardView(wrapper.GetComponent<RectTransform>(), card);
+                GameObject previewContainer = new GameObject("PreviewContainer", typeof(RectTransform));
+                previewContainer.transform.SetParent(wrapper.transform, false);
+                Stretch(previewContainer.GetComponent<RectTransform>());
+
+                BattleCardView cv = SpawnCardView(previewContainer.GetComponent<RectTransform>(), card);
+                ApplyRewardCardPreviewTransform(cv);
 
                 CardData captured = card;
                 SetupClickableWrapper(wrapper, () => OnRewardPicked(captured));
@@ -560,6 +569,40 @@ namespace CardAdventure
             SetChildText(cv.transform, "CardDescription",  card.GetFormattedDescription());
             SetChildText(cv.transform, "DescText",         card.GetFormattedDescription());
             return cv;
+        }
+
+        private static void SetupRewardCardGrid(RectTransform container, int columns)
+        {
+            BetterGridLayoutGroup betterGrid = container.GetComponent<BetterGridLayoutGroup>();
+            if (betterGrid != null)
+            {
+                betterGrid.Fit = false;
+                betterGrid.KeepCellAspectRatio = false;
+            }
+
+            GridLayoutGroup grid = betterGrid != null
+                ? betterGrid
+                : container.GetComponent<GridLayoutGroup>() ?? container.gameObject.AddComponent<GridLayoutGroup>();
+            grid.constraint      = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = columns;
+            grid.childAlignment  = TextAnchor.MiddleCenter;
+            grid.startAxis       = GridLayoutGroup.Axis.Horizontal;
+            grid.cellSize        = new Vector2(RewardCardCellWidth, RewardCardCellHeight);
+            grid.spacing         = new Vector2(28f, 12f);
+            grid.padding         = new RectOffset(0, 0, 4, 4);
+        }
+
+        private static void ApplyRewardCardPreviewTransform(BattleCardView preview)
+        {
+            RectTransform rect = preview != null ? preview.GetComponent<RectTransform>() : null;
+            if (rect == null) return;
+
+            rect.anchorMin        = new Vector2(0.5f, 0.5f);
+            rect.anchorMax        = new Vector2(0.5f, 0.5f);
+            rect.pivot            = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = new Vector2(0f, RewardCardPreviewOffsetY);
+            rect.localRotation    = Quaternion.identity;
+            rect.localScale       = new Vector3(RewardCardPreviewScale, RewardCardPreviewScale, 1f);
         }
 
         // 래퍼 오브젝트에 클릭 이벤트 설정 (보상 카드 선택 페이즈용)

@@ -75,6 +75,8 @@ namespace CardAdventure
         private bool    isMoving;
         private bool    isChasing;
         private bool    hasAutoChased;
+        private string  persistentChaserId;
+        private bool    battleEntryStarted;
 
         // ══════════════════════════════════════════════════════════════
         //  Unity 생명주기
@@ -114,6 +116,7 @@ namespace CardAdventure
             targetPosition = GetRootPositionForFootCenter(snappedFoot);
             transform.position = targetPosition;
             rb.position        = targetPosition;
+            persistentChaserId = BuildPersistentChaserId(snappedFoot);
             GridOccupancy.TryReserve(snappedFoot, moveUnitSize);
 
             RestorePostBattleState();
@@ -176,7 +179,6 @@ namespace CardAdventure
 
         private IEnumerator ChaseAndTalk()
         {
-            // 혹시 대화 중이라면 종료까지 대기
             while (IsDialogueActive())
                 yield return null;
 
@@ -203,6 +205,9 @@ namespace CardAdventure
                 else
                     break; // 이동 불가
 
+                if (!isMoving && battleEnemyData != null)
+                    break;
+
                 yield return null;
             }
 
@@ -210,13 +215,15 @@ namespace CardAdventure
                 yield return null;
 
             // 플레이어와 인접하면 대화 시작
-            if (IsAdjacentToPlayer())
+            bool canStartEncounter = IsAdjacentToPlayer() || battleEnemyData != null;
+            if (canStartEncounter)
             {
                 PlayIdleAnim();    // 플레이어 앞에 멈춰 idle 전환
                 FaceToward(GetPlayerFootCenter());
                 yield return new WaitForSeconds(0.05f);
+                battleEntryStarted = false;
                 TriggerDialogue();
-                dialogueTriggered = true;
+                dialogueTriggered = IsDialogueActive();
 
                 // 대화 끝날 때까지 대기 (DialogueManager가 플레이어 이동을 복원함)
                 while (IsDialogueActive())
@@ -228,11 +235,12 @@ namespace CardAdventure
                     npcInteractable.SetDialogueData(afterChaseDialogueData);
 
                 // 전투 데이터가 있으면 배틀 로드
-                if (battleEnemyData != null)
+                if (battleEnemyData != null && !battleEntryStarted)
                 {
+                    battleEntryStarted = true;
                     npcInteractable.SetInteractionLocked(true);
                     player?.SetInputEnabled(false);
-                    GameDataManager.Instance?.SetPendingChaserNpc(gameObject.name);
+                    GameDataManager.Instance?.SetPendingChaserNpc(GetPersistentChaserId());
 
                     // 몬스터 랜덤화 (매직 디어 / 매직 래빗 50%) 및 인물 성별에 맞는 인트로 데이터 세팅
                     EnemyData actualEnemy = battleEnemyData;
@@ -263,6 +271,7 @@ namespace CardAdventure
                     }
 
                     yield return new WaitForSeconds(0.2f); // 연출 유예
+                    yield return WaitForSceneLoaderReady();
                     if (SceneLoader.Instance != null)
                     {
                         if (actualIntro != null)
@@ -411,10 +420,18 @@ namespace CardAdventure
             DialogueManager.Instance.BeginDialogueWithNpc(npcInteractable);
         }
 
+        private static IEnumerator WaitForSceneLoaderReady()
+        {
+            while (SceneLoader.Instance != null && SceneLoader.Instance.IsLoading)
+            {
+                yield return null;
+            }
+        }
+
         private void RestorePostBattleState()
         {
             if (GameDataManager.Instance == null) return;
-            if (!GameDataManager.Instance.IsChaserNpcBattleCompleted(gameObject.name)) return;
+            if (!GameDataManager.Instance.IsChaserNpcBattleCompleted(GetPersistentChaserId())) return;
 
             hasAutoChased = true;
             isChasing = false;
@@ -422,6 +439,24 @@ namespace CardAdventure
 
             if (afterChaseDialogueData != null)
                 npcInteractable.SetDialogueData(afterChaseDialogueData);
+        }
+
+        private string GetPersistentChaserId()
+        {
+            if (string.IsNullOrEmpty(persistentChaserId))
+            {
+                persistentChaserId = BuildPersistentChaserId(GetFootCenter(targetPosition));
+            }
+
+            return persistentChaserId;
+        }
+
+        private string BuildPersistentChaserId(Vector2 footPosition)
+        {
+            string sceneName = gameObject.scene.IsValid() ? gameObject.scene.name : "UnknownScene";
+            int cellX = Mathf.RoundToInt(footPosition.x / Mathf.Max(0.001f, moveUnitSize));
+            int cellY = Mathf.RoundToInt(footPosition.y / Mathf.Max(0.001f, moveUnitSize));
+            return $"ChaserV2|{sceneName}|{gameObject.name}|{cellX}|{cellY}";
         }
 
 

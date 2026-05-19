@@ -1,3 +1,32 @@
+### 2026-05-19 (Codex - ChaserNPC 두 번째 이벤트 배틀 진입 수정)
+
+#### 이번 작업 요약
+- ChaserNPC 감지는 정상이며, 첫 이벤트 배틀 이후 감지된 Chaser가 두 번째 배틀로 넘어가지 않는 문제로 범위를 재정리.
+- 잘못 추가했던 근접 감지 fallback은 제거하고 기존 직선 시야 감지 조건을 유지.
+- Chaser 전투 진입은 대화 종료 후 코루틴 흐름에서만 처리되도록 정리하고, 이벤트 구독 기반 중복 진입 플래그 흐름을 제거.
+- `SceneLoader.EnterBattle()`이 씬 전환 중 호출되면 요청을 버리지 않고 로딩이 끝난 뒤 배틀 진입을 재시도하도록 보강.
+- Chaser 완료 ID를 `ChaserV2|Scene|Name|CellX|CellY` 형식으로 고정하고, 예전 이름 기반/구형 완료 ID는 더 이상 완료 판정에 사용하지 않도록 제한.
+- `NPC_FemaleChaser.prefab`의 `battleEnemyData`가 존재하지 않는 GUID를 가리키던 문제를 확인하고, 남성 Chaser와 동일하게 `Enemy_MagicDeer` 기준 데이터로 교체. 실제 전투는 기존 코드 흐름대로 `Enemy_MagicDeer` / `Enemy_MagicRabbit` 중 랜덤 선택.
+- 여성 Chaser 배틀 인트로는 기존 `NpcChaser`의 성별 분기대로 `Resources/BattleIntro_FemaleChaser.asset`가 적용됨을 확인.
+
+#### 변경 파일
+- `Assets/Scripts/Adventure/NpcChaser.cs` (대화 종료 후 전투 진입 흐름 정리)
+- `Assets/Scripts/Core/GameDataManager.cs` (Chaser 완료 ID 검증 및 구형 ID 무시)
+- `Assets/Scripts/Core/SceneLoader.cs` (로딩 중 전투 진입 요청 대기 후 재시도)
+- `Assets/Prefabs/NPCs/NPC_FemaleChaser.prefab` (여성 Chaser 전투 데이터 참조 복구)
+
+#### 검증 결과
+- `validate_script` 기준 `NpcChaser.cs` 오류 없음. 기존 성능성 경고 2건만 유지.
+- Unity scripts compile 요청 후 콘솔 확인: 신규 컴파일 오류 없음. 기존 프로젝트 경고만 표시.
+- 여성 Chaser 프리팹에서 삭제/누락된 GUID 참조가 사라지고 `Enemy_MagicDeer` GUID로 연결됨을 확인.
+- 실제 플레이 흐름에서 두 번째 ChaserNPC 진입은 미검증.
+
+#### 다음 확인 필요
+1. AdventureScene에서 첫 Chaser 이벤트 배틀 완료 후 감지된 두 번째 ChaserNPC가 대화 종료 후 배틀에 진입하는지 확인.
+2. 여성 ChaserNPC 배틀 후 `NPC_FemaleAfterEventBattle_Dialogue.asset` 대화가 유지되는지 확인.
+
+---
+
 ### 2026-05-19 (Antigravity - 시험관 자동 대화, 시선 정렬, 적 무작위 조우, 직업 보상 시스템, 에셋 충돌 해결, 배틀 대화창 초상화 및 초급 배틀러 자격증 엔딩 UI 구현 완료)
 
 #### 이번 작업 요약
@@ -5130,3 +5159,77 @@ Assets/Scenes/BattleTest.unity
 
 #### 다음 작업
 - Play Mode에서 내 카드/상점/전투 보상/카드 삭제 화면의 카드 일러스트가 정상 비율과 크기로 표시되는지 화면으로 확인한다.
+---
+
+### 2026-05-19 (Codex - 보상 카드 배치 및 Chaser 이벤트 배틀 재진입 수정)
+
+#### 이번 작업 요약
+- 배틀 승리 카드 보상 UI의 카드 배치를 상점 카드 구매 UI와 같은 고정 셀 방식으로 맞췄다.
+- 보상 카드는 상점과 동일한 `292x400` 셀, `28x12` 간격, 카드 프리뷰 스케일 `1.107`, Y 오프셋 `26`을 사용한다.
+- 기존 보상 UI의 과도하게 큰 BetterGrid 비율 셀을 사용하지 않도록 하고, 화면 크기 변화에도 카드 간격이 일정하게 유지되도록 했다.
+- `NpcChaser`의 이벤트 배틀 완료 추적을 `gameObject.name` 대신 씬 이름 + NPC 이름 + 시작 발 위치 기반 고유 ID로 변경했다.
+- 같은 Chaser 프리팹을 여러 개 배치했을 때 첫 이벤트 배틀 이후 같은 이름의 다른 Chaser가 이미 완료된 것으로 처리되어 전투에 들어가지 않는 문제를 방지했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleRewardUIController.cs`
+- `Assets/Scripts/Adventure/NpcChaser.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `BattleRewardUIController.cs` 오류 0개.
+- Unity `validate_script standard`: `NpcChaser.cs` 오류 0개, 기존 성능 경고 2개 유지.
+- Unity scripts compile 요청 및 에디터 ready 확인 완료.
+- Unity 콘솔 기준 신규 C# 오류 없음. MCP 연결 종료 로그만 확인됨.
+
+#### 다음 작업
+- Play Mode에서 배틀 승리 카드 보상 화면을 창 크기별로 줄여 카드 간격이 상점 UI처럼 유지되는지 확인한다.
+- 첫 이벤트 배틀 완료 후 다른 ChaserNPC에게 발각될 때 대화 후 이벤트 배틀에 정상 진입하는지 실제 흐름으로 확인한다.
+---
+
+### 2026-05-19 (Codex - Chaser 추가 이벤트 배틀 진입 보강 및 여성 후속 대화 연결)
+
+#### 이번 작업 요약
+- ChaserNPC 자동 추격 대화 종료 후 이벤트 배틀 진입이 유실될 수 있는 흐름을 보강했다.
+- 기존 코루틴 대기 경로에 더해 `DialogueManager.OnDialogueEnded` 이벤트에서도 Chaser 전투 진입을 직접 예약하도록 했다.
+- 중복 전투 진입을 막기 위해 `pendingAutoBattle`, `battleEntryStarted` 플래그를 추가했다.
+- Chaser 완료 기록은 이전 작업의 씬 이름 + NPC 이름 + 시작 발 위치 기반 고유 ID 방식을 유지한다.
+- `NPC_FemaleChaser.prefab`의 전투 후 대화를 `Assets/ScriptableObjects/Dialogues/NPC_FemaleAfterEventBattle_Dialogue.asset`로 교체했다.
+
+#### 변경 파일
+- `Assets/Scripts/Adventure/NpcChaser.cs`
+- `Assets/Prefabs/NPCs/NPC_FemaleChaser.prefab`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `NpcChaser.cs` 오류 0개, 기존 성능 경고 2개 유지.
+- Unity scripts compile 완료 및 에디터 ready 확인.
+- Unity 콘솔 기준 신규 C# 오류 없음. MCP 연결 종료 로그만 확인됨.
+- `NPC_FemaleChaser.prefab`의 `afterChaseDialogueData`가 `NPC_FemaleAfterEventBattle_Dialogue.asset` GUID로 변경됨을 확인.
+
+#### 다음 작업
+- Play Mode에서 첫 이벤트 배틀 이후 다른 ChaserNPC에게 발각될 때 대화 종료 직후 이벤트 배틀에 정상 진입하는지 확인한다.
+- 여성 ChaserNPC 전투 이후 다시 말을 걸었을 때 여성 전용 후속 대화가 출력되는지 확인한다.
+---
+
+### 2026-05-19 (Codex - 두 번째 Chaser 이벤트 배틀 미진입 원인 수정)
+
+#### 이번 작업 요약
+- 두 번째 ChaserNPC 이벤트 배틀이 들어가지 않는 원인을 재확인했다.
+- 첫 전투 후 어드벤처 씬 복귀 페이드가 끝나기 전에 다음 Chaser가 발각/대화/전투 진입을 시도하면 `SceneLoader`의 `isLoading` 때문에 `EnterBattle` 호출이 조용히 무시될 수 있었다.
+- `SceneLoader.IsLoading` 읽기 전용 프로퍼티를 추가하고, Chaser 전투 진입 직전에 씬 로더가 준비될 때까지 대기하도록 수정했다.
+- 기존 Chaser별 완료 판정 고유 ID와 여성 Chaser 후속 대화 연결은 유지했다.
+
+#### 변경 파일
+- `Assets/Scripts/Core/SceneLoader.cs`
+- `Assets/Scripts/Adventure/NpcChaser.cs`
+- `Assets/Prefabs/NPCs/NPC_FemaleChaser.prefab`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `SceneLoader.cs` 오류 0개.
+- Unity `validate_script standard`: `NpcChaser.cs` 오류 0개, 기존 성능 경고 2개 유지.
+- Unity scripts compile 완료 및 에디터 ready 확인.
+- Unity 콘솔 기준 신규 C# 오류 없음. MCP 연결 종료/Disposed 로그만 확인됨.
+
+#### 다음 작업
+- Play Mode에서 첫 이벤트 배틀 후 복귀 페이드 직후 바로 두 번째 Chaser에게 발각되는 상황에서도 대화 종료 후 전투에 진입하는지 확인한다.
