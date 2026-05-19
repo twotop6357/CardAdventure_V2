@@ -21,7 +21,7 @@ MonoBehaviour:
   effectValue: 2
   secondaryValue: 0
   effectDescription: "대상에게 {value} 피해를 적용하고, 적용한 피해만큼 방어도를 획득합니다."
-  cardIcon: {fileID: 0}
+  cardIcon: {fileID: -8817589679565176045, guid: e32c7b504100efb40bc1425ead1b09b9, type: 3}
   statusEffect: {fileID: 0}
   isExhaust: 0
   isStarterCard: 0

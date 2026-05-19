@@ -21,7 +21,7 @@ MonoBehaviour:
   effectValue: 2
   secondaryValue: 0
   effectDescription: "\uD798 {value}\uB97C \uD68D\uB4DD\uD569\uB2C8\uB2E4."
-  cardIcon: {fileID: 0}
+  cardIcon: {fileID: -6181629856346421120, guid: 157d0b97d565c154fb4fad9f42dec843, type: 3}
   statusEffect: {fileID: 0}
   isExhaust: 0
   isStarterCard: 0

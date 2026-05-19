@@ -21,7 +21,7 @@ MonoBehaviour:
   effectValue: 2
   secondaryValue: 0
   effectDescription: "힘 {value}를 획득합니다. 사용 후 소멸합니다."
-  cardIcon: {fileID: 0}
+  cardIcon: {fileID: -1857025087556035213, guid: c52774fd2074bd04bb276d92c9b4b8ec, type: 3}
   statusEffect: {fileID: 0}
   isExhaust: 1
   isStarterCard: 0

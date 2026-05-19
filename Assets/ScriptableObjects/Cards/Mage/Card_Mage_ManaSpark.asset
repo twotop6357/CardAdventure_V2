@@ -22,7 +22,7 @@ MonoBehaviour:
   secondaryValue: 0
   effectDescription: "\uC774\uBC88 \uD134\uC5D0 \uC5D0\uB108\uC9C0 {value}\uB97C
     \uD68D\uB4DD\uD569\uB2C8\uB2E4."
-  cardIcon: {fileID: 0}
+  cardIcon: {fileID: 8994796521841599486, guid: 049f89189a4323740a1dca7128a496cb, type: 3}
   statusEffect: {fileID: 0}
   isExhaust: 0
   isStarterCard: 1

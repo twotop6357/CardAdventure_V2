@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da326030e79c9e14ea2449ce03eda01f, type: 3}
   m_Name: Card_Mage_ManaRegen
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.CardData
-  cardName: "\uB9C8\uB098 \uC7AC\uC0DD"
+  cardName: "\uC7AC\uC0DD\uC758 \uBC14\uB78C"
   energyCost: 0
   cardType: 2
   cardClass: 2
@@ -21,7 +21,8 @@ MonoBehaviour:
   effectValue: 2
   secondaryValue: 0
   effectDescription: "\uC790\uC2E0\uC5D0\uAC8C \uC7AC\uC0DD {value}\uB97C \uBD80\uC5EC\uD569\uB2C8\uB2E4."
-  cardIcon: {fileID: 0}
+  cardIcon: {fileID: -5517351886033947360, guid: 17f03e436d60e364082209c735811042,
+    type: 3}
   statusEffect: {fileID: 11400000, guid: c739f5cbecfa4afdb1cd13e8b420f531, type: 2}
   isExhaust: 0
   isStarterCard: 0

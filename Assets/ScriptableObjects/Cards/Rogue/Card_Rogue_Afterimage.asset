@@ -23,7 +23,7 @@ MonoBehaviour:
   effectDescription: "\uB300\uC0C1\uC5D0\uAC8C {value} \uD53C\uD574\uB97C \uC801\uC6A9\uD569\uB2C8\uB2E4.
     \uC0AC\uC6A9 \uD6C4 \uC774 \uCE74\uB4DC\uB97C \uB371\uC5D0 \uCD94\uAC00\uD558\uACE0
     \uC154\uD50C\uD569\uB2C8\uB2E4."
-  cardIcon: {fileID: 0}
+  cardIcon: {fileID: -5424896602131162088, guid: 170562509c850ff4d900528ca2b86fe3, type: 3}
   statusEffect: {fileID: 0}
   isExhaust: 0
   isStarterCard: 0

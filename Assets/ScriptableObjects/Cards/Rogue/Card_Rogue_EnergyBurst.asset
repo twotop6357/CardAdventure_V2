@@ -24,7 +24,7 @@ MonoBehaviour:
     \uB300\uC0C1\uC5D0\uAC8C {value} \uD53C\uD574\uB97C \uC801\uC6A9\uD569\uB2C8\uB2E4.
     \uC18C\uBAA8\uD55C \uC5D0\uB108\uC9C0\uB9C8\uB2E4 {value2} \uCD94\uAC00 \uD53C\uD574\uB97C
     \uC801\uC6A9\uD569\uB2C8\uB2E4."
-  cardIcon: {fileID: 0}
+  cardIcon: {fileID: -3450069186338687848, guid: d07a1cfd4c9e06442a4fc86261680d10, type: 3}
   statusEffect: {fileID: 0}
   isExhaust: 0
   isStarterCard: 1
