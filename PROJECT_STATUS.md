@@ -4927,3 +4927,206 @@ Assets/Scenes/BattleTest.unity
 
 #### 다음 작업
 - Play Mode에서 시험관 질문 대화 끝의 선택지 위치와 텍스트 겹침 여부를 실제 화면으로 확인한다.
+### 2026-05-19 (Codex - 새 게임 시작 인트로 대화 및 최초 직업 선택 흐름 구현)
+
+#### 이번 작업 요약
+- 로비에서 새 게임 슬롯을 선택하면 바로 `AdventureScene`으로 이동하지 않고, `LobbyBackground.png` 배경과 `JobChanger_Image.png` 캐릭터 이미지를 사용한 시작 대화 장면을 먼저 보여주도록 변경했다.
+- `NPC_StartGame_Dialogue.asset` 종료 후 기존 `JobChangeUIController`를 확장 재사용하여 최초 직업 선택 UI를 표시한다. 초기 선택 화면에서는 현재 직업 필터를 끄고 전사/마법사/도적 3개 직업을 모두 표시하며 제목은 `직업 선택`으로 설정했다.
+- 직업 선택 확정 시 `GameDataManager.UpdateJob(...)`로 선택 직업과 시작 덱을 즉시 반영하고, `NPC_StartGameAfterJobSelect_Dialogue.asset` 종료 후 검정 페이드로 `AdventureScene`에 진입하도록 연결했다.
+- `LobbyScene`에 `StartGameIntroController`를 배치하고 요청된 배경/캐릭터/대화/직업/DialogueCanvas 참조를 연결했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/StartGameIntroController.cs` [NEW]
+- `Assets/Scripts/Editor/StartGameIntroSetup.cs` [NEW]
+- `Assets/Scripts/UI/LobbyUIController.cs`
+- `Assets/Scripts/UI/JobChangeUIController.cs`
+- `Assets/Scenes/LobbyScene.unity`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `StartGameIntroController.cs`, `LobbyUIController.cs`, `StartGameIntroSetup.cs` 오류 0개.
+- `JobChangeUIController.cs`는 기존 문자열 연결 관련 성능 경고 1개만 유지, 오류 0개.
+- Unity 스크립트 컴파일 완료, 신규 C# 컴파일 오류 없음.
+- `CardAdventure/Setup/Start Game Intro` 메뉴 실행으로 `LobbyScene` 참조 바인딩 완료.
+
+#### 다음 작업
+- Play Mode에서 새 게임 슬롯 선택 후 시작 대화, 직업 선택, 후속 대화, 페이드아웃, 어드벤쳐 씬 진입까지 실제 화면 흐름을 확인한다.
+- 직업 선택 패널이 해상도별로 캐릭터/대화창과 겹치지 않는지 최종 시각 검수를 진행한다.
+
+---
+
+### 2026-05-19 (Codex - 새 게임 인트로 대화창 출력 보강)
+
+#### 이번 작업 요약
+- 새 게임 인트로에서 `DialogueCanvas.prefab`을 런타임 오버레이 아래에 그대로 인스턴스화할 때 대화창 출력이 불안정하던 문제를 보강했다.
+- `StartGameIntroController`가 인트로 전용 대화 패널을 직접 생성하고, 기존 `DialogueView`의 타이핑/다음 줄/선택지 로직을 그대로 재사용하도록 변경했다.
+- `DialogueView.ConfigureRuntime(...)` API를 추가해 런타임 생성 UI도 기존 대화 시스템에 안전하게 바인딩되도록 했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/StartGameIntroController.cs`
+- `Assets/Scripts/UI/DialogueView.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `StartGameIntroController.cs` 오류 0개.
+- Unity `validate_script standard`: `DialogueView.cs` 신규 오류 0개, 기존 문자열 연결 관련 성능 경고 1개 유지.
+- Unity 스크립트 컴파일 완료, 신규 C# 컴파일 오류 없음.
+
+#### 다음 작업
+- Play Mode에서 새 게임 시작 시 인트로 배경 위에 대화창 본문/이름/다음 화살표가 정상 표시되는지 확인한다.
+
+---
+
+### 2026-05-19 (Codex - 최초 직업 선택 UI 겹침 정리 및 취소 버튼 제거)
+
+#### 이번 작업 요약
+- 새 게임 인트로의 최초 직업 선택창에서 직업 설명과 스탯 텍스트가 겹치지 않도록 오른쪽 정보 패널을 별도 영역으로 만들고, 설명/스탯 박스를 위아래로 분리했다.
+- 최초 직업 선택창의 취소 버튼을 제거하고, 확인 버튼 하나만 중앙 하단에 오도록 배치했다.
+- 취소 버튼이 없는 런타임 설정에서는 Esc/X 또는 아래 방향 입력으로 취소 단계에 빠지지 않고 선택 화면을 유지하도록 `JobChangeUIController`를 보강했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/StartGameIntroController.cs`
+- `Assets/Scripts/UI/JobChangeUIController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `StartGameIntroController.cs` 오류 0개.
+- Unity `validate_script standard`: `JobChangeUIController.cs` 신규 오류 0개, 기존 문자열 연결 관련 성능 경고 1개 유지.
+- Unity 스크립트 컴파일 완료, 신규 C# 컴파일 오류 없음.
+
+#### 다음 작업
+- Play Mode에서 직업 선택창의 설명/스탯/미리보기/확인 버튼이 해상도별로 서로 겹치지 않는지 화면으로 확인한다.
+
+---
+
+### 2026-05-19 (Codex - 로비 인트로 대화창 겹침 수정 및 최초 직업/덱 유지 보장)
+
+#### 이번 작업 요약
+- 새 게임 인트로 대화창에서 화자 이름 박스를 초상화 오른쪽 상단으로 이동하고, 초상화 크기/위치를 조정해 두 UI가 겹치지 않도록 수정했다.
+- 대화 본문 영역의 상단 여백을 늘려 이름 박스와 본문도 서로 침범하지 않도록 정리했다.
+- `LobbyScene`에는 `GameDataManager`가 없어 최초 직업 선택 시 `UpdateJob(...)`이 실행되지 않던 문제를 수정했다.
+- 새 게임 시작 시 `GameDataManager`가 없으면 로비에서 즉시 생성하고 `ResetForNewGame()` 후 인트로를 시작하도록 변경했다. 이후 직업 선택에서 선택 직업과 시작 덱이 `DontDestroyOnLoad` 매니저에 유지되어 `AdventureScene`으로 전달된다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/StartGameIntroController.cs`
+- `Assets/Scripts/UI/LobbyUIController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `StartGameIntroController.cs`, `LobbyUIController.cs` 오류 0개.
+- Unity 스크립트 컴파일 완료, 신규 C# 컴파일 오류 없음.
+- 콘솔에는 기존 경고만 유지되고 신규 컴파일 오류는 없음.
+
+#### 다음 작업
+- Play Mode에서 새 게임 → 직업 선택 → 어드벤쳐 씬 진입 후 플레이어 비주얼과 `GameDataManager.Deck` 카드 수가 선택 직업 기준으로 유지되는지 확인한다.
+
+---
+
+### 2026-05-19 (Codex - 로비에서 어드벤쳐 씬 진입 시 데이터 전달만 수행하도록 간섭 축소)
+
+#### 이번 작업 요약
+- 로비 씬에서 새 게임 시작 시 `GameDataManager`를 직접 생성하던 처리를 제거했다. 이제 로비는 어드벤쳐 씬의 기존 매니저 초기화 흐름을 건드리지 않는다.
+- `NewGameStartContext`를 추가해 로비에서 선택한 직업만 임시 저장하고, 어드벤쳐 씬의 `GameDataManager.Awake()`가 `InitDefaults()` 이후 한 번만 소비해 `UpdateJob(...)`을 적용하도록 변경했다.
+- 이미 `GameDataManager`가 존재하는 예외 상황에서는 씬 전환 직전에 새 게임 초기화와 선택 직업 적용만 수행해 기존 진행 데이터가 섞이지 않도록 했다.
+- 결과적으로 로비 → 어드벤쳐 전환 단계에서는 선택 직업 데이터만 넘기고, 씬 오브젝트/매니저 구조는 직접 어드벤쳐 씬 실행 시와 최대한 동일하게 유지된다.
+
+#### 변경 파일
+- `Assets/Scripts/Core/NewGameStartContext.cs` [NEW]
+- `Assets/Scripts/Core/GameDataManager.cs`
+- `Assets/Scripts/UI/LobbyUIController.cs`
+- `Assets/Scripts/UI/StartGameIntroController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `NewGameStartContext.cs`, `GameDataManager.cs`, `LobbyUIController.cs`, `StartGameIntroController.cs` 오류 0개.
+- 신규 스크립트 추가 직후 일반 scripts refresh에서는 Unity가 새 파일을 아직 인식하지 못해 `NewGameStartContext` 미인식 컴파일 오류가 발생했으나, `force all refresh` 후 해소됨.
+- 최종 Unity 콘솔 기준 신규 C# 컴파일 오류 없음. 기존 경고만 유지.
+
+#### 다음 작업
+- Play Mode에서 로비 → 새 게임 → 직업 선택 → 어드벤쳐 씬 진입 시 직접 어드벤쳐 씬 실행과 비교해 추가 매니저/데이터 간섭이 없는지 확인한다.
+
+---
+
+### 2026-05-19 (Codex - 새 게임 흐름 단순화: 직업 선택 후 즉시 어드벤쳐 씬 진입)
+
+#### 이번 작업 요약
+- 새 게임 시작 인트로의 대화/캐릭터 이미지/후속 대화/별도 페이드 흐름을 사용하지 않도록 단순화했다.
+- 로비에서는 최초 직업 선택 UI만 표시하고, 선택 확정 시 `NewGameStartContext`에 직업 하나만 저장한 뒤 `SceneManager.LoadScene("AdventureScene")`로 바로 이동한다.
+- 전환 과정에서 `DialogueManager`, `SceneLoader`, `GameDataManager`를 로비에서 새로 만들지 않도록 줄여 직접 `AdventureScene`을 실행했을 때와의 차이를 최소화했다.
+- `AdventureScene`의 기존 `GameDataManager`가 시작될 때 `NewGameStartContext`의 선택 직업만 소비해 시작 덱/HP를 적용하는 구조는 유지했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/StartGameIntroController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `StartGameIntroController.cs`, `NewGameStartContext.cs`, `GameDataManager.cs`, `LobbyUIController.cs` 오류 0개.
+- Unity 스크립트 컴파일 완료, 신규 C# 컴파일 오류 없음.
+- 콘솔에는 기존 경고만 유지.
+
+#### 다음 작업
+- Play Mode에서 새 게임 슬롯 선택 → 직업 선택 → 어드벤쳐씬 진입 후 선택 직업과 시작 덱만 적용되고 다른 씬 상태 간섭이 없는지 확인한다.
+
+---
+
+### 2026-05-19 (Codex - 마법사 좌우 이동 방향 보정)
+
+#### 이번 작업 요약
+- 어드벤쳐씬에서 마법사가 좌우로 이동할 때 반대 방향을 바라보던 문제를 수정했다.
+- `Job_Mage.asset`에 이동 중 좌우 플립만 반전하는 `invertMovingVisualFlip: 1`을 추가했다.
+- 전사/도적 설정과 공통 `PlayerController` 로직은 변경하지 않았다.
+
+#### 변경 파일
+- `Assets/ScriptableObjects/Jobs/Job_Mage.asset`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `PlayerController.cs`, `JobClassInfo.cs` 오류 0개.
+- Unity asset refresh 완료.
+- 콘솔에는 폰트 누락 경고와 MCP 연결 종료 로그만 확인됨. 신규 C# 오류 없음.
+
+#### 다음 작업
+- Play Mode에서 마법사로 좌우 이동 시 이동 방향과 정지 방향이 모두 올바른지 화면으로 확인한다.
+
+---
+
+### 2026-05-19 (Codex - 새 게임 로비 시작 대화 흐름 복구)
+
+#### 이번 작업 요약
+- 단순화 과정에서 빠졌던 새 게임 시작 대화 흐름을 복구했다.
+- 새 게임 시작 시 다시 `NPC_StartGame_Dialogue` 대화 → 최초 직업 선택 → `NPC_StartGameAfterJobSelect_Dialogue` 대화 → `AdventureScene` 이동 순서로 진행된다.
+- 로비에서는 `GameDataManager`나 `SceneLoader`를 새로 만들지 않고, 선택 직업만 `NewGameStartContext`로 넘기는 구조는 유지했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/StartGameIntroController.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: `StartGameIntroController.cs`, `NewGameStartContext.cs` 오류 0개.
+- `DialogueView.cs`는 기존 문자열 연결 관련 성능 경고 1개만 유지, 신규 오류 0개.
+- Unity 스크립트 컴파일 완료, 신규 C# 컴파일 오류 없음.
+
+#### 다음 작업
+- Play Mode에서 로비 새 게임 흐름이 시작 대화, 직업 선택, 후속 대화, 어드벤쳐씬 진입 순서로 정상 진행되는지 확인한다.
+
+---
+---
+
+### 2026-05-19 (Codex - 카드 일러스트 표시 크기 보정)
+
+#### 이번 작업 요약
+- 내 카드, 상점 카드 구매, 배틀 승리 후 카드 선택/삭제 화면에서 공통으로 쓰는 `CardView.prefab`의 카드 일러스트 영역만 수정했다.
+- 기준 카드 프리팹의 일러스트 영역과 맞도록 `CardArtImage` 높이를 `110`으로 보정하고, 카드 일러스트가 찌그러지지 않도록 `Preserve Aspect`를 켰다.
+- 텍스트, 버튼, 카드 전체 크기, 레이아웃, 스크립트 로직은 변경하지 않았다.
+
+#### 변경 파일
+- `Assets/Prefabs/UI/CardView.prefab`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity asset refresh 완료.
+- 프리팹 YAML 확인: `CardArtImage m_SizeDelta = {x: 110, y: 110}`, `m_PreserveAspect = 1`.
+- 신규 C# 변경 없음.
+
+#### 다음 작업
+- Play Mode에서 내 카드/상점/전투 보상/카드 삭제 화면의 카드 일러스트가 정상 비율과 크기로 표시되는지 화면으로 확인한다.

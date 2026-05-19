@@ -46,6 +46,33 @@ namespace CardAdventure
         public bool IsTyping => isTyping;
         public bool IsChoiceActive => choiceRoot != null && choiceRoot.gameObject.activeSelf;
 
+        public void ConfigureRuntime(
+            CanvasGroup group,
+            RectTransform panel,
+            TextMeshProUGUI speakerText,
+            GameObject nameRoot,
+            TextMeshProUGUI bodyText,
+            GameObject portraitObject,
+            Image portrait,
+            GameObject arrow)
+        {
+            canvasGroup = group;
+            dialoguePanel = panel;
+            speakerNameText = speakerText;
+            nameBoxRoot = nameRoot;
+            dialogueText = bodyText;
+            portraitRoot = portraitObject;
+            portraitImage = portrait;
+            nextArrow = arrow;
+
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 0f;
+            }
+
+            HideArrow();
+        }
+
         private void Awake()
         {
             if (canvasGroup != null)

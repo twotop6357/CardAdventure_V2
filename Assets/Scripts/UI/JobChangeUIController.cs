@@ -44,8 +44,12 @@ namespace CardAdventure
 
         // ── 직업 설명 및 스탯 ──────────────────────────────────────
         [Header("직업 설명 및 스탯 텍스트")]
+        [SerializeField] private TextMeshProUGUI titleText;
         [SerializeField] private TextMeshProUGUI jobDescriptionText;
         [SerializeField] private TextMeshProUGUI jobStatsText;
+
+        [Header("Title")]
+        [SerializeField] private string defaultTitle = "직업 변경";
 
         // ── 결정 / 취소 버튼 ──────────────────────────────────────
         [Header("결정 / 취소 버튼")]
@@ -64,6 +68,7 @@ namespace CardAdventure
         private bool             isOpen           = false;
         private bool             isInButtonPhase  = false;   // false = 직업 목록, true = 버튼 선택
         private bool             confirmFocused   = true;    // 버튼 단계: true = 결정, false = 취소
+        private bool             includeCurrentJobInList = false;
         private PlayerController cachedPlayer;
 
         // ── 전역 상태 (DialogueManager 등 외부에서 참조) ──────────
@@ -112,17 +117,27 @@ namespace CardAdventure
         //  버튼 리스너 초기화
         // ══════════════════════════════════════════════════════════
 
-        private void SetupButtonListeners()
+        private void SetupButtonListeners(bool clearExistingListeners = false)
         {
             for (int i = 0; i < jobButtons.Count; i++)
             {
                 if (jobButtons[i] == null) continue;
+                if (clearExistingListeners) jobButtons[i].onClick.RemoveAllListeners();
                 int captured = i;
                 jobButtons[i].onClick.AddListener(() => SelectJobByMouse(captured));
             }
 
-            if (yesButton != null) yesButton.onClick.AddListener(ExecuteConfirm);
-            if (noButton  != null) noButton.onClick.AddListener(ExecuteCancel);
+            if (yesButton != null)
+            {
+                if (clearExistingListeners) yesButton.onClick.RemoveAllListeners();
+                yesButton.onClick.AddListener(ExecuteConfirm);
+            }
+
+            if (noButton != null)
+            {
+                if (clearExistingListeners) noButton.onClick.RemoveAllListeners();
+                noButton.onClick.AddListener(ExecuteCancel);
+            }
         }
 
         // ══════════════════════════════════════════════════════════
@@ -166,7 +181,7 @@ namespace CardAdventure
             }
             else if (down)
             {
-                confirmFocused = false;
+                confirmFocused = noButton == null;
                 RefreshButtonPhaseHighlights();
             }
             else if (space)
@@ -194,6 +209,18 @@ namespace CardAdventure
 
         public void Open(int initialIndex = 0)
         {
+            includeCurrentJobInList = false;
+            OpenInternal(initialIndex, defaultTitle);
+        }
+
+        public void OpenInitialSelection(string title = "직업 선택", int initialIndex = 0)
+        {
+            includeCurrentJobInList = true;
+            OpenInternal(initialIndex, title);
+        }
+
+        private void OpenInternal(int initialIndex, string title)
+        {
             RebuildDisplayedJobs();
 
             if (displayedJobs.Count == 0)
@@ -208,6 +235,7 @@ namespace CardAdventure
             confirmFocused  = true;
             gameObject.SetActive(true);
             selectedJobIndex = Mathf.Clamp(initialIndex, 0, displayedJobs.Count - 1);
+            SetTitle(title);
 
             SetPlayerMovement(false);
 
@@ -247,6 +275,46 @@ namespace CardAdventure
             RebuildDisplayedJobs();
         }
 
+        public void ConfigureRuntime(
+            List<JobClassInfo> jobInfoList,
+            List<Button> buttons,
+            Image previewImage,
+            TextMeshProUGUI descriptionText,
+            TextMeshProUGUI statsText,
+            Button confirmButton,
+            Button cancelButton,
+            RectTransform root,
+            TextMeshProUGUI headerText)
+        {
+            jobs = jobInfoList ?? new List<JobClassInfo>();
+            jobButtons = buttons ?? new List<Button>();
+            characterPreviewImage = previewImage;
+            jobDescriptionText = descriptionText;
+            jobStatsText = statsText;
+            yesButton = confirmButton;
+            noButton = cancelButton;
+            panelRoot = root;
+            titleText = headerText;
+            SetupButtonListeners(true);
+        }
+
+        private void SetTitle(string title)
+        {
+            if (titleText == null)
+            {
+                Transform titleTransform = transform.Find("TitleText");
+                if (titleTransform != null)
+                {
+                    titleText = titleTransform.GetComponent<TextMeshProUGUI>();
+                }
+            }
+
+            if (titleText != null)
+            {
+                titleText.text = string.IsNullOrEmpty(title) ? defaultTitle : title;
+            }
+        }
+
         private void RebuildDisplayedJobs()
         {
             displayedJobs.Clear();
@@ -271,7 +339,7 @@ namespace CardAdventure
                     continue;
                 }
 
-                if (job == currentJob || job.cardClass == currentClass)
+                if (!includeCurrentJobInList && (job == currentJob || job.cardClass == currentClass))
                 {
                     continue;
                 }
@@ -426,6 +494,14 @@ namespace CardAdventure
 
         private void ExecuteCancel()
         {
+            if (noButton == null)
+            {
+                isInButtonPhase = false;
+                confirmFocused = true;
+                RefreshDisplay();
+                return;
+            }
+
             Close();
             OnCancelled?.Invoke();
         }

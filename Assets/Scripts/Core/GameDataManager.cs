@@ -102,6 +102,7 @@ namespace CardAdventure
             DontDestroyOnLoad(gameObject);
 
             InitDefaults();
+            ApplyPendingNewGameStart();
         }
 
         // ── 초기화 ─────────────────────────────────────────────
@@ -258,6 +259,14 @@ namespace CardAdventure
         public void ResetForNewGame()
         {
             InitDefaults();
+        }
+
+        private void ApplyPendingNewGameStart()
+        {
+            if (NewGameStartContext.TryConsumeSelectedJob(out JobClassInfo pendingJob))
+            {
+                UpdateJob(pendingJob);
+            }
         }
 
         /// <summary>

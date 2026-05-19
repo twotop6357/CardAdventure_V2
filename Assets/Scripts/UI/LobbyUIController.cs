@@ -24,6 +24,9 @@ namespace CardAdventure.UI
         [Header("Settings")]
         public SettingsUIController settingsController;
 
+        [Header("New Game Intro")]
+        [SerializeField] private StartGameIntroController startGameIntroController;
+
         private bool isNewGameMode = false;
 
         private void Start()
@@ -138,12 +141,22 @@ namespace CardAdventure.UI
         private void StartNewGame(int slotIndex)
         {
             SaveManager.SetCurrentSlotIndex(slotIndex);
+            NewGameStartContext.Clear();
 
-            if (GameDataManager.Instance != null)
+            StartGameIntroController intro = startGameIntroController != null
+                ? startGameIntroController
+                : FindFirstObjectByType<StartGameIntroController>(FindObjectsInactive.Include);
+
+            if (intro != null)
             {
-                GameDataManager.Instance.ResetForNewGame();
+                saveSlotPanel.SetActive(false);
+                intro.Begin();
             }
-            SceneManager.LoadScene("AdventureScene");
+            else
+            {
+                Debug.LogWarning("[Lobby] StartGameIntroController를 찾지 못해 AdventureScene으로 바로 이동합니다.", this);
+                SceneManager.LoadScene("AdventureScene");
+            }
         }
 
         private void ShowOverwriteWarningPopup(int slotIndex)
