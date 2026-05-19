@@ -1,3 +1,15 @@
+### 2026-05-20 (Antigravity - 윈도우 64비트 스탠드얼론 빌드 및 로비 씬 최우선 실행 완료)
+
+#### 이번 작업 요약
+- **로비 씬 최우선 실행 설정**: 빌드 세팅의 0번 인덱스에 `Assets/Scenes/LobbyScene.unity`가 제대로 위치하고 있음을 검증 완료하였습니다.
+- **스탠드얼론 컴파일 에러 해결**: 빌드 시점에서 `UnityEditor` 관련 네임스페이스를 참조하여 컴파일 에러를 일으키던 외부 에셋 `SPUM_SpriteEditManager.cs` 파일의 상단 import 문들을 `#if UNITY_EDITOR` 조건부 컴파일 블록으로 수정하여 빌드 프로세스를 복구했습니다.
+- **게임 빌드 성공**: 윈도우 64비트 스탠드얼론 버전(`Build/CardAdventure.exe`)으로 빌드를 정상 완료하였습니다 (용량 약 440MB).
+
+#### 변경 파일
+- `Assets/Assets/SPUM/Sprite_Editor(Beta)/Script/SPUM_SpriteEditManager.cs` (에디터 전용 API 임포트 구문에 `#if UNITY_EDITOR` 조건부 컴파일 적용) [MODIFY]
+
+---
+
 ### 2026-05-20 (Antigravity - 배틀 씬 사운드/UI 폴리싱 및 동적 버튼 즉각적 클릭 효과음 적용 완료)
 
 #### 이번 작업 요약
