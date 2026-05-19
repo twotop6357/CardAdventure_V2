@@ -7,6 +7,9 @@ public class CheatGold : MonoBehaviour {
             GameDataManager.Instance.EarnGold(1000);
             Debug.Log("[Cheat] 1000 gold added!");
         }
-        Destroy(this);
     }
 }
+
+
+
+

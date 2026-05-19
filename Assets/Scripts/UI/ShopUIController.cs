@@ -185,6 +185,7 @@ namespace CardAdventure
                 return false;
             }
 
+            gameData.CardPurchaseGoldSpent += price;
             gameData.AddCardToDeck(card);
             
             // 구매한 자리를 null로 표시하여 SOLD OUT 상태로 마킹

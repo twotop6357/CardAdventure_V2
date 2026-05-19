@@ -290,6 +290,66 @@ namespace CardAdventure
             if (!isActive) return;
             isActive = false;
 
+            if (GameDataManager.Instance != null && GameDataManager.Instance.ExaminerBattleCompleted)
+            {
+                // DOTween을 통해 검정색 화면으로 페이드아웃
+                GameObject blackOverlay = new GameObject("BlackOverlay", typeof(RectTransform), typeof(Image));
+                if (rootCanvas != null)
+                {
+                    blackOverlay.transform.SetParent(rootCanvas.transform, false);
+                }
+                RectTransform rt = blackOverlay.GetComponent<RectTransform>();
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
+
+                Image img = blackOverlay.GetComponent<Image>();
+                img.color = new Color(0f, 0f, 0f, 0f);
+                img.raycastTarget = true; // 대화창 등 클릭 방지
+
+                img.DOColor(Color.black, 0.8f)
+                    .SetUpdate(true)
+                    .OnComplete(() =>
+                    {
+                        // 자격증 프리팹 로드 및 중앙 정렬 표시
+                        GameObject licensePrefab = Resources.Load<GameObject>("LicenseCanvas");
+                        if (licensePrefab != null)
+                        {
+                            GameObject licenseGo = Instantiate(licensePrefab);
+                            EndingLicenseUI endingUI = licenseGo.GetComponent<EndingLicenseUI>();
+                            if (endingUI != null)
+                            {
+                                Sprite faceSprite = null;
+                                string jobName = "전사";
+                                if (GameDataManager.Instance.SelectedJobInfo != null)
+                                {
+                                    jobName = GameDataManager.Instance.SelectedJobInfo.displayName;
+                                    faceSprite = GameDataManager.Instance.SelectedJobInfo.battleFaceSprite != null 
+                                        ? GameDataManager.Instance.SelectedJobInfo.battleFaceSprite 
+                                        : GameDataManager.Instance.SelectedJobInfo.previewSprite;
+                                }
+
+                                int spentGold = GameDataManager.Instance.CardPurchaseGoldSpent;
+                                int potionsUsed = GameDataManager.Instance.PotionsUsedCount;
+                                string maxDmgCard = GameDataManager.Instance.MaxDamageCardName;
+                                int maxDmg = GameDataManager.Instance.MaxDamageCardValue;
+                                string dateString = System.DateTime.Now.ToString("yyyy.MM.dd");
+
+                                endingUI.Setup(faceSprite, jobName, spentGold, potionsUsed, maxDmgCard, maxDmg, dateString);
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogError("[BattleRewardUI] LicenseCanvas 프리팹을 Resources에서 찾을 수 없습니다.");
+                            if (SceneLoader.Instance != null)
+                                SceneLoader.Instance.ReturnFromBattle(savedHp);
+                        }
+                    });
+                return;
+            }
+
             if (SceneLoader.Instance != null)
                 SceneLoader.Instance.ReturnFromBattle(savedHp);
         }

@@ -59,6 +59,8 @@ namespace CardAdventure
         /// <summary>가장 최근 발생한 대미지가 치명타(Crit)인지 여부.</summary>
         public bool IsLastDamageCritical { get; set; }
 
+        private string lastPlayedCardName = null;
+
         public BattlePlayerState Player { get; private set; }
 
         public BattleEnemyState Enemy { get; private set; }
@@ -256,6 +258,11 @@ namespace CardAdventure
             if (Phase != BattlePhase.PlayerTurn)
             {
                 return BattleCardPlayResult.Failed(BattleCardPlayFailureReason.BattleNotActive);
+            }
+
+            if (card != null && card.Data != null)
+            {
+                lastPlayedCardName = card.Data.cardName;
             }
 
             if (card == null || card.Data == null)
@@ -704,6 +711,14 @@ namespace CardAdventure
             Enemy.Combatant.ReceiveDamage(damage);
             int damageDealt = Mathf.Max(0, hpBeforeDamage - Enemy.Combatant.CurrentHp);
             if (currentTurnSummary != null) currentTurnSummary.DamageDealtToEnemy += damageDealt;
+
+            if (damageDealt > 0 && !string.IsNullOrEmpty(lastPlayedCardName))
+            {
+                if (GameDataManager.Instance != null)
+                {
+                    GameDataManager.Instance.TrackCardDamage(lastPlayedCardName, damageDealt);
+                }
+            }
 
             if (triggerDamageRewards && damageDealt > 0 && Player.BlockGainedPerDamageDealt > 0)
             {

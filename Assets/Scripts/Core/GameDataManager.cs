@@ -58,6 +58,21 @@ namespace CardAdventure
         /// <summary>시험관 전투 후 완료 대화 실행 완료 여부</summary>
         public bool ExaminerDialogueCompleted { get; set; }
 
+        // ── 플레이 기록/통계 ────────────────────────────────────
+        public int CardPurchaseGoldSpent { get; set; }
+        public int PotionsUsedCount { get; set; }
+        public string MaxDamageCardName { get; set; } = "없음";
+        public int MaxDamageCardValue { get; set; }
+
+        public void TrackCardDamage(string cardName, int damage)
+        {
+            if (damage > MaxDamageCardValue)
+            {
+                MaxDamageCardValue = damage;
+                MaxDamageCardName = cardName;
+            }
+        }
+
         /// <summary>현재 선택된 직업 정보. null이면 기본값(전사)으로 간주.</summary>
         public JobClassInfo SelectedJobInfo { get; set; }
 
@@ -104,6 +119,11 @@ namespace CardAdventure
             ExaminerBattlePending = false;
             ExaminerBattleCompleted = false;
             ExaminerDialogueCompleted = false;
+
+            CardPurchaseGoldSpent = 0;
+            PotionsUsedCount = 0;
+            MaxDamageCardName = "없음";
+            MaxDamageCardValue = 0;
 
             if (defaultJobInfo != null)
             {
@@ -226,8 +246,9 @@ namespace CardAdventure
         {
             if (PotionCount <= 0 || CurrentHp >= MaxHp) return false;
             PotionCount--;
+            PotionsUsedCount++;
             CurrentHp = Mathf.Min(CurrentHp + 25, MaxHp);
-            Debug.Log($"[GameDataManager] 포션 사용. 현재 HP: {CurrentHp}/{MaxHp}, 남은 포션: {PotionCount}");
+            Debug.Log($"[GameDataManager] 포션 사용. 현재 HP: {CurrentHp}/{MaxHp}, 남은 포션: {PotionCount}, 누적 포션 사용: {PotionsUsedCount}");
             return true;
         }
 
@@ -300,7 +321,11 @@ namespace CardAdventure
                 pendingChaserNpcId = PendingChaserNpcId,
                 completedChaserNpcIds = new List<string>(completedChaserNpcIds),
                 examinerBattleCompleted = ExaminerBattleCompleted,
-                examinerDialogueCompleted = ExaminerDialogueCompleted
+                examinerDialogueCompleted = ExaminerDialogueCompleted,
+                cardPurchaseGoldSpent = CardPurchaseGoldSpent,
+                potionsUsedCount = PotionsUsedCount,
+                maxDamageCardName = MaxDamageCardName,
+                maxDamageCardValue = MaxDamageCardValue
             };
 
             foreach (var card in Deck)
@@ -341,6 +366,11 @@ namespace CardAdventure
 
             ExaminerBattleCompleted = data.examinerBattleCompleted;
             ExaminerDialogueCompleted = data.examinerDialogueCompleted;
+
+            CardPurchaseGoldSpent = data.cardPurchaseGoldSpent;
+            PotionsUsedCount = data.potionsUsedCount;
+            MaxDamageCardName = string.IsNullOrEmpty(data.maxDamageCardName) ? "없음" : data.maxDamageCardName;
+            MaxDamageCardValue = data.maxDamageCardValue;
 
             if (!string.IsNullOrEmpty(data.selectedJobId))
             {

@@ -36,6 +36,12 @@ namespace CardAdventure
         public bool examinerBattleCompleted;
         public bool examinerDialogueCompleted;
 
+        // ── 플레이 기록/통계 ────────────────────────────────────
+        public int cardPurchaseGoldSpent;
+        public int potionsUsedCount;
+        public string maxDamageCardName;
+        public int maxDamageCardValue;
+
         public SaveData()
         {
             saveDateStr = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");

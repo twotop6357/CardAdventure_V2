@@ -1,6 +1,7 @@
-### 2026-05-19 (Antigravity - 시험관 자동 대화, 시선 정렬, 적 무작위 조우, 직업 보상 시스템, 에셋 충돌 해결 및 배틀 대화창 초상화 정상화 완료)
+### 2026-05-19 (Antigravity - 시험관 자동 대화, 시선 정렬, 적 무작위 조우, 직업 보상 시스템, 에셋 충돌 해결, 배틀 대화창 초상화 및 초급 배틀러 자격증 엔딩 UI 구현 완료)
 
 #### 이번 작업 요약
+- **초급 배틀러 자격증(Ending License Canvas) 연출 및 시각적 검증 완수**: 시험관 배틀 승리 후 보상 선택 시, 검은색 화면 페이드아웃(`DOColor`) 연출 후 최상단 독립 Canvas 오버레이로 `LicenseCanvas`를 팝업하여 직업 초상화, 카드 구매 골드, 사용한 포션 수, 최강 카드 피해 정보 등을 완벽 바인딩하여 픽셀 아트로 미려하게 출력하도록 구축 완료. 클릭 시 로비로 매끄럽게 페이드아웃하며 복귀하는 내비게이션 검증을 마쳤으며, 시뮬레이션용 임시 치트 코드는 원래의 깨끗한 1000골드 획득 치트로 롤백 완료.
 - **시험관(NPC_Examiner) 복귀 대화 자동화**: 전투 완료 후 어드벤처 씬 복귀 시 지연 코루틴을 통해 `NPC_ExaminerBattleEnd_Dialogue`가 즉시 재생되도록 구현.
 - **대화 종료 시 위치 자동 저장**: 시험관 대화 종료 즉시 플레이어 위치와 FacingDirection을 캡처하여 SaveData에 기록하고 `SaveManager.SaveGame`을 자동 트리거해 영속성 확보.
 - **상호작용 시선 4방향 정렬**: NPC 상호작용 시 대화를 건 플레이어 방향을 바라보도록 애니메이터의 `DirectionX`, `DirectionY`에 역방향 벡터 주입 및 갱신. `flipX`를 사용하는 구형 NPC 호환성 유지.
@@ -14,6 +15,8 @@
 - **배틀 대화창 초상화 출력 정상화**: 배틀씬 인트로 대사 출력 시 `DialogueView.Show` 호출 단계에서 초상화(`Sprite`) 매개변수가 누락되어 초상화가 렌더링되지 않던 버그를 분석하여, `ActiveIntroData`에서 적절한 초상화 Sprite를 추출해 전달하도록 보완함.
 
 #### 변경 파일
+- `Assets/Scripts/UI/EndingLicenseUI.cs` (자격증 UI 텍스트/초상화 연계 및 씬 복귀 기능 구현) [NEW]
+- `Assets/Scripts/UI/BattleRewardUIController.cs` (ReturnToAdventure 내부에 자격증 연출 및 인스턴스화 통합) [MODIFY]
 - `Assets/Scripts/Core/GameDataManager.cs` (PendingIntroData, 시험관 상태 로직, Save/Load 연동)
 - `Assets/Scripts/Core/SceneLoader.cs` (입장 연출 통합)
 - `Assets/Scripts/Adventure/DialogueManager.cs` (방어형 실시간 플레이어 탐색 코드 추가)
@@ -28,12 +31,13 @@
 
 #### 검증 결과
 - Unity Editor 컴파일 에러 및 경고 없음.
+- `DialogueCanvas` 렌더링 방식의 부모 귀속 한계를 해소하기 위해 `LicenseCanvas` 프리팹을 독립된 최상위 오버레이 캔버스로 선언해 화면에 100% 미려하게 출력되는 것을 Scene View 정밀 캡처로 육안 검증 완수.
 - `task.md` 및 `walkthrough.md` 업데이트 완료.
 
-#### 다음 에이전트 할 일 (Phase 3 진입)
+#### 다음 에이전트 할 일 (Phase 3 본격 진행)
 1. 세이브 슬롯 UI 관리 시스템 고도화 (3개의 세이브 슬롯 선택/기록 및 로드).
 2. 상점 고도화 (상점 상품 주기적 갱신 로직 심화 및 필드 내 배치될 회복 아이템 배치 및 적용).
-3. 초급 배틀러 자격증 엔딩 UI 설계 및 연출 구현.
+3. 1챕터 베르데 평원 완성형 빌드 폴리싱 및 밸런싱 작업 착수.
 
 ---
 

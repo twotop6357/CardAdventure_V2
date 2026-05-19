@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.BattleIntroData
   npcPortrait: {fileID: 7966608011185320137, guid: 08e8b89aaeb249e43a6d45cfbab298aa,
     type: 3}
-  dialogueData: {fileID: 0}
+  dialogueData: {fileID: 11400000, guid: e6c74bd44321b804c8a77deec5870d69, type: 2}
   speakerName: "\uB9B4\uB77C"
   defaultSummonMessage: "\uC5B4\uB514 \uD55C\uBC88 \uC2E4\uB825\uC744 \uBCF4\uC5EC\uC918
     \uBD10!"

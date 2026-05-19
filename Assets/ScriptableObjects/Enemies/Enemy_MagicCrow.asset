@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: Enemy_MagicCrow
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.EnemyData
   enemyName: "\uBCA8\uCE74\uB974\uC628"
-  maxHp: 100
+  maxHp: 10
   startingBlock: 0
   actionPattern:
   - actionType: 0
     value: 6
-    intentDescription: "\uADF8\uB9BC\uC790 \uCA61\uAE30 6"
+    intentDescription: "\uADF8\uB9BC\uC790 \uCABC\uAE30 6"
     statusEffect: {fileID: 0}
     statusEffectStacks: 0
   - actionType: 3
@@ -46,5 +46,5 @@ MonoBehaviour:
   enemySprite: {fileID: 823956129387571194, guid: f21be7c08640a7a4697c7452230ae0ac,
     type: 3}
   spumPrefabPath: 
-  introData: {fileID: 0}
+  introData: {fileID: 11400000, guid: 04fe52a2026b3234d89dc8595f7a0f66, type: 2}
   isBoss: 0
