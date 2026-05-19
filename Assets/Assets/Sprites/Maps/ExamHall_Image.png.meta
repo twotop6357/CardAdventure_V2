@@ -103,10 +103,10 @@ TextureImporter:
       name: ExamHall_Image_0
       rect:
         serializedVersion: 2
-        x: 65
-        y: 24
-        width: 1121
-        height: 1226
+        x: 68
+        y: 63
+        width: 1117
+        height: 1161
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
