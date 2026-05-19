@@ -186,6 +186,62 @@ namespace CardAdventure
             LoadScene(BATTLE_SCENE_NAME, true);
         }
 
+        public void EnterBattle(EnemyData enemy, BattleIntroData introData, string returnScene = "AdventureScene")
+        {
+            LockAdventurePlayerInput();
+
+            if (GameDataManager.Instance != null)
+            {
+                GameDataManager.Instance.PrepareBattle(enemy, returnScene);
+                GameDataManager.Instance.PendingIntroData = introData;
+            }
+
+            LoadScene(BATTLE_SCENE_NAME, true);
+        }
+
+
+        public void EnterBossBattle(EnemyData enemy, string returnScene = "AdventureScene")
+        {
+            if (isLoading) return;
+
+            LockAdventurePlayerInput();
+
+            if (GameDataManager.Instance != null)
+                GameDataManager.Instance.PrepareBattle(enemy, returnScene);
+
+            LoadScene(BATTLE_SCENE_NAME, true);
+        }
+
+        private void PlayBossBattleTransition(string sceneName)
+        {
+            isLoading = true;
+            DOTween.KillAll();
+
+            canvasGroup.blocksRaycasts = true;
+            Transform overlay = canvasGroup.transform;
+            overlay.localScale = new Vector3(0.96f, 0.96f, 1f);
+
+            DOTween.Sequence()
+                .Append(canvasGroup.DOFade(1f, 0.22f).SetEase(Ease.InQuad).SetUpdate(true))
+                .Join(overlay.DOScale(Vector3.one, 0.22f).SetEase(Ease.OutBack).SetUpdate(true))
+                .AppendInterval(0.08f)
+                .OnComplete(() =>
+                {
+                    SceneManager.LoadSceneAsync(sceneName).completed += _ =>
+                    {
+                        overlay.localScale = Vector3.one;
+                        canvasGroup.DOFade(0f, fadeDuration)
+                            .SetEase(Ease.OutQuad)
+                            .SetUpdate(true)
+                            .OnComplete(() =>
+                            {
+                                canvasGroup.blocksRaycasts = false;
+                                isLoading = false;
+                            });
+                    };
+                });
+        }
+
         private static void LockAdventurePlayerInput()
         {
             PlayerController player = Object.FindFirstObjectByType<PlayerController>();

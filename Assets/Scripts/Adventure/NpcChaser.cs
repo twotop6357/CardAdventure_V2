@@ -234,16 +234,57 @@ namespace CardAdventure
                     player?.SetInputEnabled(false);
                     GameDataManager.Instance?.SetPendingChaserNpc(gameObject.name);
 
+                    // 몬스터 랜덤화 (매직 디어 / 매직 래빗 50%) 및 인물 성별에 맞는 인트로 데이터 세팅
+                    EnemyData actualEnemy = battleEnemyData;
+                    BattleIntroData actualIntro = null;
+
+                    bool isFemale = gameObject.name.Contains("Female");
+
+                    // 매직 디어와 매직 래빗 로드
+                    EnemyData deer = Resources.Load<EnemyData>("Enemy_MagicDeer");
+                    EnemyData rabbit = Resources.Load<EnemyData>("Enemy_MagicRabbit");
+
+                    if (deer != null && rabbit != null)
+                    {
+                        actualEnemy = (Random.value < 0.5f) ? deer : rabbit;
+                        Debug.Log($"[NpcChaser] 전투 몬스터 결정: {actualEnemy.name}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NpcChaser] 매직 디어/래빗 에셋을 Resources에서 찾지 못했습니다. 기본 설정된 전투 데이터를 사용합니다.");
+                    }
+
+                    // 성별에 맞는 인트로 로드
+                    string introAssetName = isFemale ? "BattleIntro_FemaleChaser" : "BattleIntro_MaleChaser";
+                    actualIntro = Resources.Load<BattleIntroData>(introAssetName);
+                    if (actualIntro != null)
+                    {
+                        Debug.Log($"[NpcChaser] 배틀 인트로 적용: {actualIntro.name}");
+                    }
+
                     yield return new WaitForSeconds(0.2f); // 연출 유예
                     if (SceneLoader.Instance != null)
                     {
-                        SceneLoader.Instance.EnterBattle(battleEnemyData);
+                        if (actualIntro != null)
+                        {
+                            SceneLoader.Instance.EnterBattle(actualEnemy, actualIntro);
+                        }
+                        else
+                        {
+                            SceneLoader.Instance.EnterBattle(actualEnemy);
+                        }
                     }
                     else
                     {
                         // SceneLoader가 없으면 GameDataManager 세팅 후 씬 매뉴얼 로드 (폴백)
                         if (GameDataManager.Instance != null)
-                            GameDataManager.Instance.PrepareBattle(battleEnemyData, "AdventureScene");
+                        {
+                            GameDataManager.Instance.PrepareBattle(actualEnemy, "AdventureScene");
+                            if (actualIntro != null)
+                            {
+                                GameDataManager.Instance.PendingIntroData = actualIntro;
+                            }
+                        }
                         UnityEngine.SceneManagement.SceneManager.LoadScene("BattleTest");
                     }
                 }

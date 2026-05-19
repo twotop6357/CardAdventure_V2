@@ -33,6 +33,8 @@ namespace CardAdventure
         // ── 이벤트 및 퀘스트 상태 ────────────────────────────────
         public string pendingChaserNpcId;
         public List<string> completedChaserNpcIds = new List<string>();
+        public bool examinerBattleCompleted;
+        public bool examinerDialogueCompleted;
 
         public SaveData()
         {

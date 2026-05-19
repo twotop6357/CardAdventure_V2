@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aae9a930acbb3c34180246b7b8fb03f6, type: 3}
-  m_Name: BattleIntro_FemaleChaser
+  m_Name: BattleIntro_MaleChaser
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.BattleIntroData
-  npcPortrait: {fileID: 792769018810810141, guid: e9698e1ac6d31aa40b4ce9d861551fc7,
+  npcPortrait: {fileID: -2654145324369087199, guid: 08cba54f807c16040a9a5a4f635b9796,
     type: 3}
-  dialogueData: {fileID: 0}
-  speakerName: "\uC758\uBB38\uC758 \uC5EC\uC131"
+  dialogueData: {fileID: 11400000, guid: b2e41ece68d761842a628f1c76d05bdb, type: 2}
+  speakerName: "\uC758\uBB38\uC758 \uB0A8\uC131"
   defaultSummonMessage: "\uD6C4\uD6C4... \uBCA0\uB974\uB370 \uD3C9\uC6D0\uC758 \uC190\uB2D8\uC774
     \uC654\uAD70. \uC232\uC758 \uC218\uD638\uC790\uC640 \uB300\uD654\uD574 \uBCF4\uACA0\uB098?"

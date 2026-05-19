@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &8062803011539214190
+--- !u!1 &4567494132799085489
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,43 +8,44 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7769974142082595498}
-  - component: {fileID: 7333209885852663216}
-  - component: {fileID: 995222581790793299}
-  - component: {fileID: 1102621988361333887}
-  - component: {fileID: 3539032166803906487}
-  - component: {fileID: 3083181342945117226}
-  - component: {fileID: 5496204106345952283}
+  - component: {fileID: 1208471201968210507}
+  - component: {fileID: 7110352451673580054}
+  - component: {fileID: 6303502263552741847}
+  - component: {fileID: 4690051820106086190}
+  - component: {fileID: 589411305844202126}
+  - component: {fileID: 5034805587183048467}
+  - component: {fileID: 8212052143535788144}
+  - component: {fileID: 7863543137708761910}
   m_Layer: 0
-  m_Name: NPC_FemaleChaser
+  m_Name: NPC_Examiner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7769974142082595498
+--- !u!4 &1208471201968210507
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8062803011539214190}
+  m_GameObject: {fileID: 4567494132799085489}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.5, y: 8.665226, z: 0}
-  m_LocalScale: {x: 0.62170655, y: 0.62170655, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.59131205, y: 0.59131205, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &7333209885852663216
+--- !u!212 &7110352451673580054
 SpriteRenderer:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8062803011539214190}
+  m_GameObject: {fileID: 4567494132799085489}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -84,53 +85,48 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7912612339816700203, guid: 278edccb6d77d254a94b77598174e86f,
+  m_Sprite: {fileID: 8708902711212463708, guid: 6029aa4d1318f8c4d916bb0295e09289,
     type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.14, y: 2.27}
+  m_Size: {x: 1.43, y: 2.25}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!50 &995222581790793299
-Rigidbody2D:
-  serializedVersion: 5
+--- !u!95 &6303502263552741847
+Animator:
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8062803011539214190}
-  m_BodyType: 1
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 0
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 1
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 4
---- !u!61 &1102621988361333887
+  m_GameObject: {fileID: 4567494132799085489}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: f9d3242aceaa1db47bdd7599bd44a528, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!61 &4690051820106086190
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8062803011539214190}
+  m_GameObject: {fileID: 4567494132799085489}
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
@@ -158,86 +154,93 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -1.0699999}
+  m_Offset: {x: 0, y: -1.1249999}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.06, y: 2.14}
-    newSize: {x: 1.14, y: 2.27}
+    oldSize: {x: 1.43, y: 2.25}
+    newSize: {x: 1.43, y: 2.25}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.6084759, y: 1.6084759}
+  m_Size: {x: 1.6911545, y: 1.6911545}
   m_EdgeRadius: 0
---- !u!114 &3539032166803906487
+--- !u!50 &589411305844202126
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4567494132799085489}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 1
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 4
+--- !u!114 &5034805587183048467
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8062803011539214190}
+  m_GameObject: {fileID: 4567494132799085489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c033347daf06b54596663af6c047038, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.NpcTileAlignment
+  snapToNearestTileOnStart: 1
+  moveUnitSize: 1
+  footCollider: {fileID: 0}
+  alignVisualToReferenceHeight: 1
+  spriteRenderer: {fileID: 0}
+  invertVisualFlip: 0
+--- !u!114 &8212052143535788144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4567494132799085489}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d65e8e4e92371840a41743091f8a0b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.NpcInteractable
-  dialogueData: {fileID: 11400000, guid: 3a1c2ed84aa66b146a671abca30b99e3, type: 2}
+  dialogueData: {fileID: 11400000, guid: 6cfbcb9282d9dd3478be1b6a873aebf2, type: 2}
   interactHint: {fileID: 0}
   repeatable: 1
---- !u!114 &3083181342945117226
+--- !u!114 &7863543137708761910
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8062803011539214190}
+  m_GameObject: {fileID: 4567494132799085489}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a305c58fe8b914468b46106a58c9c59, type: 3}
+  m_Script: {fileID: 11500000, guid: 132df3d3634bc9044a3f4ebbd16803c9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.NpcChaser
-  initialFacingDir: {x: 0, y: -1}
-  detectionRange: 10
-  checkInterval: 0.25
-  wallTilemap: {fileID: 0}
-  moveSpeed: 3.5
-  moveUnitSize: 1
-  obstacleLayer:
-    serializedVersion: 2
-    m_Bits: 0
-  spriteRenderer: {fileID: 0}
-  invertVisualFlip: 0
-  afterChaseDialogueData: {fileID: 11400000, guid: adc0d60b437be454c90b766d5a830fbf,
-    type: 2}
-  eventMarkSprite: {fileID: 6582060141386157611, guid: 3bfe19508340d0340932b449922a15a3,
-    type: 3}
-  battleEnemyData: {fileID: 11400000, guid: cc3e7609d8734bef95c4de102fffe890, type: 2}
-  animWalkFront: FemaleNPC_WalkFront
-  animWalkSide: FemaleNPC_WalkSide
-  animWalkBack: FemaleNPC_WalkBack
-  animIdleDown: FemaleNPC_IdleDown
-  animIdleSide: FemaleNPC_IdleSide
-  animIdleBack: FemaleNPC_IdleBack
---- !u!95 &5496204106345952283
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8062803011539214190}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 6125524e6b750a049aa35ed6ac5f3ee0, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.ExaminerNpc
+  questionDialogue: {fileID: 11400000, guid: 6cfbcb9282d9dd3478be1b6a873aebf2, type: 2}
+  intoBattleDialogue: {fileID: 11400000, guid: 23d318a19fbca9440b94f3a56e000792, type: 2}
+  battleEndDialogue: {fileID: 11400000, guid: 03798aaf9adfa99499c4c356c0d4f042, type: 2}
+  bossEnemyData: {fileID: 11400000, guid: 74b00d41a37c4d499a6d708cc8de6c0a, type: 2}
+  battleIntroData: {fileID: 11400000, guid: 04fe52a2026b3234d89dc8595f7a0f66, type: 2}
+  battleSceneReturnScene: AdventureScene

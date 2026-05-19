@@ -346,9 +346,26 @@ namespace CardAdventure
             if (dialogueView == null) return;
 
             if (currentLineIndex == 0)
-                dialogueView.Show(currentSpeaker, currentLines[0]);
+            {
+                Sprite portrait = null;
+                BattleIntroData data = ActiveIntroData;
+                if (data != null)
+                {
+                    if (data.dialogueData != null && data.dialogueData.speakerPortrait != null)
+                    {
+                        portrait = data.dialogueData.speakerPortrait;
+                    }
+                    else
+                    {
+                        portrait = data.npcPortrait;
+                    }
+                }
+                dialogueView.Show(currentSpeaker, portrait, currentLines[0]);
+            }
             else
+            {
                 dialogueView.ShowLine(currentLines[currentLineIndex]);
+            }
         }
 
         // ── 헬퍼 ────────────────────────────────────────────────

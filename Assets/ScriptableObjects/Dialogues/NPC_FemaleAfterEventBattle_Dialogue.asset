@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cf46a95a9c2b494cba083c9d2ae8825, type: 3}
+  m_Name: NPC_FemaleAfterEventBattle_Dialogue
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.DialogueData
+  speakerName: "\uAFC8\uB098\uBB34 \uBC30\uD2C0\uB7EC"
+  speakerPortrait: {fileID: -2215483464873017265, guid: 925428e4e21a8dd4da12a4181c62ce2c,
+    type: 3}
+  lines:
+  - "\uC544\uC9C1 \uBC30\uC6B8 \uC810\uC774 \uB9CE\uB124\uC694... \uB2E4\uC74C\uBC88\uC5D0 \uB2E4\uC2DC \uB3C4\uC804\uD560\uACA2\uC694!"

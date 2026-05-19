@@ -89,14 +89,52 @@ namespace CardAdventure
         /// </summary>
         public void FaceToward(Vector2 targetPosition)
         {
-            Vector2 dir = targetPosition - (Vector2)transform.position;
-            if (Mathf.Abs(dir.x) > 0.1f)
+            Animator anim = GetComponentInChildren<Animator>();
+            bool hasDirectionParams = false;
+            if (anim != null)
             {
-                if (spriteRenderer != null)
+                foreach (var param in anim.parameters)
                 {
-                    bool baseFlip = dir.x > 0f;
-                    if (invertVisualFlip) baseFlip = !baseFlip;
-                    spriteRenderer.flipX = baseFlip;
+                    if (param.name == "DirectionX" || param.name == "DirectionY")
+                    {
+                        hasDirectionParams = true;
+                        break;
+                    }
+                }
+            }
+
+            Vector2 dir = targetPosition - (Vector2)transform.position;
+            if (hasDirectionParams && anim != null)
+            {
+                if (dir.sqrMagnitude > 0.001f)
+                {
+                    Vector2 normalDir = dir.normalized;
+                    Vector2 animDir = Vector2.zero;
+
+                    if (Mathf.Abs(normalDir.x) >= Mathf.Abs(normalDir.y))
+                    {
+                        animDir = normalDir.x >= 0f ? Vector2.right : Vector2.left;
+                    }
+                    else
+                    {
+                        animDir = normalDir.y >= 0f ? Vector2.up : Vector2.down;
+                    }
+
+                    anim.SetFloat("DirectionX", animDir.x);
+                    anim.SetFloat("DirectionY", animDir.y);
+                    anim.Update(0f);
+                }
+            }
+            else
+            {
+                if (Mathf.Abs(dir.x) > 0.1f)
+                {
+                    if (spriteRenderer != null)
+                    {
+                        bool baseFlip = dir.x > 0f;
+                        if (invertVisualFlip) baseFlip = !baseFlip;
+                        spriteRenderer.flipX = baseFlip;
+                    }
                 }
             }
         }

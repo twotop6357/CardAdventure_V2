@@ -61,10 +61,20 @@ namespace CardAdventure
             if (director == null) return;
 
             GameDataManager gd = GameDataManager.Instance;
-            EnemyData enemy    = gd?.PendingEnemy ?? null;
+            if (gd != null)
+            {
+                if (gd.PendingIntroData != null)
+                {
+                    director.SetIntroData(gd.PendingIntroData);
+                    return;
+                }
 
-            if (enemy?.introData != null)
-                director.SetIntroData(enemy.introData);
+                EnemyData enemy = gd.PendingEnemy;
+                if (enemy?.introData != null)
+                {
+                    director.SetIntroData(enemy.introData);
+                }
+            }
         }
 
         // ── 배틀 설정 ──────────────────────────────────────────
@@ -116,6 +126,11 @@ namespace CardAdventure
             if (GameDataManager.Instance == null) return;
             if (phase == BattlePhase.Won)
             {
+                if (GameDataManager.Instance.ExaminerBattlePending)
+                {
+                    GameDataManager.Instance.MarkExaminerBattleCompleted();
+                }
+
                 int remainingHp = manager.Player?.Combatant?.CurrentHp ?? 0;
                 _remainingHp = remainingHp;
 

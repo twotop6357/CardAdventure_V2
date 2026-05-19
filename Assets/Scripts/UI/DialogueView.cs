@@ -1,122 +1,94 @@
 using DG.Tweening;
-using Febucci.UI;
-using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace CardAdventure
 {
     /// <summary>
-    /// 포켓몬 스타일 하단 대화창 UI 컴포넌트.
-    ///
-    /// 계층 구조 (DialogueSceneSetup이 자동 생성):
-    ///   DialoguePanel (CanvasGroup, RectTransform)
-    ///     ├─ PanelBg       (Image — 흰 배경)
-    ///     ├─ NameBox        (Image — 이름 박스)
-    ///     │    └─ NameText  (TextMeshProUGUI)
-    ///     ├─ DialogueText   (TextMeshProUGUI + TextAnimator_TMP + TypewriterByCharacter)
-    ///     └─ NextArrow      (TextMeshProUGUI "▼", 깜빡임 DOTween)
-    ///
-    /// 사용:
-    ///   view.Show(speakerName, firstLine);   // 패널 슬라이드 인 + 첫 줄 타이핑
-    ///   view.ShowLine(text);                 // 줄 교체
-    ///   view.SkipTypewriter();               // 현재 줄 즉시 완성
-    ///   view.Hide();                         // 패널 슬라이드 아웃
+    /// Adventure dialogue window view.
+    /// Handles panel show/hide and a restrained character-by-character typewriter effect.
     /// </summary>
     public class DialogueView : MonoBehaviour
     {
-        // ── Inspector 직렬화 ───────────────────────────────────
-        [Header("패널")]
-        [SerializeField] private CanvasGroup   canvasGroup;
+        [Header("Panel")]
+        [SerializeField] private CanvasGroup canvasGroup;
         [SerializeField] private RectTransform dialoguePanel;
 
-        [Header("텍스트")]
+        [Header("Text")]
         [SerializeField] private TextMeshProUGUI speakerNameText;
-        [SerializeField] private GameObject      nameBoxRoot;    // 이름 박스 전체 (이름 없으면 숨김)
+        [SerializeField] private GameObject nameBoxRoot;
         [SerializeField] private TextMeshProUGUI dialogueText;
 
-        [Header("초상화")]
+        [Header("Portrait")]
         [SerializeField] private GameObject portraitRoot;
         [SerializeField] private Image portraitImage;
 
-        [Header("Febucci Typewriter")]
-        [Tooltip("DialogueText와 같은 GameObject에 있는 TypewriterByCharacter 컴포넌트")]
-        [SerializeField] private TypewriterByCharacter typewriter;
+        [Header("Typewriter")]
+        [SerializeField, Min(0.005f)] private float characterInterval = 0.03f;
+        [SerializeField, Min(0f)] private float commaPause = 0.05f;
+        [SerializeField, Min(0f)] private float periodPause = 0.10f;
 
-        [Header("글자별 타이핑")]
-        [SerializeField, Min(0.005f)] private float characterInterval = 0.035f;
-        [SerializeField, Min(0f)] private float commaPause = 0.08f;
-        [SerializeField, Min(0f)] private float periodPause = 0.16f;
+        [Header("Prompt")]
+        [SerializeField] private GameObject nextArrow;
 
-        [Header("화살표")]
-        [SerializeField] private GameObject nextArrow;          // ▼ 오브젝트
-
-        // ── 런타임 상태 ────────────────────────────────────────
-        private bool     isTyping;
-        private bool     typewriterUnavailable;
+        private bool isTyping;
         private Sequence arrowSeq;
-        private Tween    panelTween;
+        private Tween panelTween;
         private Coroutine typingRoutine;
-        private string    currentLine = string.Empty;
+        private string currentLine = string.Empty;
+        private RectTransform choiceRoot;
+        private System.Action yesChoiceAction;
+        private System.Action noChoiceAction;
 
-        /// <summary>타이핑 효과가 진행 중이면 true</summary>
         public bool IsTyping => isTyping;
-
-        // ══════════════════════════════════════════════════════
-        //  Unity 생명주기
-        // ══════════════════════════════════════════════════════
+        public bool IsChoiceActive => choiceRoot != null && choiceRoot.gameObject.activeSelf;
 
         private void Awake()
         {
-            // 시작 시 숨김
-            if (canvasGroup != null) canvasGroup.alpha = 0f;
-            HideArrow();
-
-            if (typewriter != null)
+            if (canvasGroup != null)
             {
-                typewriter.useTypeWriter = false;
-                typewriter.onTextShowed.AddListener(OnTypewriterComplete);
+                canvasGroup.alpha = 0f;
             }
+
+            HideArrow();
         }
 
         private void OnDestroy()
         {
-            if (typewriter != null)
-                typewriter.onTextShowed.RemoveListener(OnTypewriterComplete);
-
             arrowSeq?.Kill();
             panelTween?.Kill();
             StopTypingRoutine();
         }
 
-        // ══════════════════════════════════════════════════════
-        //  공개 API
-        // ══════════════════════════════════════════════════════
-
-        /// <summary>대화창을 슬라이드 인하며 첫 줄을 표시한다.</summary>
         public void Show(string speakerName, string firstLine)
         {
             Show(speakerName, null, firstLine);
         }
 
-        /// <summary>대화창을 슬라이드 인하며 초상화와 첫 줄을 표시한다.</summary>
         public void Show(string speakerName, Sprite portrait, string firstLine)
         {
             gameObject.SetActive(true);
 
-            // 화자 이름
             bool hasSpeaker = !string.IsNullOrEmpty(speakerName);
-            if (nameBoxRoot != null) nameBoxRoot.SetActive(hasSpeaker);
+            if (nameBoxRoot != null)
+            {
+                nameBoxRoot.SetActive(hasSpeaker);
+            }
+
             if (speakerNameText != null && hasSpeaker)
+            {
                 speakerNameText.text = speakerName;
+            }
 
             bool hasPortrait = portrait != null;
             if (portraitRoot != null)
             {
                 portraitRoot.SetActive(hasPortrait);
             }
+
             if (portraitImage != null)
             {
                 portraitImage.sprite = portrait;
@@ -124,10 +96,11 @@ namespace CardAdventure
                 portraitImage.preserveAspect = true;
             }
 
-            // 슬라이드 인 애니메이션
             panelTween?.Kill();
             if (canvasGroup != null)
+            {
                 canvasGroup.alpha = 0f;
+            }
 
             if (dialoguePanel != null)
             {
@@ -142,48 +115,32 @@ namespace CardAdventure
             }
             else if (canvasGroup != null)
             {
-                canvasGroup.DOFade(1f, 0.15f);
+                panelTween = canvasGroup.DOFade(1f, 0.15f);
             }
 
             ShowLine(firstLine);
         }
 
-        /// <summary>현재 줄을 새 텍스트로 교체하고 타이핑 효과를 시작한다.</summary>
         public void ShowLine(string line)
         {
-            isTyping = true;
+            HideChoices();
             HideArrow();
             StopTypingRoutine();
-            currentLine = line ?? string.Empty;
 
-            if (dialogueText != null)
+            currentLine = line ?? string.Empty;
+            if (dialogueText == null)
             {
-                dialogueText.text = currentLine;
-                dialogueText.maxVisibleCharacters = 0;
-                typingRoutine = StartCoroutine(TypeLineByCharacter());
+                isTyping = false;
+                ShowArrow();
                 return;
             }
 
-            if (typewriter != null && !typewriterUnavailable)
-            {
-                try
-                {
-                    typewriter.useTypeWriter = true;
-                    typewriter.ShowText(currentLine);
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    typewriterUnavailable = true;
-                    Debug.LogWarning($"[DialogueView] Typewriter 표시 실패. 일반 텍스트 표시로 전환합니다. ({ex.GetType().Name}: {ex.Message})", this);
-                }
-            }
-
-            isTyping = false;
-            ShowArrow();
+            isTyping = true;
+            dialogueText.text = currentLine;
+            dialogueText.maxVisibleCharacters = 0;
+            typingRoutine = StartCoroutine(TypeLineByCharacter());
         }
 
-        /// <summary>타이핑 중인 텍스트를 즉시 완성한다.</summary>
         public void SkipTypewriter()
         {
             if (!isTyping)
@@ -192,20 +149,12 @@ namespace CardAdventure
             }
 
             StopTypingRoutine();
-            if (dialogueText != null)
-            {
-                dialogueText.text = currentLine;
-                dialogueText.maxVisibleCharacters = int.MaxValue;
-            }
-
-            typewriter?.SkipTypewriter();
-            isTyping = false;
-            ShowArrow();
+            CompleteTyping();
         }
 
-        /// <summary>대화창을 슬라이드 아웃한 뒤 비활성화한다.</summary>
         public void Hide()
         {
+            HideChoices();
             HideArrow();
             arrowSeq?.Kill();
             StopTypingRoutine();
@@ -225,7 +174,7 @@ namespace CardAdventure
             }
             else if (canvasGroup != null)
             {
-                canvasGroup.DOFade(0f, 0.15f)
+                panelTween = canvasGroup.DOFade(0f, 0.15f)
                     .OnComplete(DeactivateIfAlive);
             }
             else
@@ -234,31 +183,48 @@ namespace CardAdventure
             }
         }
 
-        private void DeactivateIfAlive()
+        public void ShowChoices(string yesText, string noText, System.Action onYes, System.Action onNo)
         {
-            if (this != null && gameObject != null)
-                gameObject.SetActive(false);
+            StopTypingRoutine();
+            CompleteTyping();
+            HideArrow();
+            EnsureChoiceRoot();
+
+            yesChoiceAction = onYes;
+            noChoiceAction = onNo;
+
+            Button[] buttons = choiceRoot.GetComponentsInChildren<Button>(true);
+            if (buttons.Length >= 2)
+            {
+                SetupChoiceButton(buttons[0], yesText, () => yesChoiceAction?.Invoke());
+                SetupChoiceButton(buttons[1], noText, () => noChoiceAction?.Invoke());
+            }
+
+            choiceRoot.gameObject.SetActive(true);
+            choiceRoot.SetAsLastSibling();
+            choiceRoot.localScale = new Vector3(0.96f, 0.96f, 1f);
+            choiceRoot.DOScale(Vector3.one, 0.12f).SetEase(Ease.OutCubic);
+
+            if (EventSystem.current != null && buttons.Length > 0)
+            {
+                EventSystem.current.SetSelectedGameObject(buttons[0].gameObject);
+            }
         }
 
-        // ══════════════════════════════════════════════════════
-        //  내부 헬퍼
-        // ══════════════════════════════════════════════════════
-
-        private void OnTypewriterComplete()
+        public void HideChoices()
         {
-            isTyping = false;
-            ShowArrow();
+            yesChoiceAction = null;
+            noChoiceAction = null;
+
+            if (choiceRoot != null)
+            {
+                choiceRoot.DOKill();
+                choiceRoot.gameObject.SetActive(false);
+            }
         }
 
         private IEnumerator TypeLineByCharacter()
         {
-            if (dialogueText == null)
-            {
-                isTyping = false;
-                ShowArrow();
-                yield break;
-            }
-
             dialogueText.ForceMeshUpdate();
             int characterCount = dialogueText.textInfo.characterCount;
 
@@ -277,36 +243,53 @@ namespace CardAdventure
                     break;
                 }
 
-                yield return new WaitForSeconds(GetTypingWaitForVisibleCharacter(i));
+                yield return new WaitForSeconds(GetTypingWaitForCharacter(i));
             }
 
             CompleteTyping();
         }
 
-        private float GetTypingWaitForVisibleCharacter(int visibleCharacterIndex)
+        private float GetTypingWaitForCharacter(int characterIndex)
         {
-            if (dialogueText == null || visibleCharacterIndex < 0 || visibleCharacterIndex >= dialogueText.textInfo.characterCount)
+            if (dialogueText == null || characterIndex < 0 || characterIndex >= dialogueText.textInfo.characterCount)
             {
                 return characterInterval;
             }
 
-            char c = dialogueText.textInfo.characterInfo[visibleCharacterIndex].character;
-            return c switch
+            char c = dialogueText.textInfo.characterInfo[characterIndex].character;
+            switch (c)
             {
-                '.' or '!' or '?' or '。' or '！' or '？' => characterInterval + periodPause,
-                ',' or ';' or ':' or '，' or '、' or '；' or '：' => characterInterval + commaPause,
-                _ => characterInterval,
-            };
+                case '.':
+                case '!':
+                case '?':
+                case '。':
+                case '！':
+                case '？':
+                    return characterInterval + periodPause;
+                case ',':
+                case ';':
+                case ':':
+                case '，':
+                case '、':
+                case '；':
+                case '：':
+                    return characterInterval + commaPause;
+                default:
+                    return characterInterval;
+            }
         }
 
         private void CompleteTyping()
         {
             typingRoutine = null;
             isTyping = false;
+
             if (dialogueText != null)
             {
+                dialogueText.text = currentLine;
                 dialogueText.maxVisibleCharacters = int.MaxValue;
             }
+
             ShowArrow();
         }
 
@@ -323,17 +306,21 @@ namespace CardAdventure
 
         private void ShowArrow()
         {
-            if (nextArrow == null) return;
-            nextArrow.SetActive(true);
+            if (nextArrow == null)
+            {
+                return;
+            }
 
-            // 위아래 깜빡임 DOTween
+            nextArrow.SetActive(true);
             arrowSeq?.Kill();
+
             RectTransform rt = nextArrow.GetComponent<RectTransform>();
             if (rt != null)
             {
+                float baseY = rt.anchoredPosition.y;
                 arrowSeq = DOTween.Sequence()
-                    .Append(rt.DOAnchorPosY(rt.anchoredPosition.y - 3f, 0.4f).SetEase(Ease.InOutSine))
-                    .Append(rt.DOAnchorPosY(rt.anchoredPosition.y,      0.4f).SetEase(Ease.InOutSine))
+                    .Append(rt.DOAnchorPosY(baseY - 3f, 0.4f).SetEase(Ease.InOutSine))
+                    .Append(rt.DOAnchorPosY(baseY, 0.4f).SetEase(Ease.InOutSine))
                     .SetLoops(-1);
             }
         }
@@ -341,7 +328,109 @@ namespace CardAdventure
         private void HideArrow()
         {
             arrowSeq?.Kill();
-            if (nextArrow != null) nextArrow.SetActive(false);
+            if (nextArrow != null)
+            {
+                nextArrow.SetActive(false);
+            }
+        }
+
+        private void EnsureChoiceRoot()
+        {
+            if (choiceRoot != null)
+            {
+                return;
+            }
+
+            RectTransform parent = dialoguePanel != null
+                ? dialoguePanel
+                : transform as RectTransform;
+
+            GameObject root = new GameObject("ChoiceButtons", typeof(RectTransform), typeof(CanvasGroup));
+            root.transform.SetParent(parent, false);
+            choiceRoot = root.GetComponent<RectTransform>();
+            choiceRoot.anchorMin = new Vector2(1f, 0.5f);
+            choiceRoot.anchorMax = new Vector2(1f, 0.5f);
+            choiceRoot.pivot = new Vector2(1f, 0.5f);
+            choiceRoot.anchoredPosition = new Vector2(-36f, 0f);
+            choiceRoot.sizeDelta = new Vector2(286f, 56f);
+
+            HorizontalLayoutGroup layout = root.AddComponent<HorizontalLayoutGroup>();
+            layout.childAlignment = TextAnchor.MiddleRight;
+            layout.spacing = 12f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = true;
+
+            CreateChoiceButton("YesButton");
+            CreateChoiceButton("NoButton");
+            root.SetActive(false);
+        }
+
+        private Button CreateChoiceButton(string name)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(choiceRoot, false);
+
+            RectTransform rt = go.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(132f, 52f);
+
+            LayoutElement layoutElement = go.AddComponent<LayoutElement>();
+            layoutElement.preferredWidth = 132f;
+            layoutElement.preferredHeight = 52f;
+            layoutElement.minWidth = 120f;
+            layoutElement.minHeight = 48f;
+
+            Image image = go.GetComponent<Image>();
+            image.color = ClassicPixelUiTheme.WindowBlack;
+
+            Button button = go.GetComponent<Button>();
+            ClassicPixelUiTheme.ApplyShopButton(button, ClassicPixelUiTheme.ShopPanelAccent.Gold);
+
+            GameObject labelGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelGo.transform.SetParent(go.transform, false);
+            RectTransform labelRt = labelGo.GetComponent<RectTransform>();
+            labelRt.anchorMin = Vector2.zero;
+            labelRt.anchorMax = Vector2.one;
+            labelRt.offsetMin = Vector2.zero;
+            labelRt.offsetMax = Vector2.zero;
+
+            TextMeshProUGUI label = labelGo.GetComponent<TextMeshProUGUI>();
+            label.alignment = TextAlignmentOptions.Center;
+            label.fontSize = 22f;
+            label.fontStyle = FontStyles.Bold;
+            label.color = ClassicPixelUiTheme.Text;
+            label.raycastTarget = false;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+            label.overflowMode = TextOverflowModes.Ellipsis;
+            ClassicPixelUiTheme.ApplyText(label);
+
+            return button;
+        }
+
+        private static void SetupChoiceButton(Button button, string label, UnityEngine.Events.UnityAction action)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            TextMeshProUGUI text = button.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (text != null)
+            {
+                text.text = label;
+            }
+
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(action);
+        }
+
+        private void DeactivateIfAlive()
+        {
+            if (this != null && gameObject != null)
+            {
+                gameObject.SetActive(false);
+            }
         }
     }
 }

@@ -338,8 +338,18 @@ namespace CardAdventure
                                  ?? GameDataManager.Instance?.SelectedJobClass
                                  ?? CardClass.Warrior;
 
-            List<CardData> pool = rewardCardPool.FindAll(
-                c => c != null && (c.cardClass == jobClass || c.cardClass == CardClass.Universal));
+            List<CardData> pool = new List<CardData>();
+            GameDatabase db = Resources.Load<GameDatabase>("GameDatabase");
+            if (db != null && db.allCards != null)
+            {
+                pool = db.allCards.FindAll(c => c != null && c.cardClass == jobClass);
+                Debug.Log($"[BattleRewardUI] GameDatabase에서 {jobClass} 카드 풀 로드 완료: {pool.Count}장");
+            }
+            else
+            {
+                pool = rewardCardPool.FindAll(c => c != null && c.cardClass == jobClass);
+                Debug.LogWarning($"[BattleRewardUI] GameDatabase 로드 실패로 인스펙터 기본 풀에서 {jobClass} 카드 로드: {pool.Count}장");
+            }
 
             // Fisher-Yates 셔플
             for (int i = pool.Count - 1; i > 0; i--)

@@ -39,12 +39,24 @@ namespace CardAdventure
         /// <summary>마지막으로 진입한 전투의 적 데이터.</summary>
         public EnemyData PendingEnemy { get; set; }
 
+        /// <summary>런타임에서 강제로 덮어씌울 배틀 인트로 데이터.</summary>
+        public BattleIntroData PendingIntroData { get; set; }
+
         /// <summary>배틀에서 돌아올 어드벤처 씬 이름.</summary>
         public string ReturnSceneName { get; set; } = "AdventureScene";
 
         private readonly HashSet<string> completedChaserNpcIds = new HashSet<string>();
 
         public string PendingChaserNpcId { get; private set; }
+
+        /// <summary>시험관 전투가 진행 중인지 여부</summary>
+        public bool ExaminerBattlePending { get; private set; }
+
+        /// <summary>시험관 전투 승리 완료 여부</summary>
+        public bool ExaminerBattleCompleted { get; private set; }
+
+        /// <summary>시험관 전투 후 완료 대화 실행 완료 여부</summary>
+        public bool ExaminerDialogueCompleted { get; set; }
 
         /// <summary>현재 선택된 직업 정보. null이면 기본값(전사)으로 간주.</summary>
         public JobClassInfo SelectedJobInfo { get; set; }
@@ -89,6 +101,9 @@ namespace CardAdventure
             HasSavedPosition = false;
             PendingChaserNpcId = null;
             completedChaserNpcIds.Clear();
+            ExaminerBattlePending = false;
+            ExaminerBattleCompleted = false;
+            ExaminerDialogueCompleted = false;
 
             if (defaultJobInfo != null)
             {
@@ -122,6 +137,7 @@ namespace CardAdventure
         public void PrepareBattle(EnemyData enemy, string returnScene)
         {
             PendingEnemy    = enemy;
+            PendingIntroData = null; // 초기화
             ReturnSceneName = returnScene;
 
             // 플레이어 현재 상태 저장
@@ -162,8 +178,25 @@ namespace CardAdventure
                 PendingChaserNpcId = null;
             }
 
+            if (ExaminerBattlePending)
+            {
+                ExaminerBattleCompleted = true;
+                ExaminerBattlePending = false;
+            }
+
             // 한 전투를 진행한 이후에 물품이 갱신되도록 상점 오퍼 리셋
             ShopUIController.ResetShopOffers();
+        }
+
+        public void BeginExaminerBattle()
+        {
+            ExaminerBattlePending = true;
+        }
+
+        public void MarkExaminerBattleCompleted()
+        {
+            ExaminerBattleCompleted = true;
+            ExaminerBattlePending = false;
         }
 
         /// <summary>
@@ -265,7 +298,9 @@ namespace CardAdventure
                 savedFacingDirX = SavedFacingDirection.x,
                 savedFacingDirY = SavedFacingDirection.y,
                 pendingChaserNpcId = PendingChaserNpcId,
-                completedChaserNpcIds = new List<string>(completedChaserNpcIds)
+                completedChaserNpcIds = new List<string>(completedChaserNpcIds),
+                examinerBattleCompleted = ExaminerBattleCompleted,
+                examinerDialogueCompleted = ExaminerDialogueCompleted
             };
 
             foreach (var card in Deck)
@@ -303,6 +338,9 @@ namespace CardAdventure
                     completedChaserNpcIds.Add(id);
                 }
             }
+
+            ExaminerBattleCompleted = data.examinerBattleCompleted;
+            ExaminerDialogueCompleted = data.examinerDialogueCompleted;
 
             if (!string.IsNullOrEmpty(data.selectedJobId))
             {

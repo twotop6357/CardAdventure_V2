@@ -192,8 +192,18 @@ namespace CardAdventure
                 BeginDialogue(npc);
         }
 
+        public void BeginDialogueWithNpc(DialogueData data, NpcInteractable npc, bool faceNpc = false)
+        {
+            BeginDialogue(data, npc, faceNpc);
+        }
+
         private void BeginDialogue(DialogueData data, NpcInteractable npc, bool faceNpc)
         {
+            if (activePlayer == null)
+            {
+                activePlayer = FindFirstObjectByType<PlayerController>();
+            }
+
             if (data == null || data.lines == null || data.lines.Length == 0)
             {
                 string targetName = npc != null ? npc.gameObject.name : "DialogueData";
@@ -224,6 +234,11 @@ namespace CardAdventure
 
         private void HandleSpaceDuringDialogue()
         {
+            if (dialogueView != null && dialogueView.IsChoiceActive)
+            {
+                return;
+            }
+
             if (dialogueView != null && dialogueView.IsTyping)
             {
                 // 타이핑 진행 중 → 전체 텍스트 즉시 표시
@@ -242,12 +257,47 @@ namespace CardAdventure
 
             if (lineIndex >= currentDialogue.lines.Length)
             {
+                if (TryHandleDialogueEnd())
+                {
+                    return;
+                }
+
                 EndDialogue();
             }
             else
             {
                 dialogueView?.ShowLine(currentDialogue.lines[lineIndex]);
             }
+        }
+
+        public void FinishCurrentDialogue()
+        {
+            EndDialogue();
+        }
+
+        public void ShowChoices(string yesText, string noText, Action onYes, Action onNo)
+        {
+            dialogueView?.ShowChoices(yesText, noText, onYes, onNo);
+        }
+
+        private bool TryHandleDialogueEnd()
+        {
+            if (currentNpc == null)
+            {
+                return false;
+            }
+
+            MonoBehaviour[] behaviours = currentNpc.GetComponents<MonoBehaviour>();
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is IDialogueEndHandler handler
+                    && handler.TryHandleDialogueEnd(this, currentDialogue))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void EndDialogue()

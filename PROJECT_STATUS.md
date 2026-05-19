@@ -1,3 +1,42 @@
+### 2026-05-19 (Antigravity - 시험관 자동 대화, 시선 정렬, 적 무작위 조우, 직업 보상 시스템, 에셋 충돌 해결 및 배틀 대화창 초상화 정상화 완료)
+
+#### 이번 작업 요약
+- **시험관(NPC_Examiner) 복귀 대화 자동화**: 전투 완료 후 어드벤처 씬 복귀 시 지연 코루틴을 통해 `NPC_ExaminerBattleEnd_Dialogue`가 즉시 재생되도록 구현.
+- **대화 종료 시 위치 자동 저장**: 시험관 대화 종료 즉시 플레이어 위치와 FacingDirection을 캡처하여 SaveData에 기록하고 `SaveManager.SaveGame`을 자동 트리거해 영속성 확보.
+- **상호작용 시선 4방향 정렬**: NPC 상호작용 시 대화를 건 플레이어 방향을 바라보도록 애니메이터의 `DirectionX`, `DirectionY`에 역방향 벡터 주입 및 갱신. `flipX`를 사용하는 구형 NPC 호환성 유지.
+- **입장 연출 통합**: 일반 전투와 보스전의 입장 연출을 검증된 원형 아이리스 트랜지션으로 일원화.
+- **추격자 NPC(ChaserNPC) 성별 대화 분리 및 에셋 교체**: `FemaleNPC`와 `MaleNPC`가 각각 전용 대화 에셋을 참조하도록 필드 분리 및 바인딩 완료.
+- **추격자 몬스터 무작위 조우**: 매직 디어(`Enemy_MagicDeer`) 또는 매직 래빗(`Enemy_MagicRabbit`)이 50% 확률로 무작위 조우하도록 NpcChaser 랜덤 로직 탑재.
+- **성별 전용 인트로 동적 매핑**: 배틀 진입 시 `PendingIntroData`에 성별에 맞는 인트로 연출 데이터를 dynamic 주입 및 배틀 씬 연계 처리.
+- **에셋 중복 및 GUID 충돌 복구**: 이전에 복제되어 GUID 충돌을 발생시키고 프리팹/씬 레퍼런스를 유실시켰던 `Assets/Resources/` 내 중복 파일들을 제거하고, 원래의 고유 GUID를 보존한 채로 Resources 폴더 하위 탐색 경로(`Assets/ScriptableObjects/BattleIntros/Resources/` 및 `Assets/ScriptableObjects/Enemies/Resources/`)로 원본 파일들을 이동시켜 모든 Missing 레퍼런스를 복원하고 동적 로딩을 완벽하게 재연동함.
+- **남성/여성 배틀 인트로 매핑 교체**: 복사 제작 중 기본 대사(여성형)로 동결되어 있었던 남성용 배틀 인트로 에셋(`BattleIntro_MaleChaser.asset`)의 `dialogueData`를 `NPC_MaleEventBattleIntro_Dialogue.asset`으로 연결 수정하여 캐릭터에 어울리는 고유 인트로가 정상 격발되도록 처리. 여성용도 `NPC_FemaleEventBattleIntro_Dialogue.asset`으로 명시적 바인딩 완료.
+- **직업 맞춤형 덱 카드 보상 (3선택 1)**: 전투 승리 시 플레이어의 현재 직업 전용 카드 풀에서 중복 없이 무작위 3장을 뽑아 보상 UI에 제공하는 로직 완성.
+- **배틀 대화창 초상화 출력 정상화**: 배틀씬 인트로 대사 출력 시 `DialogueView.Show` 호출 단계에서 초상화(`Sprite`) 매개변수가 누락되어 초상화가 렌더링되지 않던 버그를 분석하여, `ActiveIntroData`에서 적절한 초상화 Sprite를 추출해 전달하도록 보완함.
+
+#### 변경 파일
+- `Assets/Scripts/Core/GameDataManager.cs` (PendingIntroData, 시험관 상태 로직, Save/Load 연동)
+- `Assets/Scripts/Core/SceneLoader.cs` (입장 연출 통합)
+- `Assets/Scripts/Adventure/DialogueManager.cs` (방어형 실시간 플레이어 탐색 코드 추가)
+- `Assets/Scripts/Adventure/NpcTileAlignment.cs` (4방향 시선 정렬 구현)
+- `Assets/Scripts/Adventure/ExaminerNpc.cs` (자동 복귀 대화 및 대화 종료 시 플레이어 트랜스폼 데이터 세이브)
+- `Assets/Scripts/Adventure/NpcChaser.cs` (성별 대화 에셋 분리, 50% 랜덤 몬스터 조우, 성별 인트로 데이터 주입)
+- `Assets/Scripts/Battle/BattleSceneConnector.cs` (PendingIntroData 우선 주입 및 nullify 연계)
+- `Assets/Scripts/Battle/BattleIntroDirector.cs` (배틀 대화창 초상화 전달 코드 추가)
+- `Assets/Scripts/UI/BattleRewardUIController.cs` (직업 전용 3장 무작위 보상 카드 필터링)
+- `Assets/ScriptableObjects/BattleIntros/Resources/BattleIntro_MaleChaser.asset` & `BattleIntro_FemaleChaser.asset` (남/여 전용 BattleIntroData에 DialogueData 바인딩 수정 및 Resources 하위 이동)
+- `Assets/ScriptableObjects/Enemies/Resources/Enemy_MagicDeer.asset` & `Enemy_MagicRabbit.asset` (Resources 하위 이동 및 무작위 조우 데이터 보존)
+
+#### 검증 결과
+- Unity Editor 컴파일 에러 및 경고 없음.
+- `task.md` 및 `walkthrough.md` 업데이트 완료.
+
+#### 다음 에이전트 할 일 (Phase 3 진입)
+1. 세이브 슬롯 UI 관리 시스템 고도화 (3개의 세이브 슬롯 선택/기록 및 로드).
+2. 상점 고도화 (상점 상품 주기적 갱신 로직 심화 및 필드 내 배치될 회복 아이템 배치 및 적용).
+3. 초급 배틀러 자격증 엔딩 UI 설계 및 연출 구현.
+
+---
+
 ### 2026-05-18 (Claude Desktop - 내 카드 패널 버그 전면 수정)
 
 #### 이번 작업 요약
@@ -4720,6 +4759,65 @@ Assets/Scenes/BattleTest.unity
 - 사용량 제한 해제 후 Unity 컴파일 및 Play Mode에서 NPC 대화 타이핑/스킵 동작 확인.
 
 ---
+### 2026-05-19 (Codex - 대화창 텍스트 애니메이터 정리 및 절제된 타이핑 효과 적용)
+
+#### 이번 작업 요약
+- 대화창 `DialogueText`에 붙어 있던 Febucci `TextAnimator_TMP`, `TypewriterByCharacter` 컴포넌트를 프리팹에서 제거했다.
+- `DialogueView`의 Febucci 의존성을 제거하고, TMP `maxVisibleCharacters` 기반의 한 글자씩 표시되는 타이핑 효과만 남겼다.
+- 타이핑 속도는 과하지 않도록 기본 0.03초/글자, 쉼표류 0.05초 추가, 마침표/느낌표/물음표류 0.10초 추가 지연으로 조정했다.
+- `DialogueSceneSetup`이 새 대화창 생성 시 더 이상 Febucci 컴포넌트를 추가하거나 `typewriter` 필드를 연결하지 않도록 정리했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/DialogueView.cs`
+- `Assets/Scripts/Editor/DialogueSceneSetup.cs`
+- `Assets/Prefabs/UI/DialogueCanvas.prefab`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `DialogueView.cs`, `DialogueSceneSetup.cs` Unity `validate_script standard`: 에러 0개.
+- `DialogueCanvas.prefab` 기준 `TextAnimator_TMP`, `TypewriterByCharacter`, `typewriter` 참조 제거 확인.
+- Unity 스크립트 컴파일 완료, 콘솔에 C# 컴파일 에러 없음.
+
+#### 다음 작업
+- Play Mode에서 NPC 대화 진입 시 한 글자씩 표시, 스페이스 입력 시 즉시 완성, 다음 줄 진행 흐름을 확인한다.
+
+---
+
+### 2026-05-19 (Codex - 시험관 NPC 프리팹/애니메이션 제작)
+
+#### 이번 작업 요약
+- `Assets/Assets/Sprites/NPCs/Examiner_Sprites.png`의 Multiple Sprite를 사용해 시험관 NPC용 방향별 Idle 애니메이션을 갱신/생성했다.
+- `Assets/Animations/NPCs/Examiner/Examiner_Controller.controller`를 `DirectionX`/`DirectionY` 기반 Simple Directional 2D BlendTree 구조로 재구성했다.
+- 전직관 NPC와 같은 기본 NPC 구성으로 `Assets/Prefabs/NPCs/NPC_Examiner.prefab`을 생성했다.
+  - `SpriteRenderer`, `Animator`, `BoxCollider2D`, `Rigidbody2D(Kinematic, gravityScale=0, freezeRotation)`, `NpcTileAlignment`, `NpcInteractable`
+  - 발 위치 기준 `BoxCollider2D` 보정 적용
+  - `NpcInteractable.dialogueData`는 요청대로 비워둠
+- 재실행 가능한 에디터 메뉴 `CardAdventure/Setup Examiner NPC`를 추가했다.
+
+#### 변경 파일
+- `Assets/Scripts/Editor/ExaminerNpcSetup.cs`
+- `Assets/Scripts/Editor/ExaminerNpcSetup.cs.meta`
+- `Assets/Animations/NPCs/Examiner/Examiner_Controller.controller`
+- `Assets/Animations/NPCs/Examiner/Examiner_IdleFront.anim`
+- `Assets/Animations/NPCs/Examiner/Examiner_IdleBack.anim`
+- `Assets/Animations/NPCs/Examiner/Examiner_IdleLeft.anim`
+- `Assets/Animations/NPCs/Examiner/Examiner_IdleRight.anim`
+- `Assets/Prefabs/NPCs/NPC_Examiner.prefab`
+- `Assets/Prefabs/NPCs/NPC_Examiner.prefab.meta`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `ExaminerNpcSetup.cs` Unity `validate_script standard`: 에러 0개.
+- Unity 전체 Asset Refresh 및 컴파일 완료.
+- `CardAdventure/Setup Examiner NPC` 메뉴 실행 완료 로그 확인.
+- 생성 프리팹에 `NpcTileAlignment`, `NpcInteractable`, Kinematic `Rigidbody2D`, 솔리드 `BoxCollider2D`, `Animator` 연결 확인.
+
+#### 다음 작업
+- AdventureScene에 `NPC_Examiner.prefab` 배치 위치를 정하고, 필요 시 `NpcFacingDirection` 또는 메뉴로 초기 바라보는 방향을 지정한다.
+- 사용자가 대화 내용을 제공하면 `DialogueData`를 생성해 `NpcInteractable.dialogueData`에 연결한다.
+
+---
+
 ### 2026-05-19 (Codex - 전사 좌우 정지 방향 및 달리기 이동속도 보정)
 
 #### 이번 작업 요약
@@ -4767,3 +4865,61 @@ Assets/Scenes/BattleTest.unity
 - 전사 좌우 이동 시 걷기 방향만 정상 보정되고, 마법사/도적의 기존 방향은 유지되는지 확인.
 
 ---
+---
+
+### 2026-05-19 (Codex - 시험관 NPC 대화 선택지 및 보스 전투 진입 흐름)
+
+#### 이번 작업 요약
+- 시험관 NPC 대화 흐름을 `NPC_ExaminerQuestion_Dialogue` → 대화창 유지 선택지(예/아니오) → `NPC_ExaminerIntoBattle_Dialogue` → 보스 전투 진입 순서로 연결했다.
+- `DialogueManager`에 대화 마지막 줄 처리 확장점(`IDialogueEndHandler`)과 선택지 표시 API를 추가해, 이후 다른 NPC도 같은 방식으로 선택지형 대화를 확장할 수 있게 했다.
+- `DialogueView`에 대화창 우측 선택지 버튼 UI를 런타임 생성 방식으로 추가했다. 선택지가 떠 있는 동안 Space 진행은 막아 오입력을 방지한다.
+- 시험관 전용 `ExaminerNpc` 컴포넌트를 추가하고 `NPC_Examiner.prefab`에 질문/전투 전/전투 후 대화, `Enemy_MagicCrow`, `BattleIntro_Examiner` 참조를 연결했다.
+- 보스 전투 진입은 일반 전투의 Iris 전환 대신 `SceneLoader.EnterBossBattle()`의 DOTween 페이드/스케일 전환을 사용하도록 분리했다.
+- `BattleIntro_Examiner.asset`가 `NPC_ExaminerBattleIntro_Dialogue.asset`를 사용하도록 연결하고, `Enemy_MagicCrow.asset`를 보스 및 시험관 인트로 사용 대상으로 갱신했다.
+- 전투 승리 시 `GameDataManager.ExaminerBattleCompleted`를 저장 가능한 상태로 기록해, 이후 시험관에게 다시 말을 걸어도 전투에 재진입하지 않고 `NPC_ExaminerBattleEnd_Dialogue`가 시작되도록 했다.
+
+#### 변경 파일
+- `Assets/Scripts/Adventure/IDialogueEndHandler.cs`
+- `Assets/Scripts/Adventure/ExaminerNpc.cs`
+- `Assets/Scripts/Adventure/DialogueManager.cs`
+- `Assets/Scripts/UI/DialogueView.cs`
+- `Assets/Scripts/Core/GameDataManager.cs`
+- `Assets/Scripts/Core/SceneLoader.cs`
+- `Assets/Scripts/Battle/BattleSceneConnector.cs`
+- `Assets/Scripts/Data/SaveData.cs`
+- `Assets/Scripts/Editor/ExaminerNpcSetup.cs`
+- `Assets/Prefabs/NPCs/NPC_Examiner.prefab`
+- `Assets/ScriptableObjects/BattleIntros/BattleIntro_Examiner.asset`
+- `Assets/ScriptableObjects/Enemies/Enemy_MagicCrow.asset`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- Unity `validate_script standard`: 변경/신규 C# 스크립트 오류 0개.
+- Unity Refresh 및 스크립트 컴파일 완료, 콘솔 C# 컴파일 오류 없음.
+- `CardAdventure/Setup Examiner NPC` 메뉴 재실행으로 `NPC_Examiner.prefab` 갱신 완료.
+- 프리팹 YAML에서 `ExaminerNpc` 컴포넌트와 대화/보스/인트로 참조 연결 확인.
+
+#### 다음 작업
+- Play Mode에서 시험관 NPC 상호작용 전체 흐름을 실제 조작으로 확인한다: 질문 대화, 예/아니오 선택지, 전투 전 대화, DOTween 보스 전환, 전투 인트로 대화, 승리 후 재대화 시 전투 재진입 방지.
+- 전투 패배 시 시험관 상태를 어떻게 처리할지 기획 확정이 필요하다. 현재는 승리한 경우에만 전투 완료로 기록된다.
+---
+
+### 2026-05-19 (Codex - 대화 선택지 버튼 스타일 개선)
+
+#### 이번 작업 요약
+- 대화창 선택지 `예/아니오` UI를 작은 세로 텍스트형 버튼에서 대화창 우측의 넓은 가로 버튼형 UI로 변경했다.
+- 선택지 버튼에 `ClassicPixelUiTheme.ApplyShopButton`을 적용해 기존 상점/결과 UI의 검은 배경 + 금색 테두리 + 픽셀풍 버튼 스타일과 맞췄다.
+- 버튼 크기와 레이아웃을 고정해 두 선택지가 겹쳐 보이지 않도록 조정했다.
+- 선택지가 열릴 때 첫 번째 버튼을 EventSystem 선택 대상으로 지정해 키보드/패드 포커스 흐름도 자연스럽게 했다.
+
+#### 변경 파일
+- `Assets/Scripts/UI/DialogueView.cs`
+- `PROJECT_STATUS.md`
+
+#### 검증 결과
+- `DialogueView.cs` Unity `validate_script standard`: 오류 0개. 기존 휴리스틱 경고 1개 확인.
+- Unity 스크립트 컴파일 완료, 콘솔 C# 컴파일 오류 없음.
+- 콘솔에는 기존 `ClassicPixelFrame.DestroyObject` 숨김 경고, `BattleUIManager.playerUsedCardThisTurn` 미사용 경고만 남아 있음.
+
+#### 다음 작업
+- Play Mode에서 시험관 질문 대화 끝의 선택지 위치와 텍스트 겹침 여부를 실제 화면으로 확인한다.

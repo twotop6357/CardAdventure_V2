@@ -1,31 +1,30 @@
-/*
- * DialogueSceneSetup.cs  (Editor 전용)
+﻿/*
+ * DialogueSceneSetup.cs  (Editor ?꾩슜)
  *
- * 메뉴 경로:
+ * 硫붾돱 寃쎈줈:
  *   CardAdventure > Setup Dialogue System
- *       → 현재 열린 씬에 DialogueCanvas + DialogueManager 자동 구성
+ *       ???꾩옱 ?대┛ ?ъ뿉 DialogueCanvas + DialogueManager ?먮룞 援ъ꽦
  *
  *   CardAdventure > Create NPC (Interactable)
- *       → 선택한 GameObject에 NpcInteractable 컴포넌트 추가,
- *         또는 씬 뿌리에 빈 NPC 오브젝트 생성
+ *       ???좏깮??GameObject??NpcInteractable 而댄룷?뚰듃 異붽?,
+ *         ?먮뒗 ??肉뚮━??鍮?NPC ?ㅻ툕?앺듃 ?앹꽦
  *
- * 생성되는 계층 구조:
+ * ?앹꽦?섎뒗 怨꾩링 援ъ“:
  *   DialogueCanvas  (Canvas / CanvasScaler / GraphicRaycaster)
- *     └─ DialoguePanel  (CanvasGroup, RectTransform — 하단 고정)
- *          ├─ PanelBg         (Image — 검은 픽셀 창)
- *          ├─ PortraitFrame   (Image — 초상화 프레임)
- *          │    └─ PortraitImage
- *          ├─ NameBox         (Image — 이름 박스)
- *          │    └─ NameText   (TextMeshProUGUI)
- *          ├─ DialogueText    (TextMeshProUGUI + TextAnimator_TMP + TypewriterByCharacter)
- *          └─ NextArrow       (TextMeshProUGUI "▼")
+ *     ?붴? DialoguePanel  (CanvasGroup, RectTransform ???섎떒 怨좎젙)
+ *          ?쒋? PanelBg         (Image ??寃? ?쎌? 李?
+ *          ?쒋? PortraitFrame   (Image ??珥덉긽???꾨젅??
+ *          ??   ?붴? PortraitImage
+ *          ?쒋? NameBox         (Image ???대쫫 諛뺤뒪)
+ *          ??   ?붴? NameText   (TextMeshProUGUI)
+ *          ?쒋? DialogueText    (TextMeshProUGUI)
+ *          ?붴? NextArrow       (TextMeshProUGUI "??)
  *
- * 씬 내 GameManagers 오브젝트가 있으면 그 아래에 DialogueManager 컴포넌트 추가.
- * 없으면 씬 루트에 "DialogueManager" 오브젝트를 생성한다.
+ * ????GameManagers ?ㅻ툕?앺듃媛 ?덉쑝硫?洹??꾨옒??DialogueManager 而댄룷?뚰듃 異붽?.
+ * ?놁쑝硫???猷⑦듃??"DialogueManager" ?ㅻ툕?앺듃瑜??앹꽦?쒕떎.
  */
 
 #if UNITY_EDITOR
-using Febucci.UI;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -35,25 +34,25 @@ namespace CardAdventure.Editor
 {
     public static class DialogueSceneSetup
     {
-        // ──────────────────────────────────────────────────────
-        //  대화 시스템 전체 설정
-        // ──────────────────────────────────────────────────────
+        // ??????????????????????????????????????????????????????
+        //  ????쒖뒪???꾩껜 ?ㅼ젙
+        // ??????????????????????????????????????????????????????
         [MenuItem("CardAdventure/Setup Dialogue System")]
         public static void SetupDialogueSystem()
         {
-            // 1) DialogueCanvas 생성 또는 기존 재사용
+            // 1) DialogueCanvas ?앹꽦 ?먮뒗 湲곗〈 ?ъ궗??
             GameObject canvasGo = EnsureDialogueCanvas();
 
-            // 2) DialoguePanel 및 하위 계층 구성
+            // 2) DialoguePanel 諛??섏쐞 怨꾩링 援ъ꽦
             GameObject panelGo = BuildDialoguePanel(canvasGo);
 
-            // 3) DialogueView 컴포넌트 연결
+            // 3) DialogueView 而댄룷?뚰듃 ?곌껐
             DialogueView view = ConnectDialogueView(panelGo);
 
-            // 4) DialogueManager 배치
+            // 4) DialogueManager 諛곗튂
             DialogueManager manager = EnsureDialogueManager();
 
-            // 5) DialogueManager ↔ DialogueView 연결
+            // 5) DialogueManager ??DialogueView ?곌껐
             if (manager != null && view != null)
             {
                 var so = new SerializedObject(manager);
@@ -61,16 +60,16 @@ namespace CardAdventure.Editor
                 so.ApplyModifiedProperties();
             }
 
-            // 씬 더티 마크
+            // ???뷀떚 留덊겕
             UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene());
 
-            Debug.Log("[DialogueSceneSetup] ✅ 대화 시스템 구성 완료. 씬을 저장하세요.");
+            Debug.Log("[DialogueSceneSetup] ??????쒖뒪??援ъ꽦 ?꾨즺. ?ъ쓣 ??ν븯?몄슂.");
         }
 
-        // ──────────────────────────────────────────────────────
-        //  NPC 오브젝트 생성
-        // ──────────────────────────────────────────────────────
+        // ??????????????????????????????????????????????????????
+        //  NPC ?ㅻ툕?앺듃 ?앹꽦
+        // ??????????????????????????????????????????????????????
         [MenuItem("CardAdventure/Create NPC (Interactable)")]
         public static void CreateNpcInteractable()
         {
@@ -78,40 +77,40 @@ namespace CardAdventure.Editor
 
             if (target != null)
             {
-                // 선택된 오브젝트에 NpcInteractable 추가
+                // ?좏깮???ㅻ툕?앺듃??NpcInteractable 異붽?
                 if (target.GetComponent<NpcInteractable>() == null)
                 {
                     EnsureNpcCollider(target);
                     Undo.AddComponent<NpcInteractable>(target);
-                    Debug.Log($"[DialogueSceneSetup] '{target.name}'에 NpcInteractable 추가 완료.");
+                    Debug.Log($"[DialogueSceneSetup] '{target.name}'??NpcInteractable 異붽? ?꾨즺.");
                 }
                 else
                 {
-                    Debug.Log($"[DialogueSceneSetup] '{target.name}'에 이미 NpcInteractable이 있습니다.");
+                    Debug.Log($"[DialogueSceneSetup] '{target.name}'???대? NpcInteractable???덉뒿?덈떎.");
                 }
             }
             else
             {
-                // 선택 없으면 씬 루트에 새 NPC 생성
+                // ?좏깮 ?놁쑝硫???猷⑦듃????NPC ?앹꽦
                 GameObject npcGo = new GameObject("NPC_New");
                 Undo.RegisterCreatedObjectUndo(npcGo, "Create NPC");
                 EnsureNpcCollider(npcGo);
                 npcGo.AddComponent<NpcInteractable>();
                 Selection.activeGameObject = npcGo;
-                Debug.Log("[DialogueSceneSetup] 새 NPC 오브젝트 생성 완료. Inspector에서 DialogueData를 연결하세요.");
+                Debug.Log("[DialogueSceneSetup] ??NPC ?ㅻ툕?앺듃 ?앹꽦 ?꾨즺. Inspector?먯꽌 DialogueData瑜??곌껐?섏꽭??");
             }
 
             UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene());
         }
 
-        // ══════════════════════════════════════════════════════
-        //  내부 빌더 메서드
-        // ══════════════════════════════════════════════════════
+        // ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+        //  ?대? 鍮뚮뜑 硫붿꽌??
+        // ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
 
         private static GameObject EnsureDialogueCanvas()
         {
-            // 이미 있으면 재사용
+            // ?대? ?덉쑝硫??ъ궗??
             var existing = GameObject.Find("DialogueCanvas");
             if (existing != null) return existing;
 
@@ -120,7 +119,7 @@ namespace CardAdventure.Editor
 
             Canvas canvas = go.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 50; // 대화창은 최상위
+            canvas.sortingOrder = 50; // ??붿갹? 理쒖긽??
 
             CanvasScaler scaler = go.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -133,17 +132,17 @@ namespace CardAdventure.Editor
 
         private static GameObject BuildDialoguePanel(GameObject canvasGo)
         {
-            // 기존 패널 재사용
+            // 湲곗〈 ?⑤꼸 ?ъ궗??
             Transform existing = canvasGo.transform.Find("DialoguePanel");
             if (existing != null) return existing.gameObject;
 
-            // ── DialoguePanel ──────────────────────────────────
+            // ?? DialoguePanel ??????????????????????????????????
             GameObject panel = new GameObject("DialoguePanel");
             Undo.RegisterCreatedObjectUndo(panel, "Create DialoguePanel");
             panel.transform.SetParent(canvasGo.transform, false);
 
             RectTransform panelRt = panel.AddComponent<RectTransform>();
-            // 하단 전체 너비 고정, 높이 140
+            // ?섎떒 ?꾩껜 ?덈퉬 怨좎젙, ?믪씠 140
             panelRt.anchorMin        = new Vector2(0f, 0f);
             panelRt.anchorMax        = new Vector2(1f, 0f);
             panelRt.pivot            = new Vector2(0.5f, 0f);
@@ -152,7 +151,7 @@ namespace CardAdventure.Editor
 
             panel.AddComponent<CanvasGroup>();
 
-            // ── PanelBg (흰 배경) ──────────────────────────────
+            // ?? PanelBg (??諛곌꼍) ??????????????????????????????
             GameObject bg = new GameObject("PanelBg");
             bg.transform.SetParent(panel.transform, false);
             RectTransform bgRt = bg.AddComponent<RectTransform>();
@@ -164,7 +163,7 @@ namespace CardAdventure.Editor
             Image bgImg = bg.AddComponent<Image>();
             ClassicPixelUiTheme.ApplyShopPanel(bgImg, ClassicPixelUiTheme.ShopPanelAccent.Blue, false);
 
-            // ── PortraitFrame ─────────────────────────────────
+            // ?? PortraitFrame ?????????????????????????????????
             GameObject portraitFrame = new GameObject("PortraitFrame");
             portraitFrame.transform.SetParent(panel.transform, false);
             RectTransform portraitFrameRt = portraitFrame.AddComponent<RectTransform>();
@@ -188,7 +187,7 @@ namespace CardAdventure.Editor
             portraitImage.color = Color.white;
             portraitImage.preserveAspect = true;
 
-            // ── NameBox ────────────────────────────────────────
+            // ?? NameBox ????????????????????????????????????????
             GameObject nameBox = new GameObject("NameBox");
             nameBox.transform.SetParent(panel.transform, false);
             RectTransform nameBoxRt = nameBox.AddComponent<RectTransform>();
@@ -211,13 +210,13 @@ namespace CardAdventure.Editor
             nameTextRt.offsetMax = new Vector2(-6f, -2f);
 
             TextMeshProUGUI nameTmp = nameTextGo.AddComponent<TextMeshProUGUI>();
-            nameTmp.text      = "화자 이름";
+            nameTmp.text      = "?붿옄 ?대쫫";
             nameTmp.fontSize  = 14f;
             nameTmp.fontStyle = FontStyles.Bold;
             nameTmp.alignment = TextAlignmentOptions.MidlineLeft;
             ClassicPixelUiTheme.ApplyText(nameTmp);
 
-            // ── DialogueText ───────────────────────────────────
+            // ?? DialogueText ???????????????????????????????????
             GameObject textGo = new GameObject("DialogueText");
             textGo.transform.SetParent(panel.transform, false);
             RectTransform textRt = textGo.AddComponent<RectTransform>();
@@ -233,14 +232,7 @@ namespace CardAdventure.Editor
             dialogueTmp.textWrappingMode = TextWrappingModes.Normal;
             ClassicPixelUiTheme.ApplyText(dialogueTmp);
 
-            // Febucci: TextAnimator_TMP + TypewriterByCharacter
-            textGo.AddComponent<TextAnimator_TMP>();
-            TypewriterByCharacter tw = textGo.AddComponent<TypewriterByCharacter>();
-            tw.waitForNormalChars = 0.04f;
-            tw.waitLong           = 0.5f;
-            tw.waitMiddle         = 0.18f;
-
-            // ── NextArrow (▼) ──────────────────────────────────
+            // ?? NextArrow (?? ??????????????????????????????????
             GameObject arrowGo = new GameObject("NextArrow");
             arrowGo.transform.SetParent(panel.transform, false);
             RectTransform arrowRt = arrowGo.AddComponent<RectTransform>();
@@ -298,8 +290,6 @@ namespace CardAdventure.Editor
             {
                 so.FindProperty("dialogueText").objectReferenceValue =
                     textGo.GetComponent<TextMeshProUGUI>();
-                so.FindProperty("typewriter").objectReferenceValue =
-                    textGo.GetComponent<TypewriterByCharacter>();
             }
 
             if (arrowGo != null)
@@ -311,20 +301,20 @@ namespace CardAdventure.Editor
 
         private static DialogueManager EnsureDialogueManager()
         {
-            // 이미 씬에 있으면 반환
+            // ?대? ?ъ뿉 ?덉쑝硫?諛섑솚
             DialogueManager existing = Object.FindFirstObjectByType<DialogueManager>();
             if (existing != null) return existing;
 
-            // GameManagers 오브젝트가 있으면 그 아래에 추가
+            // GameManagers ?ㅻ툕?앺듃媛 ?덉쑝硫?洹??꾨옒??異붽?
             GameObject managers = GameObject.Find("GameManagers");
             if (managers != null)
             {
                 DialogueManager dm = Undo.AddComponent<DialogueManager>(managers);
-                Debug.Log("[DialogueSceneSetup] DialogueManager를 GameManagers에 추가했습니다.");
+                Debug.Log("[DialogueSceneSetup] DialogueManager瑜?GameManagers??異붽??덉뒿?덈떎.");
                 return dm;
             }
 
-            // 없으면 새 오브젝트 생성
+            // ?놁쑝硫????ㅻ툕?앺듃 ?앹꽦
             GameObject go = new GameObject("DialogueManager");
             Undo.RegisterCreatedObjectUndo(go, "Create DialogueManager");
             return go.AddComponent<DialogueManager>();
@@ -374,3 +364,4 @@ namespace CardAdventure.Editor
     }
 }
 #endif
+

@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cf46a95a9c2b494cba083c9d2ae8825, type: 3}
+  m_Name: NPC_ExaminerBattleIntro_Dialogue
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.DialogueData
+  speakerName: "\uC2DC\uD5D8\uAD00 \uD14C\uC624"
+  speakerPortrait: {fileID: 6173391934308118958, guid: 4bd0e543e8cb11b48b12597bdb5628e7,
+    type: 3}
+  lines:
+  - "\uADF8 \uB3D9\uC548 \uAC08\uACE0\uB2E6\uC740 \uC2E4\uB825\uC744 \uC628\uC804\uD788
+    \uB4DC\uB7EC\uB0B4\uAE38 \uBC14\uB78D\uB2C8\uB2E4."
