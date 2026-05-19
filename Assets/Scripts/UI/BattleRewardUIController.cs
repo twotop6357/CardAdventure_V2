@@ -6,6 +6,8 @@ using TheraBytes.BetterUi;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using CardAdventure.Audio;
 
 namespace CardAdventure
 {
@@ -85,6 +87,8 @@ namespace CardAdventure
 
             if (rootCg != null)
                 rootCg.DOFade(1f, 0.4f).SetEase(Ease.OutQuad);
+
+            CardAdventure.Audio.AudioManager.PlayBgmSafe(CardAdventure.Audio.AudioManager.BgmKeys.Win);
         }
 
         public void ShowDefeat(BattleManager battleManager)
@@ -108,6 +112,8 @@ namespace CardAdventure
 
             if (rootCg != null)
                 rootCg.DOFade(1f, 0.4f).SetEase(Ease.OutQuad);
+
+            CardAdventure.Audio.AudioManager.PlayBgmSafe(CardAdventure.Audio.AudioManager.BgmKeys.Lose);
         }
 
         // ════════════════════════════════════════════════════════
@@ -620,6 +626,18 @@ namespace CardAdventure
                 btn.colors = c;
             }
 
+            Outline outline = wrapper.GetComponent<Outline>();
+            if (outline != null)
+            {
+                var hover = wrapper.GetComponent<RewardHoverFeedback>() ?? wrapper.AddComponent<RewardHoverFeedback>();
+                hover.Configure(outline, ClassicPixelUiTheme.Gold, ClassicPixelUiTheme.Cyan);
+            }
+
+            if (btn.gameObject.GetComponent<ButtonAudioHook>() == null)
+            {
+                btn.gameObject.AddComponent<ButtonAudioHook>();
+            }
+
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() =>
             {
@@ -643,7 +661,17 @@ namespace CardAdventure
                 c.highlightedColor = new Color(1f, 0.92f, 0.55f);
                 c.pressedColor     = new Color(0.8f, 0.7f, 0.3f);
                 btn.colors = c;
-                AddOutline(cv.gameObject, ClassicPixelUiTheme.Gold, new Vector2(2f, -2f));
+                Outline outline = AddOutline(cv.gameObject, ClassicPixelUiTheme.Gold, new Vector2(2f, -2f));
+                if (outline != null)
+                {
+                    var hover = cv.gameObject.GetComponent<RewardHoverFeedback>() ?? cv.gameObject.AddComponent<RewardHoverFeedback>();
+                    hover.Configure(outline, ClassicPixelUiTheme.Gold, ClassicPixelUiTheme.Cyan);
+                }
+            }
+
+            if (btn.gameObject.GetComponent<ButtonAudioHook>() == null)
+            {
+                btn.gameObject.AddComponent<ButtonAudioHook>();
             }
 
             btn.onClick.RemoveAllListeners();
@@ -905,6 +933,7 @@ namespace CardAdventure
             AddOutline(go, borderColor, new Vector2(2f, -2f));
 
             Button btn = go.AddComponent<Button>();
+            go.AddComponent<ButtonAudioHook>();
             ColorBlock cb = btn.colors;
             cb.normalColor      = normalColor;
             cb.highlightedColor = hoverColor;
@@ -1054,6 +1083,7 @@ namespace CardAdventure
             GameObject go = CreateImage(goName, parent, normal);
             AddOutline(go, ClassicPixelUiTheme.Gold, new Vector2(1.5f, -1.5f));
             Button btn = go.AddComponent<Button>();
+            go.AddComponent<ButtonAudioHook>();
             ColorBlock cb = btn.colors;
             cb.normalColor      = normal;
             cb.highlightedColor = highlighted;
@@ -1114,6 +1144,39 @@ namespace CardAdventure
         {
             Transform t = parent.Find(childName);
             return t != null ? t.GetComponent<Image>() : null;
+        }
+        private sealed class RewardHoverFeedback : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+        {
+            private Outline outline;
+            private Color normalColor;
+            private Color hoverColor;
+
+            public void Configure(Outline targetOutline, Color normal, Color hover)
+            {
+                outline = targetOutline;
+                normalColor = normal;
+                hoverColor = hover;
+                if (outline != null)
+                {
+                    outline.effectColor = normalColor;
+                }
+            }
+
+            public void OnPointerEnter(PointerEventData eventData)
+            {
+                if (outline != null)
+                {
+                    outline.effectColor = hoverColor;
+                }
+            }
+
+            public void OnPointerExit(PointerEventData eventData)
+            {
+                if (outline != null)
+                {
+                    outline.effectColor = normalColor;
+                }
+            }
         }
     }
 }

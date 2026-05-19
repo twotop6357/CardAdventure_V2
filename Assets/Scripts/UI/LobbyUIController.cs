@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
+using CardAdventure.Audio;
 
 namespace CardAdventure.UI
 {
@@ -376,6 +377,7 @@ namespace CardAdventure.UI
 
             Button btn = btnGo.GetComponent<Button>();
             ClassicPixelUiTheme.ApplyShopButton(btn, accent);
+            btnGo.AddComponent<ButtonAudioHook>();
             return btn;
         }
 

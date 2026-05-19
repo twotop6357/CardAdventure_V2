@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using DG.Tweening;
 using UnityEngine.SceneManagement;
+using CardAdventure.Audio;
 
 namespace CardAdventure
 {
@@ -171,6 +172,7 @@ namespace CardAdventure
             // 이미지 및 픽셀 테마 적용
             Image img = btnGo.GetComponent<Image>();
             Button btn = btnGo.GetComponent<Button>();
+            btnGo.AddComponent<ButtonAudioHook>();
             
             // 저장하기 텍스트 생성
             GameObject textGo = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -271,6 +273,7 @@ namespace CardAdventure
                 Image slotImg = slotGo.GetComponent<Image>();
                 Button slotBtn = slotGo.GetComponent<Button>();
                 ClassicPixelUiTheme.ApplyShopButton(slotBtn, ClassicPixelUiTheme.ShopPanelAccent.Blue);
+                slotGo.AddComponent<ButtonAudioHook>();
 
                 // 슬롯 텍스트 정보 바인딩
                 GameObject infoGo = new GameObject("Info", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -316,6 +319,7 @@ namespace CardAdventure
             Image closeImg = closeGo.GetComponent<Image>();
             Button closeBtn = closeGo.GetComponent<Button>();
             ClassicPixelUiTheme.ApplyShopButton(closeBtn, ClassicPixelUiTheme.ShopPanelAccent.Cyan);
+            closeGo.AddComponent<ButtonAudioHook>();;
 
             GameObject closeTextGo = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
             closeTextGo.transform.SetParent(closeGo.transform, false);

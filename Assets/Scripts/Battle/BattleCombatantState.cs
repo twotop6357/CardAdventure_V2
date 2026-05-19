@@ -33,6 +33,10 @@ namespace CardAdventure
         public int ReceiveDamage(int amount)
         {
             int remainingDamage = Mathf.Max(0, amount);
+            if (remainingDamage > 0)
+            {
+                CardAdventure.Audio.AudioManager.PlaySfxSafe(CardAdventure.Audio.AudioManager.SfxKeys.Hit);
+            }
             int blockedDamage = Mathf.Min(Block, remainingDamage);
 
             Block -= blockedDamage;

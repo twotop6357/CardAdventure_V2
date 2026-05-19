@@ -1,4 +1,5 @@
 using System;
+using CardAdventure.Audio;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -236,8 +237,13 @@ namespace CardAdventure
         {
             if (dialogueView != null && dialogueView.IsChoiceActive)
             {
+                // 선택지가 활성화된 동안에는 스페이스가 무시되므로 SFX도 재생하지 않는다.
                 return;
             }
+
+            // 대화 진행에 실제로 영향이 있는 스페이스 입력에 한해 상호작용 SFX 재생.
+            // 같은 SFX 채널에서 처음부터 재시작되므로 빠르게 연타해도 자연스럽게 들린다.
+            AudioManager.PlaySfxSafe(AudioManager.SfxKeys.Interaction);
 
             if (dialogueView != null && dialogueView.IsTyping)
             {

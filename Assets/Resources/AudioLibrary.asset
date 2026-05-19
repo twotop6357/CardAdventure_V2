@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2ceb9857d8550044bcd3417065c698b, type: 3}
+  m_Name: AudioLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::CardAdventure.Audio.AudioLibrary
+  bgmClips:
+  - key: AdventureScene_BGM
+    clip: {fileID: 8300000, guid: 2da05e201a1b2b94c82e9a71bf2e8b87, type: 3}
+  - key: BossBattleScene_BGM
+    clip: {fileID: 8300000, guid: b3cce191094337142b2ec9eeb5b2adf0, type: 3}
+  - key: Lose_BGM
+    clip: {fileID: 8300000, guid: 858ba01e366666748bec492806e6b80e, type: 3}
+  - key: NormalEnemyBattleScene_BGM
+    clip: {fileID: 8300000, guid: 26f3c882f1f41304180016d69b21b5f2, type: 3}
+  - key: Win_BGM
+    clip: {fileID: 8300000, guid: c316ab40c2e006a42b8300bad35f7851, type: 3}
+  sfxClips:
+  - key: CardUse_SFX
+    clip: {fileID: 8300000, guid: ea9e01189616d4f4f805a9c6f1355df7, type: 3}
+  - key: Hit_SFX
+    clip: {fileID: 8300000, guid: 07784442910890c448b95ccae2ddbe0c, type: 3}
+  - key: Interaction_SFX
+    clip: {fileID: 8300000, guid: a76ace88f3acc1e4cbc8cc1571fcb1f6, type: 3}
+  sceneBgmMappings:
+  - sceneName: AdventureScene
+    bgmKey: AdventureScene_BGM
+  - sceneName: BattleScene
+    bgmKey: NormalEnemyBattleScene_BGM
+  - sceneName: BattleTest
+    bgmKey: NormalEnemyBattleScene_BGM
+  defaultBgmVolume: 0.7
+  defaultSfxVolume: 1

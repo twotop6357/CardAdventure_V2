@@ -170,12 +170,27 @@ namespace CardAdventure
             Player.DrawStartingHand();
             BattleStarted?.Invoke(this);
 
+            PlayBattleBgm();
+
             // waitForIntroDirector = true이면 BattleIntroDirector가
             // 연출 완료 후 BeginPlayerTurn()을 직접 호출한다.
             if (!waitForIntroDirector)
             {
                 BeginPlayerTurn();
             }
+        }
+
+        private void PlayBattleBgm()
+        {
+            string bgmKey = CardAdventure.Audio.AudioManager.BgmKeys.NormalEnemyBattle;
+            if (enemyData != null)
+            {
+                if (enemyData.enemyName == "벨카르온" || enemyData.enemyName == "Velkarion" || enemyData.isBoss)
+                {
+                    bgmKey = CardAdventure.Audio.AudioManager.BgmKeys.BossBattle;
+                }
+            }
+            CardAdventure.Audio.AudioManager.PlayBgmSafe(bgmKey);
         }
 
         public void BeginPlayerTurn()
@@ -320,6 +335,7 @@ namespace CardAdventure
             MoveResolvedCardToDestination(card);
 
             CardPlayed?.Invoke(this, card);
+            CardAdventure.Audio.AudioManager.PlaySfxSafe(CardAdventure.Audio.AudioManager.SfxKeys.CardUse);
             ResolveBattleEndOrNotify();
             return BattleCardPlayResult.Succeeded();
         }

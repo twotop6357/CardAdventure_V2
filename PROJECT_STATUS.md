@@ -1,3 +1,149 @@
+### 2026-05-20 (Antigravity - 배틀 씬 사운드/UI 폴리싱 및 동적 버튼 즉각적 클릭 효과음 적용 완료)
+
+#### 이번 작업 요약
+- **동적 생성 버튼 즉각 효과음 재생**: UI 활성화 시점에 컴포넌트를 즉각 부착하여 로딩 지연 없는 버튼 클릭 효과음 재생 보장.
+  - `BattleRewardUIController.cs`: 보상 카드 래퍼, 카드 삭제 버튼, 메뉴 선택 버튼 생성 시 훅 주입.
+  - `LobbyUIController.cs`: 동적 생성 예/아니오 팝업 버튼 생성 시 훅 주입.
+  - `EndingLicenseUI.cs`: 저장하기, 슬롯 선택, 닫기 버튼 생성 시 훅 주입.
+- **배틀 보상 및 삭제 카드 마우스 호버 피드백 추가**: 마우스 포인터 호버 시 카드 래퍼/카드 뷰의 Outline 색상을 금색(`Gold`)에서 청록색(`Cyan`)으로 즉각 전환해 주는 `RewardHoverFeedback` 인터랙션 컴포넌트 추가.
+- **배틀 결과 BGM 폴백 보강**: `BattleSceneConnector.cs`에서 `rewardUI` 컴포넌트가 누락된 경우에도 Win/Lose BGM이 재생된 후 안전하게 어드벤처 씬으로 복귀하도록 보완.
+
+#### 변경 파일
+- `Assets/Scripts/UI/BattleRewardUIController.cs` (`RewardHoverFeedback` 마우스 호버 이벤트 리팩토링 및 동적 생성 버튼 즉시 오디오 훅 부착) [MODIFY]
+- `Assets/Scripts/UI/LobbyUIController.cs` (팝업 버튼 생성 시 오디오 훅 즉각 부착) [MODIFY]
+- `Assets/Scripts/UI/EndingLicenseUI.cs` (저장하기, 슬롯, 닫기 버튼 생성 시 오디오 훅 즉각 부착) [MODIFY]
+- `Assets/Scripts/Battle/BattleSceneConnector.cs` (전투 종료 시 UI 연출 시스템 부재 시 BGM 폴백 연동) [MODIFY]
+
+#### 다음 에이전트 할 일
+- Phase 3 영속성 저장/불러오기(Save/Load) 및 슬롯 관리 UI, 회복 아이템 등 후속 마무리 진행.
+
+---
+
+### 2026-05-20 (Antigravity - 어드벤처 씬 오디오 연동 및 버튼 클릭 사운드 강건성 개선 완료)
+
+#### 이번 작업 요약
+- **어드벤처 씬 BGM 자동 연계**: `AudioLibrary` 매핑 규칙에 따라 `AdventureScene` 진입 시 `AdventureScene_BGM`이 자동 로드 및 재생되도록 검증.
+- **대화 스페이스바 진행 시 SFX 재생**: 대화창 최초 등장 시에는 `Interaction_SFX`를 재생하지 않고, 대화 진행을 위한 스페이스바 입력 상호작용 시에만 `Interaction_SFX`가 정상 출력되도록 `DialogueManager`에 구축된 연타 방지 가드 기반 사운드 격발 연계를 완료.
+- **버튼 클릭 효과음 강건성 개선 (`ButtonAudioHook` 도입)**:
+  - 기존의 `ButtonClickAudioInjector`가 `button.onClick.AddListener` 방식으로 등록하여, 대화창 선택지나 저장창, 설정창 등에서 외부 스크립트가 `RemoveAllListeners()`를 실행할 경우 효과음 재생까지 일괄 제거되던 문제를 원천 해결.
+  - Unity EventSystem 인터페이스(`IPointerDownHandler`, `ISubmitHandler`)를 상속받은 `ButtonAudioHook` 컴포넌트를 설계하고, 모든 UI 버튼에 동적 주입하는 방식으로 아키텍처 개편.
+  - **로비 씬 비활성화 버튼 이슈 원천 해결**: 로비 씬의 버튼들처럼 클릭 즉시 판넬을 비활성화하거나 씬을 전환하는 버튼들의 경우, 원래 동작 후 실행되는 `IPointerClickHandler`나 `isActiveAndEnabled` 체크 통과 실패로 효과음이 누락되는 문제가 발생함. 이를 이벤트 트리거 우선순위가 앞서는 `IPointerDownHandler` 기반으로 개편하고, 비활성화 체크를 예외 처리하여 클릭하는 찰나의 순간에 오디오가 정상 재생되도록 보장함.
+  - 외부의 어떠한 `RemoveAllListeners()` 호출 및 프레임 내 오브젝트 비활성화에도 지장을 받지 않고 안전하게 마우스 클릭 및 키보드/게임패드 제출 클릭 효과음(`Interaction_SFX`)이 누락 없이 출력되도록 보장.
+- **컴파일 무결성 확인**: Unity 스크립트 컴파일 및 Play Mode 실행 테스트를 거쳐 콘솔 경고 및 에러 없이 동작함을 검증.
+
+#### 변경 파일
+- `Assets/Scripts/Audio/ButtonClickAudioInjector.cs` (`ButtonAudioHook` 클래스 신설 및 버튼 컴포넌트 자동 주입 로직으로 전면 전환, `IPointerDownHandler` 기반으로 개편하여 비활성화 버튼 대응 완료) [MODIFY]
+- `Assets/Scripts/Audio/AudioManager.cs` (`LoadVolumesFromPrefs` 내부의 디버그용 로그 제거 및 최적화) [MODIFY]
+
+#### 다음 에이전트 할 일
+- Phase 3 영속성 저장/불러오기(Save/Load) 및 슬롯 관리 UI, 회복 아이템 등 후속 마무리 진행.
+
+---
+
+### 2026-05-20 (Claude Desktop - 설정 패널 BGM/SFX 볼륨 슬라이더 → AudioManager 연결 및 영속화)
+
+#### 이번 작업 요약
+- 설정 패널의 BGM/SFX 슬라이더가 실제 게임 사운드에 즉시 영향을 주고, PlayerPrefs 로 세션 간 유지되도록 연결.
+- `AudioManager` 에 볼륨 영속화 계층 추가:
+  - PlayerPrefs 키 상수 노출 (`PrefsBgmVolumeKey = "Audio.BgmVolume"`, `PrefsSfxVolumeKey = "Audio.SfxVolume"`).
+  - 부팅 시 `LoadVolumesFromPrefs(...)` 가 라이브러리 기본값을 PlayerPrefs 값으로 덮어쓰고 진행 중인 BGM/SFX 채널에도 즉시 반영. 저장값이 없으면 라이브러리 디폴트 사용.
+  - `SetBgmVolume` / `SetSfxVolume` 가 호출될 때마다 PlayerPrefs.SetFloat 로 즉시 영속화 (디스크 IO 절약을 위해 Save() 는 설정 패널 닫힐 때 한 번).
+  - 공개 getter `BgmVolume`, `SfxVolume`, `MasterVolume` 추가.
+- `SettingsUIController` 전면 재배선:
+  - Start 에서 슬라이더 minValue/maxValue = 0/1 강제, `SetValueWithoutNotify` 로 초기값 주입 (PlayerPrefs 중복 저장/이벤트 폭주 방지).
+  - 슬라이더 onValueChanged → `AudioManager.Instance.SetBgmVolume / SetSfxVolume` 호출. AudioManager 부재 시 PlayerPrefs 만 갱신하는 폴백 경로 보유.
+  - 기존 `AudioMixer` 필드는 호환을 위해 유지하되 옵셔널 처리 (할당돼 있으면 dB 환산 후 SetFloat, 비어 있으면 건너뜀).
+  - `Show()` 호출 시마다 `SyncSlidersFromAudioManager()` 로 슬라이더 위치를 최신 볼륨에 동기화 → 씬마다 다른 SettingsUIController 인스턴스가 만들어져도 일관성 유지.
+  - `RemoveListener` 선행으로 Setup 툴 재실행에 의한 중복 리스너 부착 방지.
+- BGM/SFX 는 각자 독립적인 채널과 PlayerPrefs 키를 가지므로 한쪽을 0 으로 내려도 다른 쪽은 영향받지 않음을 코드 경로상 보장.
+
+#### 변경 파일
+- `Assets/Scripts/Audio/AudioManager.cs` (PrefsBgmVolumeKey/PrefsSfxVolumeKey 상수, BgmVolume/SfxVolume 공개 getter, LoadVolumesFromPrefs 헬퍼, SetBgmVolume/SetSfxVolume 에 PlayerPrefs.SetFloat 추가)
+- `Assets/Scripts/UI/SettingsUIController.cs` (AudioManager 연결, SetValueWithoutNotify 초기화, Show 동기화, 중복 리스너 가드)
+
+#### 검증 결과
+- `validate_script standard`: `AudioManager.cs`, `SettingsUIController.cs` 모두 오류/경고 0건.
+- Unity 컴파일 후 Play Mode 진입 → 콘솔에 신규 오류/경고 없음 (MCP 클라이언트 로그만 출력).
+- Play Mode 종료 정상.
+- 슬라이더를 끝까지 내렸을 때 BGM/SFX 각각 0이 되는지, 다시 키울 때 즉시 반영되는지 등의 **사용자 조작 기반 시청각 검증은 미수행**. 다음 에이전트가 LobbyScene Play Mode 에서 다음 절차로 확인 필요:
+  1. ESC 메뉴(또는 로비 설정 버튼) → "설정" 진입
+  2. BGM 슬라이더 0 ↔ 1 이동하며 어드벤처 진입 후 BGM 음량 변화 확인 (로비는 BGM 없음으로 의도된 동작)
+  3. SFX 슬라이더 0 ↔ 1 이동 후 버튼 클릭 / 대화 스페이스로 Interaction_SFX 음량 변화 확인
+  4. 에디터 정지 후 재진입 시 마지막 슬라이더 위치가 그대로 복원되는지 확인
+
+#### 주의사항
+- 기존 씬에 이미 만들어진 InGameMenuCanvas 의 SettingsPanel 은 슬라이더 레퍼런스가 Setup 툴로 연결되어 있어 코드 수정만으로도 즉시 동작한다. 따로 Setup 재실행은 필요 없음 (단, 기존 슬라이더 minValue/maxValue 가 0/1 이 아니어도 Start 에서 강제 설정됨).
+- 향후 마스터 볼륨 슬라이더가 필요하면 `AudioManager.SetMasterVolume(float)` 가 이미 존재하므로 SettingsUIController 에 슬라이더 한 줄과 호출 한 줄만 추가하면 된다.
+
+---
+
+### 2026-05-20 (Claude Desktop - AudioManager에 AudioListener 폴백 추가 / "No audio listeners" 경고 해소)
+
+#### 이번 작업 요약
+- LobbyScene 의 Main Camera 에 `AudioListener` 가 없어 발생하던 콘솔 경고 `"There are no audio listeners in the scene. Please ensure there is always one audio listener in the scene"` 를 해소.
+- `AudioManager` 에 `EnsureAudioListener()` 추가: 부트스트랩 시점과 매 `OnSceneLoaded` 호출 시 씬 내의 활성 `AudioListener` 를 `FindObjectsByType(FindObjectsInactive.Include, ...)` 로 검사.
+  - 씬에 다른 활성 리스너가 있으면 AudioManager 의 폴백 리스너를 비활성화 → 향후 다른 씬의 Main Camera 에 리스너가 있어도 "두 개" 경고가 뜨지 않는다.
+  - 씬에 리스너가 없으면 AudioManager 자기 GameObject 에 `AudioListener` 를 부착(또는 재활성화).
+- `Bootstrap()` 에서도 `EnsureAudioListener()` 를 `ApplySceneBgm()` 직전에 호출하도록 보강.
+
+#### 변경 파일
+- `Assets/Scripts/Audio/AudioManager.cs` (fallbackListener 필드 + EnsureAudioListener 메서드 + Bootstrap/OnSceneLoaded 에서 호출)
+
+#### 검증 결과
+- `validate_script standard`: `AudioManager.cs` 오류/경고 0건.
+- Unity 컴파일 완료 후 Play Mode 진입 → 콘솔의 "no audio listeners" 경고 재현 안 됨 (filter "audio" 0건). 신규 오류·경고 0건.
+- Play Mode 종료 정상.
+
+#### 다음 에이전트 할 일
+- 변경 없음. 기존 다음 작업(보스 BGM 동적 교체, Win/Lose BGM, CardUse/Hit SFX 호출 지점 연결) 그대로 유효.
+
+---
+
+### 2026-05-20 (Claude Desktop - 오디오 시스템 1차 구축: AudioManager / AudioLibrary / 버튼·대화 SFX 자동 연동)
+
+#### 이번 작업 요약
+- **오디오 시스템 아키텍처 신설** (`Assets/Scripts/Audio/`).
+  - `AudioLibrary` ScriptableObject: BGM/SFX 클립을 키 기반 리스트로 보유. `씬 이름 → BGM 키` 매핑 테이블 포함. 매핑이 없는 씬은 BGM 정지(예: `LobbyScene`).
+  - `AudioManager` 싱글턴 (`RuntimeInitializeOnLoadMethod(AfterSceneLoad)` + `DontDestroyOnLoad`): 부팅 시 `Resources/AudioLibrary.asset` 자동 로드. `OnSceneLoaded`에서 매핑된 BGM 자동 전환. `PlayBgm/StopBgm/PlaySfx` + 정적 `*Safe` 헬퍼 제공.
+  - **SFX 덮어쓰기 규칙**: 클립별 AudioSource 풀(`Dictionary<string, AudioSource>`)을 두어 **같은 SFX 키는 자기 채널에서 Stop → Play 로 처음부터 재시작**하고, **다른 SFX 키는 별도 채널에서 동시 재생** 되도록 구현 (사용자 결정 사항).
+  - 마스터/BGM/SFX 볼륨 API 제공 (`SetMasterVolume`, `SetBgmVolume`, `SetSfxVolume`) — 향후 `SettingsUIController` 연동에 대비.
+- **버튼 클릭 SFX 자동 주입**: `ButtonClickAudioInjector` 가 `GlobalButtonHighlighter` 와 동일한 패턴으로 모든 `UnityEngine.UI.Button.onClick` 에 `Interaction_SFX` 리스너를 자동 부착. 씬 로드 시 1회 + 0.4초 주기 재스캔으로 동적 팝업 버튼까지 커버. 등록 중복 방지용 `HashSet<Button>` 트래킹.
+- **대화 스페이스바 SFX 연동**: `DialogueManager.HandleSpaceDuringDialogue` 에서 선택지 비활성 + 대화 진행 입력일 때만 `Interaction_SFX` 재생. 로비 인트로 대화는 `StartGameIntroController` 가 동일 `DialogueManager` 인스턴스를 사용하므로 자동 적용됨.
+- **에디터 도구 추가**: `CardAdventure/Audio/Build AudioLibrary From Folder` 메뉴. `Assets/Assets/Audios/` 의 모든 AudioClip을 스캔해 파일명 접미사(`_BGM`/`_SFX`)로 분류 후 `Assets/Resources/AudioLibrary.asset` 을 생성/갱신. 기존 매핑은 보존하고 신규 자산일 때만 `AdventureScene/BattleScene/BattleTest` 시드 매핑을 자동 추가. **LobbyScene 은 의도적으로 매핑하지 않아 BGM 미사용 정책을 유지**한다.
+
+#### 변경 파일
+- `Assets/Scripts/Audio/AudioLibrary.cs` [NEW]
+- `Assets/Scripts/Audio/AudioManager.cs` [NEW]
+- `Assets/Scripts/Audio/ButtonClickAudioInjector.cs` [NEW]
+- `Assets/Scripts/Editor/AudioLibraryBuilder.cs` [NEW]
+- `Assets/Scripts/Adventure/DialogueManager.cs` (using CardAdventure.Audio 추가 + HandleSpaceDuringDialogue 에 Interaction_SFX 호출) [MODIFY]
+
+#### 검증 결과
+- grep 확인:
+  - `AudioLibrary`, `AudioManager`, `ButtonClickAudioInjector` 가 `CardAdventure.Audio` 네임스페이스에 단일 존재. 기존 `UnityEngine.Audio` (`SettingsUIController.cs`) 와 네이밍 충돌 없음.
+  - `DialogueManager.cs:246` 에 `AudioManager.PlaySfxSafe(AudioManager.SfxKeys.Interaction)` 호출 정상 삽입.
+- 컴파일 검증: Unity 에디터에서 실제 컴파일/플레이는 **미검증** (다음 에이전트가 에디터에서 확인 필요).
+
+#### 다음 에이전트 할 일 (오디오 시스템 마무리)
+1. **Unity 에디터에서 메뉴 실행**: `CardAdventure → Audio → Build AudioLibrary From Folder` 클릭.
+   - 콘솔에 `BGM 5개 / SFX 3개 등록 완료 → Assets/Resources/AudioLibrary.asset` 메시지가 떠야 한다.
+   - 생성된 `AudioLibrary.asset` 인스펙터에서 매핑이 다음과 같은지 확인:
+     - AdventureScene → `AdventureScene_BGM`
+     - BattleScene → `NormalEnemyBattleScene_BGM`
+     - BattleTest → `NormalEnemyBattleScene_BGM`
+     - LobbyScene 매핑 없음(의도)
+2. **로비 동작 확인**: LobbyScene 진입 시 BGM 무음, 새 게임 → 인트로 대화에서 스페이스 입력마다 `Interaction_SFX` 재생, 어떤 버튼이든 클릭 시 동일 SFX 재생, 빠르게 연타해도 처음부터 깔끔히 다시 재생되는지 확인.
+3. **다음 단계 (별도 작업)**: 보스전 BGM 동적 교체(시험관·매직 크로우 진입 시 `BossBattleScene_BGM`), 전투 결과 BGM(`Win_BGM`/`Lose_BGM`), 카드 사용 시 `CardUse_SFX`, 피격 시 `Hit_SFX` 호출 지점 연결 — 본 작업 범위 외.
+
+#### 주의사항 / 확장 가이드
+- 새 BGM/SFX를 추가하려면 `Assets/Assets/Audios/` 에 `*_BGM.*` 또는 `*_SFX.*` 형식으로 파일을 넣고 위 메뉴를 다시 실행하면 된다. **코드 수정 불필요**.
+- 새 씬에 BGM을 붙이려면 `AudioLibrary.asset` 인스펙터의 `Scene Bgm Mappings` 에 행을 추가한다.
+- 호출부에서는 키 오타 방지를 위해 `AudioManager.SfxKeys.*` / `AudioManager.BgmKeys.*` 상수를 사용한다.
+- `ButtonClickAudioInjector` 는 모든 `Button` 에 일괄 부착되므로, 특정 버튼만 SFX를 끄고 싶다면 해당 버튼 클릭 핸들러에서 별도 처리 필요(현재 그런 케이스 없음).
+- 본 작업은 **로비 우선 적용 + 다른 씬 확장 대비** 한정. 보스/배틀/카드 사용 등 후속 연결은 미진행.
+
+---
+
 ### 2026-05-19 (Codex - ChaserNPC 두 번째 이벤트 배틀 진입 수정)
 
 #### 이번 작업 요약

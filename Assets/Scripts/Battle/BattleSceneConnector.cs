@@ -140,6 +140,7 @@ namespace CardAdventure
                 }
                 else
                 {
+                    CardAdventure.Audio.AudioManager.PlayBgmSafe(CardAdventure.Audio.AudioManager.BgmKeys.Win);
                     Invoke(nameof(ReturnToAdventure), 1.5f);
                 }
             }
@@ -153,6 +154,7 @@ namespace CardAdventure
                 }
                 else
                 {
+                    CardAdventure.Audio.AudioManager.PlayBgmSafe(CardAdventure.Audio.AudioManager.BgmKeys.Lose);
                     Invoke(nameof(ReturnToAdventure), 1.5f);
                 }
             }
